@@ -104,6 +104,7 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
   const [currentStep, setCurrentStep] = useState(initialData?.draftStep || 1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<boolean[]>(Array(TOTAL_STEPS).fill(false));
 
   const methods = useForm<FormData>({
     resolver: zodResolver(intakeSchema),
@@ -357,6 +358,26 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
     mode: "onBlur",
   });
 
+  // Check if a specific step is complete
+  const checkStepCompletion = (stepIndex: number, values: FormData): boolean => {
+    const schema = stepSchemas[stepIndex];
+    try {
+      schema.parse(values);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // Update completed steps status
+  const updateCompletedSteps = () => {
+    const values = methods.getValues();
+    const newCompletedSteps = stepSchemas.map((_, index) =>
+      checkStepCompletion(index, values)
+    );
+    setCompletedSteps(newCompletedSteps);
+  };
+
   // Load initial data if editing a draft
   useEffect(() => {
     if (initialData) {
@@ -373,6 +394,22 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
       methods.reset(formattedData as FormData);
     }
   }, [initialData, methods]);
+
+  // Watch for form changes and update completed steps
+  useEffect(() => {
+    const subscription = methods.watch(() => {
+      updateCompletedSteps();
+    });
+    // Initial check
+    updateCompletedSteps();
+    return () => subscription.unsubscribe();
+  }, [methods]);
+
+  // Handle clicking on a step to navigate
+  const handleStepClick = (step: number) => {
+    setCurrentStep(step);
+    window.scrollTo(0, 0);
+  };
 
   const validateCurrentStep = async (): Promise<boolean> => {
     const schema = stepSchemas[currentStep - 1];
@@ -547,6 +584,8 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
               currentStep={currentStep}
               totalSteps={TOTAL_STEPS}
               stepLabels={STEP_LABELS}
+              completedSteps={completedSteps}
+              onStepClick={handleStepClick}
             />
           </CardContent>
         </Card>
