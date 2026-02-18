@@ -26,6 +26,7 @@ const SUBSTANCES = [
   "Amphetamines (Meth, Ice, Crank)",
   "Alcohol",
   "Cocaine/Crack",
+  "Fentanyl",
   "Heroin",
   "Marijuana",
   "Opioid Pain Medications",
