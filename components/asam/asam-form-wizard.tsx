@@ -237,11 +237,21 @@ export function ASAMFormWizard({ assessmentId, initialData }: ASAMFormWizardProp
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
+        const errorMessages: string[] = [];
         error.issues.forEach((issue) => {
           methods.setError(issue.path.join(".") as keyof FormData, {
             type: "manual",
             message: issue.message,
           });
+          errorMessages.push(`${issue.path.join(".")}: ${issue.message}`);
+        });
+
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: errorMessages.length > 0
+            ? `Please fix the following: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` and ${errorMessages.length - 3} more...` : ""}`
+            : "Please fill in all required fields.",
         });
       }
       return false;
