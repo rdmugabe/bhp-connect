@@ -159,6 +159,7 @@ export async function POST(request: NextRequest) {
         // Demographics
         patientName: validatedData.patientName || "Draft Assessment",
         dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : new Date(),
+        admissionDate: validatedData.admissionDate ? new Date(validatedData.admissionDate) : null,
         phoneNumber: validatedData.phoneNumber,
         okayToLeaveVoicemail: validatedData.okayToLeaveVoicemail,
         patientAddress: validatedData.patientAddress,

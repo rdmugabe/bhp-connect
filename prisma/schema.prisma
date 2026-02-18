@@ -656,6 +656,7 @@ model ASAMAssessment {
   // Demographics
   patientName       String
   assessmentDate    DateTime  @default(now())
+  admissionDate     DateTime?
   phoneNumber       String?
   okayToLeaveVoicemail Boolean @default(false)
   patientAddress    String?   @db.Text

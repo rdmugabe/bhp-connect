@@ -74,6 +74,7 @@ export function ASAMFormWizard({ assessmentId, initialData }: ASAMFormWizardProp
       // Step 1: Demographics
       patientName: "",
       assessmentDate: new Date().toISOString().split("T")[0],
+      admissionDate: "",
       phoneNumber: "",
       okayToLeaveVoicemail: false,
       patientAddress: "",

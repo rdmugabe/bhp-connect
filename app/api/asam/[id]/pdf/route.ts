@@ -82,6 +82,8 @@ export async function GET(
       id: assessment.id,
       patientName: assessment.patientName,
       dateOfBirth: assessment.dateOfBirth.toISOString(),
+      admissionDate: assessment.admissionDate?.toISOString() || null,
+      assessmentDate: assessment.assessmentDate.toISOString(),
       phoneNumber: assessment.phoneNumber,
       okayToLeaveVoicemail: assessment.okayToLeaveVoicemail,
       patientAddress: assessment.patientAddress,

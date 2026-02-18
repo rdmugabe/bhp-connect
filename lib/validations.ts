@@ -876,6 +876,7 @@ export type MeetingUpdateInput = z.infer<typeof meetingUpdateSchema>;
 export const asamStep1Schema = z.object({
   patientName: z.string().min(2, "Patient name is required"),
   assessmentDate: z.string().optional(),
+  admissionDate: z.string().optional(),
   phoneNumber: z.string().optional(),
   okayToLeaveVoicemail: z.boolean().optional(),
   patientAddress: z.string().optional(),

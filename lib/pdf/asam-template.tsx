@@ -273,6 +273,8 @@ interface ASAMData {
   id: string;
   patientName: string;
   dateOfBirth: string;
+  admissionDate: string | null;
+  assessmentDate: string;
   phoneNumber: string | null;
   okayToLeaveVoicemail: boolean;
   patientAddress: string | null;
@@ -473,17 +475,17 @@ function Header({ data, showConfidential = false }: { data: ASAMData; showConfid
         </View>
         <View style={styles.headerInfoItem}>
           <Text style={styles.headerInfoLabel}>Assessment Date:</Text>
-          <Text style={styles.headerInfoValue}>{formatDate(data.createdAt)}</Text>
+          <Text style={styles.headerInfoValue}>{formatDate(data.assessmentDate)}</Text>
+        </View>
+        <View style={styles.headerInfoItem}>
+          <Text style={styles.headerInfoLabel}>Admission Date:</Text>
+          <Text style={styles.headerInfoValue}>{data.admissionDate ? formatDate(data.admissionDate) : "N/A"}</Text>
         </View>
       </View>
       <View style={styles.headerInfo}>
         <View style={styles.headerInfoItem}>
           <Text style={styles.headerInfoLabel}>Recommended LOC:</Text>
           <Text style={styles.headerInfoValue}>{data.recommendedLevelOfCare || "N/A"}</Text>
-        </View>
-        <View style={styles.headerInfoItem}>
-          <Text style={styles.headerInfoLabel}>Status:</Text>
-          <Text style={styles.headerInfoValue}>{data.status}</Text>
         </View>
       </View>
       {showConfidential && (

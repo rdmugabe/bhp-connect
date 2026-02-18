@@ -62,6 +62,19 @@ export function Step1Demographics() {
             />
             <FormField
               control={control}
+              name="admissionDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Admission Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
               name="age"
               render={({ field }) => (
                 <FormItem>

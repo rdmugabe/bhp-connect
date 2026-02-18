@@ -119,6 +119,7 @@ export async function PATCH(
             status: isDraft ? "DRAFT" : existingAssessment.status,
             patientName: validatedData.patientName || existingAssessment.patientName,
             dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : existingAssessment.dateOfBirth,
+            admissionDate: validatedData.admissionDate ? new Date(validatedData.admissionDate) : existingAssessment.admissionDate,
             phoneNumber: validatedData.phoneNumber,
             okayToLeaveVoicemail: validatedData.okayToLeaveVoicemail,
             patientAddress: validatedData.patientAddress,
@@ -334,6 +335,7 @@ export async function PATCH(
           // Demographics
           patientName: validatedData.patientName || existingAssessment.patientName,
           dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : existingAssessment.dateOfBirth,
+          admissionDate: validatedData.admissionDate ? new Date(validatedData.admissionDate) : existingAssessment.admissionDate,
           phoneNumber: validatedData.phoneNumber,
           okayToLeaveVoicemail: validatedData.okayToLeaveVoicemail,
           patientAddress: validatedData.patientAddress,
