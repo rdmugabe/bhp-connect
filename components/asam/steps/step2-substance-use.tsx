@@ -79,6 +79,7 @@ export function Step2SubstanceUse() {
                     frequency: "",
                     ageFirstUse: "",
                     lastUse: "",
+                    amount: "",
                   })
                 }
               >
@@ -184,6 +185,18 @@ export function Step2SubstanceUse() {
                         <FormLabel>Date of Last Use</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name={`substanceUseHistory.${index}.amount`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Amount</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., $40/day, 6-pack" {...field} />
                         </FormControl>
                       </FormItem>
                     )}
