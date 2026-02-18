@@ -83,7 +83,7 @@ export function Step2Contact() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Contact Preference</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select preference" />

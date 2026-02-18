@@ -95,7 +95,7 @@ export function Step1Demographics() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Sex</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select sex" />
@@ -120,7 +120,7 @@ export function Step1Demographics() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Sexual Orientation</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select orientation" />
@@ -144,7 +144,7 @@ export function Step1Demographics() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Ethnicity</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select ethnicity" />
@@ -168,7 +168,7 @@ export function Step1Demographics() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Primary Language</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select language" />

@@ -71,7 +71,7 @@ export function Step6Relapse() {
                   <FormLabel>
                     In the last 30 days, how often have you experienced cravings, withdrawal symptoms, or disturbing effects from alcohol?
                   </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select frequency" />
@@ -97,7 +97,7 @@ export function Step6Relapse() {
                   <FormLabel>
                     In the last 30 days, how often have you experienced cravings, withdrawal symptoms, or disturbing effects from drugs?
                   </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select frequency" />

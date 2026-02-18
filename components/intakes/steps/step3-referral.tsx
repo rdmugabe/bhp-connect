@@ -116,7 +116,7 @@ export function Step3Referral() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Resident Expected Length of Stay</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select expected LOS" />
@@ -141,7 +141,7 @@ export function Step3Referral() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Team Expected Length of Stay</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select expected LOS" />

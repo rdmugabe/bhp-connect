@@ -174,7 +174,7 @@ export function Step12Wellness() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Feedback Frequency</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select frequency" />

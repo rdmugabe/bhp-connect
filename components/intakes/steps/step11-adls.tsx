@@ -89,7 +89,7 @@ export function Step11ADLs() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Transportation</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select transportation method" />
@@ -127,7 +127,7 @@ export function Step11ADLs() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Eating</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -150,7 +150,7 @@ export function Step11ADLs() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bathing</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -173,7 +173,7 @@ export function Step11ADLs() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Dressing</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -196,7 +196,7 @@ export function Step11ADLs() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Toileting</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -219,7 +219,7 @@ export function Step11ADLs() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Transferring</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -242,7 +242,7 @@ export function Step11ADLs() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Continence</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -277,7 +277,7 @@ export function Step11ADLs() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Overall Support Level Needed</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select support level" />

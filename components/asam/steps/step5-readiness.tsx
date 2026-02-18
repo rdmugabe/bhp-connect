@@ -280,7 +280,7 @@ export function Step5Readiness() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Alcohol Problems</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select importance" />
@@ -304,7 +304,7 @@ export function Step5Readiness() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Drug Problems</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select importance" />

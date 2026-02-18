@@ -103,7 +103,7 @@ export function Step2SubstanceUse() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Substance</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || undefined}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select substance" />
@@ -126,7 +126,7 @@ export function Step2SubstanceUse() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Route</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || undefined}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select route" />
@@ -149,7 +149,7 @@ export function Step2SubstanceUse() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Frequency</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || undefined}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select frequency" />

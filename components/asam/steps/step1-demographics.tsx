@@ -97,7 +97,7 @@ export function Step1Demographics() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Gender</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select gender" />
@@ -121,7 +121,7 @@ export function Step1Demographics() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Race/Ethnicity</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select race/ethnicity" />
@@ -148,7 +148,7 @@ export function Step1Demographics() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Preferred Language</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select language" />
@@ -264,7 +264,7 @@ export function Step1Demographics() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Insurance Type</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select insurance type" />
@@ -312,7 +312,7 @@ export function Step1Demographics() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Living Arrangement</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select living arrangement" />

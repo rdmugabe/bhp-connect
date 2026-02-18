@@ -45,7 +45,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bathing/Showering</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -68,7 +68,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Grooming</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -91,7 +91,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Dressing</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -114,7 +114,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Toileting</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -137,7 +137,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Oral Care</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -173,7 +173,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Meal Preparation</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -196,7 +196,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Housekeeping</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -219,7 +219,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Laundry</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -242,7 +242,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Money Management</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -265,7 +265,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Transportation</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -288,7 +288,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Communication</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />
@@ -311,7 +311,7 @@ export function Step7Skills() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Medication Management</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level" />

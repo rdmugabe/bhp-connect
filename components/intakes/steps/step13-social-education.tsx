@@ -104,7 +104,7 @@ export function Step13SocialEducation() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Relationship Status</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
@@ -171,7 +171,7 @@ export function Step13SocialEducation() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Highest Level of Education</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select education level" />

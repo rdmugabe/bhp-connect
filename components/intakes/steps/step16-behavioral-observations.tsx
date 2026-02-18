@@ -40,7 +40,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Appears Age</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -90,7 +90,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Attire</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -114,7 +114,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Grooming/Hygiene</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -156,7 +156,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Mood (self-reported)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -184,7 +184,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Affect (observed)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -209,7 +209,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Eye Contact</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -233,7 +233,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cooperation</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -276,7 +276,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Articulation</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -299,7 +299,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tone</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -322,7 +322,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Rate</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -345,7 +345,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Latency</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -386,7 +386,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Gait</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -410,7 +410,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Posture</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -433,7 +433,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Activity Level</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -457,7 +457,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Mannerisms</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -499,7 +499,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Thought Content</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -523,7 +523,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Thought Process</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -548,7 +548,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Delusions</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -573,7 +573,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Perceptions</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -597,7 +597,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Judgment</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -620,7 +620,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Impulse Control</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -643,7 +643,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Insight</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
@@ -666,7 +666,7 @@ export function Step16BehavioralObservations() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Estimated Intelligence</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />

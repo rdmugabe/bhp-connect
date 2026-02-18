@@ -89,7 +89,7 @@ export function Step9Developmental() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Developmental Milestones</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -112,7 +112,7 @@ export function Step9Developmental() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Immunization Status</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />

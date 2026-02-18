@@ -145,7 +145,7 @@ export function Step4Medical() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Route</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || undefined}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select route" />
@@ -249,7 +249,7 @@ export function Step4Medical() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Medical Urgency Level</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || undefined}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select urgency level" />
