@@ -41,3 +41,11 @@ next-env.d.ts
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+prisma/backups/
+
+# Client data (PHI - Protected Health Information)
+Clients/
+
+# Templates and backup files
+templates/
+*-backup.tsx
