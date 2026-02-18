@@ -77,7 +77,7 @@ export function Step2SubstanceUse() {
                     priorUse: false,
                     route: "",
                     frequency: "",
-                    duration: "",
+                    ageFirstUse: "",
                     lastUse: "",
                   })
                 }
@@ -166,12 +166,12 @@ export function Step2SubstanceUse() {
                   />
                   <FormField
                     control={control}
-                    name={`substanceUseHistory.${index}.duration`}
+                    name={`substanceUseHistory.${index}.ageFirstUse`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Duration of Use</FormLabel>
+                        <FormLabel>Age of First Use</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., 5 years" {...field} />
+                          <Input type="number" placeholder="e.g., 18" {...field} />
                         </FormControl>
                       </FormItem>
                     )}
