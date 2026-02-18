@@ -73,13 +73,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f7fafc",
     padding: 4,
   },
-  subSectionTitle: {
-    fontSize: 9,
-    fontWeight: "bold",
-    color: "#2d3748",
-    marginBottom: 4,
-    marginTop: 6,
-  },
   row: {
     flexDirection: "row",
     marginBottom: 4,
@@ -96,10 +89,6 @@ const styles = StyleSheet.create({
   twoColumn: {
     flexDirection: "row",
     gap: 10,
-  },
-  threeColumn: {
-    flexDirection: "row",
-    gap: 8,
   },
   column: {
     flex: 1,
@@ -130,6 +119,53 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: "#718096",
     textAlign: "center",
+  },
+  table: {
+    marginTop: 6,
+  },
+  tableHeader: {
+    flexDirection: "row",
+    backgroundColor: "#edf2f7",
+    padding: 4,
+    fontWeight: "bold",
+    fontSize: 8,
+  },
+  tableRow: {
+    flexDirection: "row",
+    padding: 4,
+    borderBottom: "1 solid #e2e8f0",
+    fontSize: 8,
+  },
+  subSectionTitle: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#2d3748",
+    marginBottom: 4,
+    marginTop: 6,
+  },
+  checklistItem: {
+    flexDirection: "row",
+    marginBottom: 2,
+    fontSize: 8,
+  },
+  checklistLabel: {
+    width: "40%",
+    color: "#4a5568",
+  },
+  checklistValue: {
+    width: "60%",
+  },
+  phq9Section: {
+    marginTop: 6,
+    marginBottom: 12,
+    padding: 6,
+    backgroundColor: "#f0fff4",
+    borderRadius: 3,
+  },
+  phq9Score: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#1a365d",
   },
   signatureSection: {
     marginTop: 15,
@@ -174,67 +210,6 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: "#4a5568",
   },
-  checklistItem: {
-    flexDirection: "row",
-    marginBottom: 2,
-    fontSize: 8,
-  },
-  checklistLabel: {
-    width: "40%",
-    color: "#4a5568",
-  },
-  checklistValue: {
-    width: "60%",
-  },
-  table: {
-    marginTop: 4,
-    marginBottom: 8,
-  },
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#e2e8f0",
-    padding: 4,
-    fontWeight: "bold",
-    fontSize: 8,
-  },
-  tableRow: {
-    flexDirection: "row",
-    padding: 4,
-    borderBottom: "1 solid #e2e8f0",
-    fontSize: 8,
-  },
-  phq9Section: {
-    marginTop: 6,
-    marginBottom: 12,
-    padding: 6,
-    backgroundColor: "#f0fff4",
-    borderRadius: 3,
-  },
-  phq9Score: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#1a365d",
-  },
-  riskBadge: {
-    padding: 4,
-    borderRadius: 3,
-    marginBottom: 4,
-  },
-  riskBadgeHigh: {
-    backgroundColor: "#fed7d7",
-  },
-  riskBadgeLow: {
-    backgroundColor: "#c6f6d5",
-  },
-  observationGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 4,
-  },
-  observationItem: {
-    width: "48%",
-    marginBottom: 3,
-  },
 });
 
 const PHQ9_QUESTIONS = [
@@ -254,12 +229,12 @@ interface IntakeData {
   residentName: string;
   ssn: string | null;
   dateOfBirth: string;
+  admissionDate: string | null;
   sex: string | null;
   ethnicity: string | null;
   language: string | null;
   religion: string | null;
   sexualOrientation: string | null;
-  // Contact Info
   patientAddress: string | null;
   patientPhone: string | null;
   patientEmail: string | null;
@@ -272,7 +247,6 @@ interface IntakeData {
   primaryCarePhysicianPhone: string | null;
   caseManagerName: string | null;
   caseManagerPhone: string | null;
-  // Insurance
   insuranceProvider: string | null;
   policyNumber: string | null;
   groupNumber: string | null;
@@ -281,7 +255,6 @@ interface IntakeData {
   hasAdvancedDirective: boolean;
   hasWill: boolean;
   poaLegalGuardian: string | null;
-  // Referral
   referralSource: string | null;
   evaluatorName: string | null;
   evaluatorCredentials: string | null;
@@ -291,7 +264,6 @@ interface IntakeData {
   teamExpectedLOS: string | null;
   strengthsAndLimitations: string | null;
   familyInvolved: string | null;
-  // Behavioral Symptoms
   reasonForServices: string | null;
   currentBehavioralSymptoms: string | null;
   copingWithSymptoms: string | null;
@@ -300,9 +272,8 @@ interface IntakeData {
   signsOfImprovement: string | null;
   assistanceExpectations: string | null;
   involvedInTreatment: string | null;
-  // Medical
   allergies: string | null;
-  medications: { name: string; dosage?: string | null; frequency?: string | null; route?: string | null }[];
+  medications: { name: string; dosage?: string | null; frequency?: string | null; route?: string | null }[] | null;
   historyNonCompliance: boolean;
   potentialViolence: boolean;
   medicalUrgency: string | null;
@@ -312,13 +283,11 @@ interface IntakeData {
   height: string | null;
   weight: string | null;
   bmi: string | null;
-  // Psychiatric
   isCOT: boolean;
   personalPsychHX: string | null;
   familyPsychHX: string | null;
   treatmentPreferences: string | null;
   psychMedicationEfficacy: string | null;
-  // Risk Assessment
   suicideHistory: string | null;
   suicideAttemptDetails: string | null;
   currentSuicideIdeation: boolean;
@@ -337,7 +306,6 @@ interface IntakeData {
   dutyToWarnDetails: string | null;
   previousHospitalizations: string | null;
   hospitalizationDetails: string | null;
-  // Developmental
   inUteroExposure: boolean;
   inUteroExposureDetails: string | null;
   developmentalMilestones: string | null;
@@ -355,18 +323,14 @@ interface IntakeData {
   socialSkillsDeficits: boolean;
   socialSkillsDetails: string | null;
   immunizationStatus: string | null;
-  // Skills
   hygieneSkills: Record<string, string> | null;
   skillsContinuation: Record<string, string> | null;
-  // PHQ-9
   phq9Responses: number[] | null;
   phq9TotalScore: number | null;
-  // Treatment
   treatmentObjectives: string | null;
   dischargePlanObjectives: string | null;
   supportSystem: string | null;
   communityResources: string | null;
-  // Social/Education
   childhoodDescription: string | null;
   abuseHistory: string | null;
   familyMentalHealthHistory: string | null;
@@ -383,7 +347,6 @@ interface IntakeData {
   employmentDetails: string | null;
   workVolunteerHistory: string | null;
   employmentBarriers: string | null;
-  // Legal/Substance
   criminalLegalHistory: string | null;
   courtOrderedTreatment: boolean;
   courtOrderedDetails: string | null;
@@ -397,7 +360,6 @@ interface IntakeData {
   nicotineDetails: string | null;
   substanceImpact: string | null;
   historyOfAbuse: string | null;
-  // Living/ADLs
   livingArrangements: string | null;
   sourceOfFinances: string | null;
   transportationMethod: string | null;
@@ -407,7 +369,6 @@ interface IntakeData {
   supportLevel: string | null;
   typicalDay: string | null;
   strengthsAbilitiesInterests: string | null;
-  // Behavioral Observations
   appearanceAge: string | null;
   appearanceHeight: string | null;
   appearanceWeight: string | null;
@@ -438,10 +399,8 @@ interface IntakeData {
   cognitionInsight: string | null;
   cognitionDescription: string | null;
   estimatedIntelligence: string | null;
-  // Diagnosis & Treatment
   diagnosis: string | null;
   treatmentRecommendation: string | null;
-  // Wellness
   healthNeeds: string | null;
   nutritionalNeeds: string | null;
   spiritualNeeds: string | null;
@@ -451,14 +410,7 @@ interface IntakeData {
   crisisInterventionPlan: string | null;
   feedbackFrequency: string | null;
   dischargePlanning: string | null;
-  signatures: {
-    clientSignature?: string;
-    clientSignatureDate?: string;
-    assessorSignature?: string;
-    assessorSignatureDate?: string;
-    clinicalOversightSignature?: string;
-    clinicalOversightSignatureDate?: string;
-  } | null;
+  signatures: Record<string, string> | null;
   status: "DRAFT" | "PENDING" | "APPROVED" | "CONDITIONAL" | "DENIED";
   decisionReason: string | null;
   decidedAt: string | null;
@@ -476,6 +428,7 @@ function formatDate(dateString: string): string {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "UTC",
   });
 }
 
@@ -487,8 +440,7 @@ function getPHQ9Severity(score: number): string {
   return "Severe depression";
 }
 
-// Reusable header component
-function Header({ data, showConfidential = false }: { data: IntakeData; showConfidential?: boolean }) {
+function Header({ data }: { data: IntakeData }) {
   return (
     <View style={styles.header} fixed>
       <Text style={styles.title}>Full Intake Assessment</Text>
@@ -497,50 +449,31 @@ function Header({ data, showConfidential = false }: { data: IntakeData; showConf
       </Text>
       <View style={styles.headerInfo}>
         <View style={styles.headerInfoItem}>
-          <Text style={styles.headerInfoLabel}>Client Name:</Text>
+          <Text style={styles.headerInfoLabel}>Client:</Text>
           <Text style={styles.headerInfoValue}>{data.residentName}</Text>
-        </View>
-        <View style={styles.headerInfoItem}>
-          <Text style={styles.headerInfoLabel}>Diagnosis:</Text>
-          <Text style={styles.headerInfoValue}>
-            {data.diagnosis
-              ? data.diagnosis.substring(0, 50) + (data.diagnosis.length > 50 ? "..." : "")
-              : data.personalPsychHX
-              ? data.personalPsychHX.substring(0, 50) + (data.personalPsychHX.length > 50 ? "..." : "")
-              : "N/A"}
-          </Text>
         </View>
         <View style={styles.headerInfoItem}>
           <Text style={styles.headerInfoLabel}>DOB:</Text>
           <Text style={styles.headerInfoValue}>{formatDate(data.dateOfBirth)}</Text>
         </View>
-      </View>
-      <View style={styles.headerInfo}>
         <View style={styles.headerInfoItem}>
-          <Text style={styles.headerInfoLabel}>AHCCCS:</Text>
+          <Text style={styles.headerInfoLabel}>Admission:</Text>
+          <Text style={styles.headerInfoValue}>{data.admissionDate ? formatDate(data.admissionDate) : "N/A"}</Text>
+        </View>
+        <View style={styles.headerInfoItem}>
+          <Text style={styles.headerInfoLabel}>AHCCCS ID:</Text>
           <Text style={styles.headerInfoValue}>{data.policyNumber || "N/A"}</Text>
         </View>
-        <View style={styles.headerInfoItem}>
-          <Text style={styles.headerInfoLabel}>Health Plan:</Text>
-          <Text style={styles.headerInfoValue}>{data.ahcccsHealthPlan || "N/A"}</Text>
-        </View>
-        <View style={styles.headerInfoItem}>
-          <Text style={styles.headerInfoLabel}>Admission Date:</Text>
-          <Text style={styles.headerInfoValue}>{formatDate(data.createdAt)}</Text>
-        </View>
       </View>
-      {showConfidential && (
-        <View style={styles.confidentialBanner}>
-          <Text style={styles.confidentialText}>
-            CONFIDENTIAL - PROTECTED HEALTH INFORMATION (PHI)
-          </Text>
-        </View>
-      )}
+      <View style={styles.confidentialBanner}>
+        <Text style={styles.confidentialText}>
+          CONFIDENTIAL - PROTECTED HEALTH INFORMATION (PHI)
+        </Text>
+      </View>
     </View>
   );
 }
 
-// Reusable footer component
 function Footer({ id }: { id: string }) {
   return (
     <View style={styles.footer} fixed>
@@ -559,11 +492,11 @@ export function IntakePDF({ data }: { data: IntakeData }) {
   return (
     <Document>
       <Page size="LETTER" style={styles.page} wrap>
-        <Header data={data} showConfidential />
+        <Header data={data} />
         <Footer id={data.id} />
 
         {/* Demographics */}
-        <View style={styles.section} wrap={false}>
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>DEMOGRAPHICS</Text>
           <View style={styles.twoColumn}>
             <View style={styles.column}>
@@ -583,10 +516,6 @@ export function IntakePDF({ data }: { data: IntakeData }) {
                 <Text style={styles.label}>Sex:</Text>
                 <Text style={styles.value}>{data.sex || "N/A"}</Text>
               </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Sexual Orientation:</Text>
-                <Text style={styles.value}>{data.sexualOrientation || "N/A"}</Text>
-              </View>
             </View>
             <View style={styles.column}>
               <View style={styles.row}>
@@ -601,24 +530,15 @@ export function IntakePDF({ data }: { data: IntakeData }) {
                 <Text style={styles.label}>Religion:</Text>
                 <Text style={styles.value}>{data.religion || "N/A"}</Text>
               </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Submitted:</Text>
-                <Text style={styles.value}>{formatDate(data.createdAt)}</Text>
-              </View>
             </View>
           </View>
         </View>
 
         {/* Contact Information */}
-        <View style={styles.section} wrap={false}>
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>CONTACT INFORMATION</Text>
           <View style={styles.twoColumn}>
             <View style={styles.column}>
-              <Text style={styles.subSectionTitle}>Patient Contact</Text>
-              <View style={styles.row}>
-                <Text style={styles.label}>Address:</Text>
-                <Text style={styles.value}>{data.patientAddress || "N/A"}</Text>
-              </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Phone:</Text>
                 <Text style={styles.value}>{data.patientPhone || "N/A"}</Text>
@@ -627,250 +547,85 @@ export function IntakePDF({ data }: { data: IntakeData }) {
                 <Text style={styles.label}>Email:</Text>
                 <Text style={styles.value}>{data.patientEmail || "N/A"}</Text>
               </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Contact Preference:</Text>
-                <Text style={styles.value}>{data.contactPreference || "N/A"}</Text>
-              </View>
             </View>
             <View style={styles.column}>
-              <Text style={styles.subSectionTitle}>Emergency Contact</Text>
               <View style={styles.row}>
-                <Text style={styles.label}>Name:</Text>
+                <Text style={styles.label}>Emergency Contact:</Text>
                 <Text style={styles.value}>{data.emergencyContactName || "N/A"}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={styles.label}>Relationship:</Text>
-                <Text style={styles.value}>{data.emergencyContactRelationship || "N/A"}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Phone:</Text>
+                <Text style={styles.label}>Emergency Phone:</Text>
                 <Text style={styles.value}>{data.emergencyContactPhone || "N/A"}</Text>
               </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Address:</Text>
-                <Text style={styles.value}>{data.emergencyContactAddress || "N/A"}</Text>
-              </View>
             </View>
           </View>
-          <View style={styles.twoColumn}>
-            <View style={styles.column}>
-              <Text style={styles.subSectionTitle}>Primary Care Physician</Text>
-              <View style={styles.row}>
-                <Text style={styles.label}>Name:</Text>
-                <Text style={styles.value}>{data.primaryCarePhysician || "N/A"}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Phone:</Text>
-                <Text style={styles.value}>{data.primaryCarePhysicianPhone || "N/A"}</Text>
-              </View>
+          {data.patientAddress && (
+            <View style={styles.textBlock}>
+              <Text style={styles.textBlockLabel}>Address:</Text>
+              <Text style={styles.textBlockValue}>{data.patientAddress}</Text>
             </View>
-            <View style={styles.column}>
-              <Text style={styles.subSectionTitle}>Case Manager</Text>
-              <View style={styles.row}>
-                <Text style={styles.label}>Name:</Text>
-                <Text style={styles.value}>{data.caseManagerName || "N/A"}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Phone:</Text>
-                <Text style={styles.value}>{data.caseManagerPhone || "N/A"}</Text>
-              </View>
-            </View>
-          </View>
+          )}
         </View>
 
-        {/* Insurance & Directives */}
-        <View style={styles.section} wrap={false}>
-          <Text style={styles.sectionTitle}>INSURANCE & DIRECTIVES</Text>
+        {/* Insurance */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>INSURANCE INFORMATION</Text>
           <View style={styles.twoColumn}>
             <View style={styles.column}>
               <View style={styles.row}>
-                <Text style={styles.label}>Insurance Provider:</Text>
+                <Text style={styles.label}>Provider:</Text>
                 <Text style={styles.value}>{data.insuranceProvider || "N/A"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Policy Number:</Text>
                 <Text style={styles.value}>{data.policyNumber || "N/A"}</Text>
               </View>
+            </View>
+            <View style={styles.column}>
+              <View style={styles.row}>
+                <Text style={styles.label}>Health Plan:</Text>
+                <Text style={styles.value}>{data.ahcccsHealthPlan || "N/A"}</Text>
+              </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Group Number:</Text>
                 <Text style={styles.value}>{data.groupNumber || "N/A"}</Text>
               </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>AHCCCS Health Plan:</Text>
-                <Text style={styles.value}>{data.ahcccsHealthPlan || "N/A"}</Text>
-              </View>
-            </View>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>DNR on File:</Text>
-                <Text style={styles.value}>{data.hasDNR ? "Yes" : "No"}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Advanced Directive:</Text>
-                <Text style={styles.value}>{data.hasAdvancedDirective ? "Yes" : "No"}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Will on File:</Text>
-                <Text style={styles.value}>{data.hasWill ? "Yes" : "No"}</Text>
-              </View>
             </View>
           </View>
-          {data.poaLegalGuardian && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>POA / Legal Guardian:</Text>
-              <Text style={styles.textBlockValue}>{data.poaLegalGuardian}</Text>
-            </View>
-          )}
         </View>
 
-        {/* Referral */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>REFERRAL INFORMATION</Text>
-          <View style={styles.twoColumn}>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>Referral Source:</Text>
-                <Text style={styles.value}>{data.referralSource || "N/A"}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Evaluator Name:</Text>
-                <Text style={styles.value}>{data.evaluatorName || "N/A"}</Text>
-              </View>
-            </View>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>Evaluator Credentials:</Text>
-                <Text style={styles.value}>{data.evaluatorCredentials || "N/A"}</Text>
-              </View>
-            </View>
-          </View>
-          {data.reasonsForReferral && (
+        {/* Referral Information */}
+        {data.reasonsForReferral && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>REFERRAL INFORMATION</Text>
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>Reasons for Referral:</Text>
               <Text style={styles.textBlockValue}>{data.reasonsForReferral}</Text>
             </View>
-          )}
-          {data.residentNeeds && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Resident Needs:</Text>
-              <Text style={styles.textBlockValue}>{data.residentNeeds}</Text>
-            </View>
-          )}
-          <View style={styles.twoColumn}>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>Resident Expected LOS:</Text>
-                <Text style={styles.value}>{data.residentExpectedLOS || "N/A"}</Text>
+            {data.residentNeeds && (
+              <View style={styles.textBlock}>
+                <Text style={styles.textBlockLabel}>Resident Needs:</Text>
+                <Text style={styles.textBlockValue}>{data.residentNeeds}</Text>
               </View>
-            </View>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>Team Expected LOS:</Text>
-                <Text style={styles.value}>{data.teamExpectedLOS || "N/A"}</Text>
-              </View>
-            </View>
+            )}
           </View>
-          {data.strengthsAndLimitations && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Strengths and Limitations:</Text>
-              <Text style={styles.textBlockValue}>{data.strengthsAndLimitations}</Text>
-            </View>
-          )}
-          {data.familyInvolved && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Family Involvement:</Text>
-              <Text style={styles.textBlockValue}>{data.familyInvolved}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Behavioral Health Symptoms */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>BEHAVIORAL HEALTH SYMPTOMS</Text>
-          {data.reasonForServices && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Reason for Services:</Text>
-              <Text style={styles.textBlockValue}>{data.reasonForServices}</Text>
-            </View>
-          )}
-          {data.currentBehavioralSymptoms && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Current Behavioral Symptoms:</Text>
-              <Text style={styles.textBlockValue}>{data.currentBehavioralSymptoms}</Text>
-            </View>
-          )}
-          {data.copingWithSymptoms && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Coping with Symptoms:</Text>
-              <Text style={styles.textBlockValue}>{data.copingWithSymptoms}</Text>
-            </View>
-          )}
-          {data.symptomsLimitations && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Symptoms Limitations:</Text>
-              <Text style={styles.textBlockValue}>{data.symptomsLimitations}</Text>
-            </View>
-          )}
-          {data.immediateUrgentNeeds && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Immediate/Urgent Needs:</Text>
-              <Text style={styles.textBlockValue}>{data.immediateUrgentNeeds}</Text>
-            </View>
-          )}
-          {data.signsOfImprovement && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Signs of Improvement:</Text>
-              <Text style={styles.textBlockValue}>{data.signsOfImprovement}</Text>
-            </View>
-          )}
-          {data.assistanceExpectations && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Assistance Expectations:</Text>
-              <Text style={styles.textBlockValue}>{data.assistanceExpectations}</Text>
-            </View>
-          )}
-          {data.involvedInTreatment && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Involved in Treatment:</Text>
-              <Text style={styles.textBlockValue}>{data.involvedInTreatment}</Text>
-            </View>
-          )}
-        </View>
+        )}
 
         {/* Medical Information */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>MEDICAL INFORMATION</Text>
-          <View style={styles.twoColumn}>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>Height:</Text>
-                <Text style={styles.value}>{data.height || "N/A"}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Weight:</Text>
-                <Text style={styles.value}>{data.weight || "N/A"}</Text>
-              </View>
-            </View>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>BMI:</Text>
-                <Text style={styles.value}>{data.bmi || "N/A"}</Text>
-              </View>
-            </View>
-          </View>
           {data.allergies && (
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>Allergies:</Text>
               <Text style={styles.textBlockValue}>{data.allergies}</Text>
             </View>
           )}
-          {data.medicalConditions && (
+          {data.personalMedicalHX && (
             <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Medical Conditions:</Text>
-              <Text style={styles.textBlockValue}>{data.medicalConditions}</Text>
+              <Text style={styles.textBlockLabel}>Medical History:</Text>
+              <Text style={styles.textBlockValue}>{data.personalMedicalHX}</Text>
             </View>
           )}
-
           {data.medications && data.medications.length > 0 && (
             <View style={styles.table}>
               <Text style={styles.textBlockLabel}>Current Medications:</Text>
@@ -890,74 +645,20 @@ export function IntakePDF({ data }: { data: IntakeData }) {
               ))}
             </View>
           )}
-
-          <View style={styles.twoColumn}>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>History of Non-Compliance:</Text>
-                <Text style={styles.value}>{data.historyNonCompliance ? "Yes" : "No"}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Potential for Violence:</Text>
-                <Text style={styles.value}>{data.potentialViolence ? "Yes" : "No"}</Text>
-              </View>
-            </View>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>Medical Urgency:</Text>
-                <Text style={styles.value}>{data.medicalUrgency || "N/A"}</Text>
-              </View>
-            </View>
-          </View>
-
-          {data.personalMedicalHX && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Personal Medical History:</Text>
-              <Text style={styles.textBlockValue}>{data.personalMedicalHX}</Text>
-            </View>
-          )}
-          {data.familyMedicalHX && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Family Medical History:</Text>
-              <Text style={styles.textBlockValue}>{data.familyMedicalHX}</Text>
-            </View>
-          )}
         </View>
 
-        {/* Psychiatric */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>PSYCHIATRIC PRESENTATION</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Court Ordered Treatment (COT):</Text>
-            <Text style={styles.value}>{data.isCOT ? "Yes" : "No"}</Text>
-          </View>
-          {data.personalPsychHX && (
+        {/* Psychiatric Information */}
+        {data.personalPsychHX && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>PSYCHIATRIC HISTORY</Text>
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>Personal Psychiatric History:</Text>
               <Text style={styles.textBlockValue}>{data.personalPsychHX}</Text>
             </View>
-          )}
-          {data.familyPsychHX && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Family Psychiatric History:</Text>
-              <Text style={styles.textBlockValue}>{data.familyPsychHX}</Text>
-            </View>
-          )}
-          {data.treatmentPreferences && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Treatment Preferences:</Text>
-              <Text style={styles.textBlockValue}>{data.treatmentPreferences}</Text>
-            </View>
-          )}
-          {data.psychMedicationEfficacy && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Psychiatric Medication Efficacy:</Text>
-              <Text style={styles.textBlockValue}>{data.psychMedicationEfficacy}</Text>
-            </View>
-          )}
-        </View>
+          </View>
+        )}
 
-        {/* Risk Assessment - Enhanced */}
+        {/* Risk Assessment */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>RISK ASSESSMENT</Text>
 
@@ -1163,7 +864,7 @@ export function IntakePDF({ data }: { data: IntakeData }) {
         </View>
 
         {/* Skills Assessment */}
-        <View style={styles.section} wrap={false}>
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>SKILLS ASSESSMENT</Text>
           <View style={styles.twoColumn}>
             <View style={styles.column}>
@@ -1191,7 +892,7 @@ export function IntakePDF({ data }: { data: IntakeData }) {
 
         {/* PHQ-9 */}
         {data.phq9Responses && data.phq9TotalScore !== null && (
-          <View style={styles.phq9Section} wrap={false}>
+          <View style={styles.phq9Section}>
             <Text style={styles.sectionTitle}>PHQ-9 DEPRESSION SCREENING</Text>
             <View style={styles.twoColumn}>
               <View style={styles.column}>
@@ -1444,7 +1145,7 @@ export function IntakePDF({ data }: { data: IntakeData }) {
             <View style={styles.twoColumn}>
               <View style={styles.column}>
                 {Object.entries(data.adlChecklist)
-                  .slice(0, 3)
+                  .slice(0, Math.ceil(Object.keys(data.adlChecklist).length / 2))
                   .map(([key, value]) => (
                     <View key={key} style={styles.checklistItem}>
                       <Text style={styles.checklistLabel}>{key}:</Text>
@@ -1454,7 +1155,7 @@ export function IntakePDF({ data }: { data: IntakeData }) {
               </View>
               <View style={styles.column}>
                 {Object.entries(data.adlChecklist)
-                  .slice(3)
+                  .slice(Math.ceil(Object.keys(data.adlChecklist).length / 2))
                   .map(([key, value]) => (
                     <View key={key} style={styles.checklistItem}>
                       <Text style={styles.checklistLabel}>{key}:</Text>
@@ -1651,79 +1352,57 @@ export function IntakePDF({ data }: { data: IntakeData }) {
           )}
         </View>
 
-        {/* Diagnosis & Treatment Recommendation */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>DIAGNOSIS & TREATMENT RECOMMENDATION</Text>
-          {data.diagnosis && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Diagnosis:</Text>
-              <Text style={styles.textBlockValue}>{data.diagnosis}</Text>
-            </View>
-          )}
-          {data.treatmentRecommendation && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Treatment Recommendation:</Text>
-              <Text style={styles.textBlockValue}>{data.treatmentRecommendation}</Text>
-            </View>
-          )}
-        </View>
+        {/* Diagnosis & Treatment */}
+        {(data.diagnosis || data.treatmentRecommendation) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>DIAGNOSIS & TREATMENT</Text>
+            {data.diagnosis && (
+              <View style={styles.textBlock}>
+                <Text style={styles.textBlockLabel}>Diagnosis:</Text>
+                <Text style={styles.textBlockValue}>{data.diagnosis}</Text>
+              </View>
+            )}
+            {data.treatmentRecommendation && (
+              <View style={styles.textBlock}>
+                <Text style={styles.textBlockLabel}>Treatment Recommendation:</Text>
+                <Text style={styles.textBlockValue}>{data.treatmentRecommendation}</Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Wellness */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>WELLNESS & NEEDS</Text>
-          <View style={styles.twoColumn}>
-            <View style={styles.column}>
-              {data.healthNeeds && (
-                <View style={styles.textBlock}>
-                  <Text style={styles.textBlockLabel}>Health Needs:</Text>
-                  <Text style={styles.textBlockValue}>{data.healthNeeds}</Text>
-                </View>
-              )}
-              {data.nutritionalNeeds && (
-                <View style={styles.textBlock}>
-                  <Text style={styles.textBlockLabel}>Nutritional Needs:</Text>
-                  <Text style={styles.textBlockValue}>{data.nutritionalNeeds}</Text>
-                </View>
-              )}
-              {data.spiritualNeeds && (
-                <View style={styles.textBlock}>
-                  <Text style={styles.textBlockLabel}>Spiritual Needs:</Text>
-                  <Text style={styles.textBlockValue}>{data.spiritualNeeds}</Text>
-                </View>
-              )}
+          {data.healthNeeds && (
+            <View style={styles.textBlock}>
+              <Text style={styles.textBlockLabel}>Health Needs:</Text>
+              <Text style={styles.textBlockValue}>{data.healthNeeds}</Text>
             </View>
-            <View style={styles.column}>
-              {data.culturalNeeds && (
-                <View style={styles.textBlock}>
-                  <Text style={styles.textBlockLabel}>Cultural Needs:</Text>
-                  <Text style={styles.textBlockValue}>{data.culturalNeeds}</Text>
-                </View>
-              )}
-              {data.educationHistory && (
-                <View style={styles.textBlock}>
-                  <Text style={styles.textBlockLabel}>Education History:</Text>
-                  <Text style={styles.textBlockValue}>{data.educationHistory}</Text>
-                </View>
-              )}
-              {data.vocationalHistory && (
-                <View style={styles.textBlock}>
-                  <Text style={styles.textBlockLabel}>Vocational History:</Text>
-                  <Text style={styles.textBlockValue}>{data.vocationalHistory}</Text>
-                </View>
-              )}
+          )}
+          {data.nutritionalNeeds && (
+            <View style={styles.textBlock}>
+              <Text style={styles.textBlockLabel}>Nutritional Needs:</Text>
+              <Text style={styles.textBlockValue}>{data.nutritionalNeeds}</Text>
             </View>
-          </View>
+          )}
+          {data.spiritualNeeds && (
+            <View style={styles.textBlock}>
+              <Text style={styles.textBlockLabel}>Spiritual Needs:</Text>
+              <Text style={styles.textBlockValue}>{data.spiritualNeeds}</Text>
+            </View>
+          )}
+          {data.culturalNeeds && (
+            <View style={styles.textBlock}>
+              <Text style={styles.textBlockLabel}>Cultural Needs:</Text>
+              <Text style={styles.textBlockValue}>{data.culturalNeeds}</Text>
+            </View>
+          )}
         </View>
 
         {/* Crisis & Discharge */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>CRISIS & DISCHARGE PLANNING</Text>
-          {data.crisisInterventionPlan && (
-            <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Crisis Intervention Plan:</Text>
-              <Text style={styles.textBlockValue}>{data.crisisInterventionPlan}</Text>
-            </View>
-          )}
           <View style={styles.row}>
             <Text style={styles.label}>Feedback Frequency:</Text>
             <Text style={styles.value}>{data.feedbackFrequency || "N/A"}</Text>
@@ -1736,69 +1415,12 @@ export function IntakePDF({ data }: { data: IntakeData }) {
           )}
         </View>
 
-        {/* Signatures Section */}
-        <View style={styles.signatureSection} wrap={false}>
+        {/* Signatures */}
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>SIGNATURES</Text>
-
-          {/* Client Signature */}
-          <View style={styles.signatureRow}>
-            <View style={styles.signatureBlock}>
-              {data.signatures?.clientSignature ? (
-                <Text style={styles.signatureValue}>{data.signatures.clientSignature}</Text>
-              ) : (
-                <View style={styles.signatureLine} />
-              )}
-              <Text style={styles.signatureLabel}>Client/Guardian Signature</Text>
-            </View>
-            <View style={styles.dateBlock}>
-              {data.signatures?.clientSignatureDate ? (
-                <Text style={styles.signatureValue}>{formatDate(data.signatures.clientSignatureDate)}</Text>
-              ) : (
-                <View style={styles.dateLine} />
-              )}
-              <Text style={styles.dateLabel}>Date</Text>
-            </View>
-          </View>
-
-          {/* Assessment Completed By */}
-          <View style={styles.signatureRow}>
-            <View style={styles.signatureBlock}>
-              {data.signatures?.assessorSignature ? (
-                <Text style={styles.signatureValue}>{data.signatures.assessorSignature}</Text>
-              ) : (
-                <View style={styles.signatureLine} />
-              )}
-              <Text style={styles.signatureLabel}>Assessment Completed By</Text>
-            </View>
-            <View style={styles.dateBlock}>
-              {data.signatures?.assessorSignatureDate ? (
-                <Text style={styles.signatureValue}>{formatDate(data.signatures.assessorSignatureDate)}</Text>
-              ) : (
-                <View style={styles.dateLine} />
-              )}
-              <Text style={styles.dateLabel}>Date</Text>
-            </View>
-          </View>
-
-          {/* Clinical Oversight BHP Reviewer */}
-          <View style={styles.signatureRow}>
-            <View style={styles.signatureBlock}>
-              {data.signatures?.clinicalOversightSignature ? (
-                <Text style={styles.signatureValue}>{data.signatures.clinicalOversightSignature}</Text>
-              ) : (
-                <View style={styles.signatureLine} />
-              )}
-              <Text style={styles.signatureLabel}>Clinical Oversight / BHP Reviewer</Text>
-            </View>
-            <View style={styles.dateBlock}>
-              {data.signatures?.clinicalOversightSignatureDate ? (
-                <Text style={styles.signatureValue}>{formatDate(data.signatures.clinicalOversightSignatureDate)}</Text>
-              ) : (
-                <View style={styles.dateLine} />
-              )}
-              <Text style={styles.dateLabel}>Date</Text>
-            </View>
-          </View>
+          <Text style={{ fontSize: 8, marginBottom: 15 }}>Client/Guardian: _________________________________ Date: _____________</Text>
+          <Text style={{ fontSize: 8, marginBottom: 15 }}>Assessment Completed By: _________________________ Date: _____________</Text>
+          <Text style={{ fontSize: 8 }}>Clinical Oversight / BHP Reviewer: __________________ Date: _____________</Text>
         </View>
       </Page>
     </Document>

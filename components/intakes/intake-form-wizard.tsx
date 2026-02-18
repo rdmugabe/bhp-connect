@@ -112,6 +112,7 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
       residentName: "",
       ssn: "",
       dateOfBirth: "",
+      admissionDate: "",
       sex: "",
       sexualOrientation: "",
       ethnicity: "Native American",
@@ -364,6 +365,9 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
         ...initialData,
         dateOfBirth: initialData.dateOfBirth
           ? new Date(initialData.dateOfBirth).toISOString().split("T")[0]
+          : "",
+        admissionDate: initialData.admissionDate
+          ? new Date(initialData.admissionDate).toISOString().split("T")[0]
           : "",
       };
       methods.reset(formattedData as FormData);

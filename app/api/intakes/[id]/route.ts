@@ -114,6 +114,9 @@ export async function PATCH(
             dateOfBirth: validatedData.dateOfBirth
               ? new Date(validatedData.dateOfBirth)
               : intake.dateOfBirth,
+            admissionDate: validatedData.admissionDate
+              ? new Date(validatedData.admissionDate)
+              : intake.admissionDate,
             sex: validatedData.sex,
             ethnicity: validatedData.ethnicity,
             language: validatedData.language,
@@ -412,6 +415,7 @@ export async function PATCH(
             residentName: validatedData.residentName || intake.residentName,
             ssn: validatedData.ssn,
             dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : intake.dateOfBirth,
+            admissionDate: validatedData.admissionDate ? new Date(validatedData.admissionDate) : intake.admissionDate,
             sex: validatedData.sex,
             ethnicity: validatedData.ethnicity,
             language: validatedData.language,

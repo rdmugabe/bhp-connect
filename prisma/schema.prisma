@@ -159,10 +159,11 @@ model Intake {
   facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Demographics
-  residentName String
-  ssn          String?  // Last 4 digits only
-  dateOfBirth  DateTime
-  sex          String?
+  residentName  String
+  ssn           String?  // Last 4 digits only
+  dateOfBirth   DateTime
+  admissionDate DateTime?
+  sex           String?
   ethnicity    String?
   language     String?
   religion     String?

@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
           residentName: validatedData.residentName || "Draft Intake",
           ssn: validatedData.ssn,
           dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : new Date(),
+          admissionDate: validatedData.admissionDate ? new Date(validatedData.admissionDate) : null,
           sex: validatedData.sex,
           ethnicity: validatedData.ethnicity,
           language: validatedData.language,

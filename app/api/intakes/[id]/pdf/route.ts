@@ -27,7 +27,11 @@ export async function GET(
           include: {
             bhp: {
               include: {
-                user: true,
+                user: {
+                  select: {
+                    name: true,
+                  },
+                },
               },
             },
           },
@@ -62,12 +66,21 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Helper to convert empty objects/arrays to null
+    const emptyToNull = <T>(val: T): T | null => {
+      if (val === null || val === undefined) return null;
+      if (Array.isArray(val) && val.length === 0) return null;
+      if (typeof val === 'object' && !(val instanceof Date) && Object.keys(val as object).length === 0) return null;
+      return val;
+    };
+
     // Prepare PDF data - include all fields from intake
     const pdfData = {
       id: intake.id,
       residentName: intake.residentName,
       ssn: intake.ssn,
       dateOfBirth: intake.dateOfBirth.toISOString(),
+      admissionDate: intake.admissionDate?.toISOString() || null,
       sex: intake.sex,
       ethnicity: intake.ethnicity,
       language: intake.language,
@@ -116,13 +129,13 @@ export async function GET(
       involvedInTreatment: intake.involvedInTreatment,
       // Medical
       allergies: intake.allergies,
-      medications: intake.medications,
+      medications: emptyToNull(intake.medications) as { name: string; dosage?: string | null; frequency?: string | null; route?: string | null }[] | null,
       historyNonCompliance: intake.historyNonCompliance,
       potentialViolence: intake.potentialViolence,
       medicalUrgency: intake.medicalUrgency,
       personalMedicalHX: intake.personalMedicalHX,
       familyMedicalHX: intake.familyMedicalHX,
-      medicalConditions: intake.medicalConditions ? JSON.stringify(intake.medicalConditions) : null,
+      medicalConditions: emptyToNull(intake.medicalConditions) ? JSON.stringify(intake.medicalConditions) : null,
       height: intake.height,
       weight: intake.weight,
       bmi: intake.bmi,
@@ -140,14 +153,14 @@ export async function GET(
       mostRecentSuicideIdeation: intake.mostRecentSuicideIdeation,
       historySelfHarm: intake.historySelfHarm,
       selfHarmDetails: intake.selfHarmDetails,
-      dtsRiskFactors: intake.dtsRiskFactors as Record<string, boolean> | null,
-      dtsProtectiveFactors: intake.dtsProtectiveFactors as Record<string, boolean> | null,
+      dtsRiskFactors: emptyToNull(intake.dtsRiskFactors) as Record<string, boolean> | null,
+      dtsProtectiveFactors: emptyToNull(intake.dtsProtectiveFactors) as Record<string, boolean> | null,
       // Risk Assessment - DTO
       historyHarmingOthers: intake.historyHarmingOthers,
       harmingOthersDetails: intake.harmingOthersDetails,
       homicidalIdeation: intake.homicidalIdeation,
       homicidalIdeationDetails: intake.homicidalIdeationDetails,
-      dtoRiskFactors: intake.dtoRiskFactors as Record<string, boolean> | null,
+      dtoRiskFactors: emptyToNull(intake.dtoRiskFactors) as Record<string, boolean> | null,
       dutyToWarnCompleted: intake.dutyToWarnCompleted,
       dutyToWarnDetails: intake.dutyToWarnDetails,
       previousHospitalizations: intake.previousHospitalizations,
@@ -171,10 +184,10 @@ export async function GET(
       socialSkillsDetails: intake.socialSkillsDetails,
       immunizationStatus: intake.immunizationStatus,
       // Skills
-      hygieneSkills: intake.hygieneSkills as Record<string, string> | null,
-      skillsContinuation: intake.skillsContinuation as Record<string, string> | null,
+      hygieneSkills: emptyToNull(intake.hygieneSkills) as Record<string, string> | null,
+      skillsContinuation: emptyToNull(intake.skillsContinuation) as Record<string, string> | null,
       // PHQ-9
-      phq9Responses: intake.phq9Responses as number[] | null,
+      phq9Responses: emptyToNull(intake.phq9Responses) as number[] | null,
       phq9TotalScore: intake.phq9TotalScore,
       // Treatment
       treatmentObjectives: intake.treatmentObjectives,
@@ -204,7 +217,7 @@ export async function GET(
       courtOrderedDetails: intake.courtOrderedDetails,
       otherLegalIssues: intake.otherLegalIssues,
       substanceHistory: intake.substanceHistory,
-      substanceUseTable: intake.substanceUseTable as Record<string, unknown>[] | null,
+      substanceUseTable: emptyToNull(intake.substanceUseTable) as Record<string, unknown>[] | null,
       drugOfChoice: intake.drugOfChoice,
       longestSobriety: intake.longestSobriety,
       substanceTreatmentHistory: intake.substanceTreatmentHistory,
@@ -216,7 +229,7 @@ export async function GET(
       livingArrangements: intake.livingArrangements,
       sourceOfFinances: intake.sourceOfFinances,
       transportationMethod: intake.transportationMethod,
-      adlChecklist: intake.adlChecklist as Record<string, string> | null,
+      adlChecklist: emptyToNull(intake.adlChecklist) as Record<string, string> | null,
       preferredActivities: intake.preferredActivities,
       significantOthers: intake.significantOthers,
       supportLevel: intake.supportLevel,
@@ -267,7 +280,7 @@ export async function GET(
       crisisInterventionPlan: intake.crisisInterventionPlan,
       feedbackFrequency: intake.feedbackFrequency,
       dischargePlanning: intake.dischargePlanning,
-      signatures: intake.signatures as Record<string, string> | null,
+      signatures: emptyToNull(intake.signatures) as Record<string, string> | null,
       // Status
       status: intake.status as "DRAFT" | "PENDING" | "APPROVED" | "CONDITIONAL" | "DENIED",
       decisionReason: intake.decisionReason,
@@ -277,11 +290,11 @@ export async function GET(
         name: intake.facility.name,
         address: intake.facility.address,
       },
-      bhpName: intake.facility.bhp.user.name,
+      bhpName: intake.facility.bhp?.user?.name || "Unknown BHP",
     };
 
     // Generate PDF
-    const pdfBuffer = await renderToBuffer(IntakePDF({ data: pdfData }));
+    const pdfBuffer = await renderToBuffer(IntakePDF({ data: pdfData as unknown as Parameters<typeof IntakePDF>[0]['data'] }));
 
     // Log the PDF download for HIPAA compliance
     await createAuditLog({
@@ -314,9 +327,11 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("PDF generation error:", error);
+    console.error("Generate Intake PDF error:", error);
+    console.error("Error stack:", error instanceof Error ? error.stack : "No stack");
+    console.error("Error message:", error instanceof Error ? error.message : String(error));
     return NextResponse.json(
-      { error: "Failed to generate PDF" },
+      { error: "Failed to generate PDF", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
