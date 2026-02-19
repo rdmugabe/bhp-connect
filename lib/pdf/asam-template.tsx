@@ -368,7 +368,7 @@ interface ASAMData {
   relapseWithoutTreatment: boolean;
   relapseDetails: string | null;
   awareOfTriggers: boolean;
-  triggersList: string | null;
+  triggersList: Record<string, boolean | string> | null;
   copingWithTriggers: string | null;
   attemptsToControl: string | null;
   longestSobriety: string | null;
@@ -948,10 +948,15 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
             </View>
           </View>
 
-          {isNonEmptyString(data.triggersList) && (
+          {isValidRecord(data.triggersList) && (
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>Triggers:</Text>
-              <Text style={styles.textBlockValue}>{data.triggersList}</Text>
+              <Text style={styles.textBlockValue}>
+                {[
+                  ...getCheckedItems(data.triggersList),
+                  ...(data.triggersList?.other && typeof data.triggersList.other === 'string' ? [`Other: ${data.triggersList.other}`] : []),
+                ].join(", ") || "None identified"}
+              </Text>
             </View>
           )}
           {data.copingWithTriggers && (
