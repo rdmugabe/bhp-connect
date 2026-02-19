@@ -535,6 +535,31 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           </View>
         </View>
 
+        <View style={styles.signatureSection} wrap={false}>
+          <View style={styles.signatureRow}>
+            <View style={styles.signatureBlock}>
+              <Text style={styles.prefilledName}>{data.employeeName}</Text>
+              <Text style={styles.signatureLabel}>Applicant Name (Printed)</Text>
+            </View>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureLabel}>Applicant Signature</Text>
+            </View>
+            <View style={{ width: 120 }}>
+              <View style={styles.dateLine} />
+              <Text style={styles.signatureLabel}>Date</Text>
+            </View>
+          </View>
+        </View>
+
+        <PageFooter pageNum={2} />
+      </Page>
+
+      <Page size="LETTER" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>EMPLOYEE APPLICATION (Continued)</Text>
+        </View>
+
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Education</Text>
         </View>
@@ -575,14 +600,6 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
             </View>
           </View>
         ))}
-
-        <PageFooter pageNum={2} />
-      </Page>
-
-      <Page size="LETTER" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.title}>EMPLOYEE APPLICATION (Continued)</Text>
-        </View>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>References</Text>
