@@ -12,13 +12,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export function Step1Demographics() {
   const { control } = useFormContext();
@@ -97,20 +90,9 @@ export function Step1Demographics() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Gender</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Male">Male</SelectItem>
-                      <SelectItem value="Female">Female</SelectItem>
-                      <SelectItem value="Non-binary">Non-binary</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                      <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input placeholder="e.g., Male, Female, Non-binary" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -121,23 +103,9 @@ export function Step1Demographics() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Race/Ethnicity</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select race/ethnicity" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Native American">Native American</SelectItem>
-                      <SelectItem value="Asian">Asian</SelectItem>
-                      <SelectItem value="Black/African American">Black/African American</SelectItem>
-                      <SelectItem value="Hispanic/Latino">Hispanic/Latino</SelectItem>
-                      <SelectItem value="Pacific Islander">Pacific Islander</SelectItem>
-                      <SelectItem value="White">White</SelectItem>
-                      <SelectItem value="Multi-racial">Multi-racial</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input placeholder="e.g., White, Hispanic/Latino, Black/African American" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -148,19 +116,9 @@ export function Step1Demographics() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Preferred Language</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="English">English</SelectItem>
-                      <SelectItem value="Spanish">Spanish</SelectItem>
-                      <SelectItem value="Navajo">Navajo</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input placeholder="e.g., English, Spanish, Navajo" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -264,21 +222,9 @@ export function Step1Demographics() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Insurance Type</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select insurance type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="None">None</SelectItem>
-                      <SelectItem value="AHCCCS">AHCCCS</SelectItem>
-                      <SelectItem value="Medicare">Medicare</SelectItem>
-                      <SelectItem value="AIHP">AIHP</SelectItem>
-                      <SelectItem value="Private">Private</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input placeholder="e.g., AHCCCS, Medicare, Private, None" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -312,21 +258,9 @@ export function Step1Demographics() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Living Arrangement</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select living arrangement" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Homeless">Homeless</SelectItem>
-                      <SelectItem value="Independent living">Independent living</SelectItem>
-                      <SelectItem value="With family">With family</SelectItem>
-                      <SelectItem value="Sober living">Sober living</SelectItem>
-                      <SelectItem value="Shelter">Shelter</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input placeholder="e.g., Homeless, Independent living, With family" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
