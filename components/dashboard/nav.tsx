@@ -18,6 +18,7 @@ import {
   UserCheck,
   Video,
   Activity,
+  UserPlus,
 } from "lucide-react";
 
 interface NavItem {
@@ -93,6 +94,11 @@ const bhrfNavItems: NavItem[] = [
     title: "Residents",
     href: "/facility/residents",
     icon: Users2,
+  },
+  {
+    title: "Onboarding",
+    href: "/facility/onboarding",
+    icon: UserPlus,
   },
   {
     title: "Intakes",
