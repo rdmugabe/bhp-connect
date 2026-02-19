@@ -261,12 +261,13 @@ const styles = StyleSheet.create({
 
 interface SubstanceUseEntry {
   substance: string;
-  routeOfAdministration?: string;
-  ageFirstUsed?: string;
-  ageRegularUse?: string;
+  route?: string;
+  ageFirstUse?: string;
   lastUse?: string;
   frequency?: string;
   amount?: string;
+  recentlyUsed?: boolean;
+  priorUse?: boolean;
 }
 
 interface ASAMData {
@@ -323,7 +324,7 @@ interface ASAMData {
   // Dimension 3
   moodSymptoms: Record<string, boolean> | null;
   anxietySymptoms: Record<string, boolean> | null;
-  psychosisSymptoms: Record<string, boolean> | null;
+  psychosisSymptoms: Record<string, boolean | string> | null;
   otherSymptoms: Record<string, boolean> | null;
   suicidalThoughts: boolean;
   suicidalThoughtsDetails: string | null;
@@ -443,10 +444,10 @@ function getSeverityLabel(severity: number | null): string {
   return labels[severity] || "Not Rated";
 }
 
-function getCheckedItems(record: Record<string, boolean> | null | undefined): string[] {
+function getCheckedItems(record: Record<string, boolean | string> | null | undefined): string[] {
   if (!record || typeof record !== 'object' || Object.keys(record).length === 0) return [];
   return Object.entries(record)
-    .filter(([, v]) => v)
+    .filter(([, v]) => v === true)
     .map(([k]) => k.replace(/([A-Z])/g, " $1").trim());
 }
 
@@ -617,23 +618,21 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
             <View style={styles.table}>
               <Text style={styles.textBlockLabel}>Substance Use History:</Text>
               <View style={styles.tableHeader}>
-                <Text style={{ width: "18%" }}>Substance</Text>
+                <Text style={{ width: "22%" }}>Substance</Text>
                 <Text style={{ width: "14%" }}>Route</Text>
-                <Text style={{ width: "14%" }}>First Use</Text>
-                <Text style={{ width: "14%" }}>Regular</Text>
-                <Text style={{ width: "14%" }}>Last Use</Text>
-                <Text style={{ width: "14%" }}>Frequency</Text>
-                <Text style={{ width: "12%" }}>Amount</Text>
+                <Text style={{ width: "14%" }}>First Use Age</Text>
+                <Text style={{ width: "16%" }}>Last Use</Text>
+                <Text style={{ width: "16%" }}>Frequency</Text>
+                <Text style={{ width: "18%" }}>Amount</Text>
               </View>
               {data.substanceUseHistory.map((entry, idx) => (
                 <View key={idx} style={styles.tableRow}>
-                  <Text style={{ width: "18%" }}>{entry.substance}</Text>
-                  <Text style={{ width: "14%" }}>{entry.routeOfAdministration || "-"}</Text>
-                  <Text style={{ width: "14%" }}>{entry.ageFirstUsed || "-"}</Text>
-                  <Text style={{ width: "14%" }}>{entry.ageRegularUse || "-"}</Text>
-                  <Text style={{ width: "14%" }}>{entry.lastUse || "-"}</Text>
-                  <Text style={{ width: "14%" }}>{entry.frequency || "-"}</Text>
-                  <Text style={{ width: "12%" }}>{entry.amount || "-"}</Text>
+                  <Text style={{ width: "22%" }}>{entry.substance}</Text>
+                  <Text style={{ width: "14%" }}>{entry.route || "-"}</Text>
+                  <Text style={{ width: "14%" }}>{entry.ageFirstUse || "-"}</Text>
+                  <Text style={{ width: "16%" }}>{entry.lastUse || "-"}</Text>
+                  <Text style={{ width: "16%" }}>{entry.frequency || "-"}</Text>
+                  <Text style={{ width: "18%" }}>{entry.amount || "-"}</Text>
                 </View>
               ))}
             </View>
@@ -643,29 +642,29 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
             <View style={styles.column}>
               <View style={styles.row}>
                 <Text style={styles.label}>Using More Than Intended:</Text>
-                <Text style={styles.value}>{data.usingMoreThanIntended ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.usingMoreThanIntended === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Physically Ill When Stopping:</Text>
-                <Text style={styles.value}>{data.physicallyIllWhenStopping ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.physicallyIllWhenStopping === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Current Withdrawal Symptoms:</Text>
-                <Text style={styles.value}>{data.currentWithdrawalSymptoms ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.currentWithdrawalSymptoms === true ? "Yes" : "No"}</Text>
               </View>
             </View>
             <View style={styles.column}>
               <View style={styles.row}>
                 <Text style={styles.label}>History Serious Withdrawal:</Text>
-                <Text style={styles.value}>{data.historyOfSeriousWithdrawal ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.historyOfSeriousWithdrawal === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Tolerance Increased:</Text>
-                <Text style={styles.value}>{data.toleranceIncreased ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.toleranceIncreased === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Recent Use Changes:</Text>
-                <Text style={styles.value}>{data.recentUseChanges ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.recentUseChanges === true ? "Yes" : "No"}</Text>
               </View>
             </View>
           </View>
@@ -706,11 +705,11 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
             <View style={styles.column}>
               <View style={styles.row}>
                 <Text style={styles.label}>Conditions Interfere:</Text>
-                <Text style={styles.value}>{data.conditionsInterfere ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.conditionsInterfere === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Life-Threatening:</Text>
-                <Text style={styles.value}>{data.lifeThreatening ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.lifeThreatening === true ? "Yes" : "No"}</Text>
               </View>
             </View>
             <View style={styles.column}>
@@ -780,7 +779,11 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
                 <View style={styles.textBlock}>
                   <Text style={styles.textBlockLabel}>Psychosis Symptoms:</Text>
                   <Text style={{ fontSize: 8 }}>
-                    {getCheckedItems(data.psychosisSymptoms).join(", ") || "None"}
+                    {[
+                      ...getCheckedItems(data.psychosisSymptoms),
+                      ...(data.psychosisSymptoms?.delusions ? [`Delusions: ${data.psychosisSymptoms.delusions}`] : []),
+                      ...(data.psychosisSymptoms?.hallucinations ? [`Hallucinations: ${data.psychosisSymptoms.hallucinations}`] : []),
+                    ].join(", ") || "None"}
                   </Text>
                 </View>
               )}
@@ -803,21 +806,21 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Mental Illness Diagnosed:</Text>
-                <Text style={styles.value}>{data.mentalIllnessDiagnosed ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.mentalIllnessDiagnosed === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Previous Psych Treatment:</Text>
-                <Text style={styles.value}>{data.previousPsychTreatment ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.previousPsychTreatment === true ? "Yes" : "No"}</Text>
               </View>
             </View>
             <View style={styles.column}>
               <View style={styles.row}>
                 <Text style={styles.label}>Hallucinations Present:</Text>
-                <Text style={styles.value}>{data.hallucinationsPresent ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.hallucinationsPresent === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Further MH Assessment Needed:</Text>
-                <Text style={styles.value}>{data.furtherMHAssessmentNeeded ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.furtherMHAssessmentNeeded === true ? "Yes" : "No"}</Text>
               </View>
             </View>
           </View>
@@ -866,7 +869,7 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
             <View style={styles.column}>
               <View style={styles.row}>
                 <Text style={styles.label}>Continue Use Despite Effects:</Text>
-                <Text style={styles.value}>{data.continueUseDespiteEffects ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.continueUseDespiteEffects === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Treatment Importance (Alcohol):</Text>
@@ -883,7 +886,7 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
 
           <View style={styles.row}>
             <Text style={styles.label}>Previous Treatment Helped:</Text>
-            <Text style={styles.value}>{data.previousTreatmentHelp ? "Yes" : "No"}</Text>
+            <Text style={styles.value}>{data.previousTreatmentHelp === true ? "Yes" : "No"}</Text>
           </View>
           {data.recoverySupport && (
             <View style={styles.textBlock}>
@@ -926,17 +929,17 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Aware of Triggers:</Text>
-                <Text style={styles.value}>{data.awareOfTriggers ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.awareOfTriggers === true ? "Yes" : "No"}</Text>
               </View>
             </View>
             <View style={styles.column}>
               <View style={styles.row}>
                 <Text style={styles.label}>Time Searching for Substances:</Text>
-                <Text style={styles.value}>{data.timeSearchingForSubstances ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.timeSearchingForSubstances === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Relapse Without Treatment:</Text>
-                <Text style={styles.value}>{data.relapseWithoutTreatment ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.relapseWithoutTreatment === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Longest Sobriety:</Text>
@@ -984,25 +987,25 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
             <View style={styles.column}>
               <View style={styles.row}>
                 <Text style={styles.label}>Others Using in Environment:</Text>
-                <Text style={styles.value}>{data.othersUsingDrugsInEnvironment ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.othersUsingDrugsInEnvironment === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Safety Threats:</Text>
-                <Text style={styles.value}>{data.safetyThreats ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.safetyThreats === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Negative Impact Relationships:</Text>
-                <Text style={styles.value}>{data.negativeImpactRelationships ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.negativeImpactRelationships === true ? "Yes" : "No"}</Text>
               </View>
             </View>
             <View style={styles.column}>
               <View style={styles.row}>
                 <Text style={styles.label}>Employed/In School:</Text>
-                <Text style={styles.value}>{data.currentlyEmployedOrSchool ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.currentlyEmployedOrSchool === true ? "Yes" : "No"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Social Services Involved:</Text>
-                <Text style={styles.value}>{data.socialServicesInvolved ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.socialServicesInvolved === true ? "Yes" : "No"}</Text>
               </View>
             </View>
           </View>
@@ -1078,7 +1081,7 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>MAT Interested:</Text>
-                <Text style={styles.value}>{data.matInterested ? "Yes" : "No"}</Text>
+                <Text style={styles.value}>{data.matInterested === true ? "Yes" : "No"}</Text>
               </View>
             </View>
             <View style={styles.column}>

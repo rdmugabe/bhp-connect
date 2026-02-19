@@ -209,8 +209,8 @@ export function Step2SubstanceUse() {
                         <FormItem className="flex items-center space-x-2 space-y-0">
                           <FormControl>
                             <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                              checked={field.value === true}
+                              onCheckedChange={(checked) => field.onChange(checked === true)}
                             />
                           </FormControl>
                           <FormLabel className="font-normal text-sm">
@@ -247,8 +247,8 @@ export function Step2SubstanceUse() {
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                    checked={field.value === true}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
@@ -279,8 +279,8 @@ export function Step2SubstanceUse() {
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                    checked={field.value === true}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
@@ -311,8 +311,8 @@ export function Step2SubstanceUse() {
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                    checked={field.value === true}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
@@ -343,8 +343,8 @@ export function Step2SubstanceUse() {
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                    checked={field.value === true}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
@@ -375,8 +375,8 @@ export function Step2SubstanceUse() {
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                    checked={field.value === true}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
@@ -407,8 +407,8 @@ export function Step2SubstanceUse() {
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                    checked={field.value === true}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">

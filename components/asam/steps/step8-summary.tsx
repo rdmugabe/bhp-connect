@@ -172,8 +172,8 @@ export function Step8Summary() {
               <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 bg-blue-50 rounded-lg">
                 <FormControl>
                   <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                    checked={field.value === true}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">

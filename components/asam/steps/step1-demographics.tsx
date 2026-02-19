@@ -153,8 +153,8 @@ export function Step1Demographics() {
                 <FormItem className="flex flex-row items-center space-x-3 space-y-0 pt-6">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
+                      checked={field.value === true}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
                     />
                   </FormControl>
                   <FormLabel className="font-normal">
