@@ -231,7 +231,7 @@ interface EmployeeOnboardingData {
   facilityName?: string;
 }
 
-const TOTAL_PAGES = 11;
+const TOTAL_PAGES = 13;
 
 function PageFooter({ pageNum }: { pageNum: number }) {
   return (
@@ -291,15 +291,16 @@ function AdminSignature() {
 // Page 1: Index
 function IndexPage({ data }: { data: EmployeeOnboardingData }) {
   const indexItems = [
-    { num: 1, title: "Employment Contract", page: 2 },
-    { num: 2, title: "Job Description and Qualifications (BHT)", page: 3 },
-    { num: 3, title: "Reference Check Form", page: 4 },
-    { num: 4, title: "Confidentiality Agreement", page: 5 },
-    { num: 5, title: "Verification of Skills", page: 6 },
-    { num: 6, title: "New Employee Orientation", page: 7 },
-    { num: 7, title: "Medication Administration Training", page: 8 },
-    { num: 8, title: "Onboarding Checklist Training", page: 9 },
-    { num: 9, title: "Employee Packet Acknowledgment", page: 11 },
+    { num: 1, title: "Employee Application", page: 2 },
+    { num: 2, title: "Employment Contract", page: 4 },
+    { num: 3, title: "Job Description and Qualifications (BHT)", page: 5 },
+    { num: 4, title: "Reference Check Form", page: 6 },
+    { num: 5, title: "Confidentiality Agreement", page: 7 },
+    { num: 6, title: "Verification of Skills", page: 8 },
+    { num: 7, title: "New Employee Orientation", page: 9 },
+    { num: 8, title: "Medication Administration Training", page: 10 },
+    { num: 9, title: "Onboarding Checklist Training", page: 12 },
+    { num: 10, title: "Employee Packet Acknowledgment", page: 13 },
   ];
 
   return (
@@ -355,7 +356,397 @@ function IndexPage({ data }: { data: EmployeeOnboardingData }) {
   );
 }
 
-// Page 2: Employment Contract
+// Pages 2-3: Employee Application
+function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
+  return (
+    <>
+      <Page size="LETTER" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>EMPLOYEE APPLICATION</Text>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Personal Information</Text>
+        </View>
+
+        <View style={styles.formField}>
+          <Text style={styles.fieldLabel}>FULL NAME</Text>
+          <Text style={styles.prefilledName}>{data.employeeName}</Text>
+        </View>
+
+        <View style={styles.twoColumn}>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Date</Text>
+              <Text style={styles.prefilledDate}>{data.hireDate}</Text>
+            </View>
+          </View>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Department/Group</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.formField}>
+          <Text style={styles.fieldLabel}>ADDRESS</Text>
+          <View style={styles.twoColumn}>
+            <View style={[styles.column, { flex: 2 }]}>
+              <View style={styles.fieldLine} />
+              <Text style={[styles.fieldLabel, { marginTop: 2 }]}>Street Address</Text>
+            </View>
+            <View style={styles.column}>
+              <View style={styles.fieldLine} />
+              <Text style={[styles.fieldLabel, { marginTop: 2 }]}>Apt/Unit #</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.twoColumn}>
+          <View style={[styles.column, { flex: 2 }]}>
+            <View style={styles.formField}>
+              <View style={styles.fieldLine} />
+              <Text style={[styles.fieldLabel, { marginTop: 2 }]}>City</Text>
+            </View>
+          </View>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <View style={styles.fieldLine} />
+              <Text style={[styles.fieldLabel, { marginTop: 2 }]}>State</Text>
+            </View>
+          </View>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <View style={styles.fieldLine} />
+              <Text style={[styles.fieldLabel, { marginTop: 2 }]}>Zip Code</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.twoColumn}>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Phone</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Email Address</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.twoColumn}>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Date Available</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Social Security Number</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.twoColumn}>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Desired Salary</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Position Applied For</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+        </View>
+
+        <View style={[styles.twoColumn, { marginTop: 10 }]}>
+          <View style={styles.column}>
+            <Text style={{ fontSize: 9 }}>Are you a citizen of the USA?</Text>
+            <View style={{ flexDirection: "row", marginTop: 5 }}>
+              <View style={[styles.checkboxRow, { marginRight: 15 }]}>
+                <View style={styles.checkbox} />
+                <Text>Yes</Text>
+              </View>
+              <View style={styles.checkboxRow}>
+                <View style={styles.checkbox} />
+                <Text>No</Text>
+              </View>
+            </View>
+          </View>
+          <View style={styles.column}>
+            <Text style={{ fontSize: 9 }}>If no, are you authorized to work in the US?</Text>
+            <View style={{ flexDirection: "row", marginTop: 5 }}>
+              <View style={[styles.checkboxRow, { marginRight: 15 }]}>
+                <View style={styles.checkbox} />
+                <Text>Yes</Text>
+              </View>
+              <View style={styles.checkboxRow}>
+                <View style={styles.checkbox} />
+                <Text>No</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={[styles.twoColumn, { marginTop: 10 }]}>
+          <View style={styles.column}>
+            <Text style={{ fontSize: 9 }}>Have you ever worked for this company?</Text>
+            <View style={{ flexDirection: "row", marginTop: 5 }}>
+              <View style={[styles.checkboxRow, { marginRight: 15 }]}>
+                <View style={styles.checkbox} />
+                <Text>Yes</Text>
+              </View>
+              <View style={styles.checkboxRow}>
+                <View style={styles.checkbox} />
+                <Text>No</Text>
+              </View>
+            </View>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>If yes, when?</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+          <View style={styles.column}>
+            <Text style={{ fontSize: 9 }}>Have you ever been convicted of a felony?</Text>
+            <View style={{ flexDirection: "row", marginTop: 5 }}>
+              <View style={[styles.checkboxRow, { marginRight: 15 }]}>
+                <View style={styles.checkbox} />
+                <Text>Yes</Text>
+              </View>
+              <View style={styles.checkboxRow}>
+                <View style={styles.checkbox} />
+                <Text>No</Text>
+              </View>
+            </View>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>If yes, explain:</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Education</Text>
+        </View>
+
+        {[
+          { label: "High School", fields: ["Address", "From", "To", "Did you graduate?", "Degree"] },
+          { label: "College", fields: ["Address", "From", "To", "Did you graduate?", "Degree"] },
+          { label: "Other", fields: ["Address", "From", "To", "Did you graduate?", "Degree"] },
+        ].map((edu, idx) => (
+          <View key={idx} style={{ marginBottom: 8 }}>
+            <View style={styles.twoColumn}>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>{edu.label}</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Address</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+            </View>
+            <View style={styles.twoColumn}>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>From / To</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Did you graduate? / Degree</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+            </View>
+          </View>
+        ))}
+
+        <PageFooter pageNum={2} />
+      </Page>
+
+      <Page size="LETTER" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>EMPLOYEE APPLICATION (Continued)</Text>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>References</Text>
+        </View>
+        <Text style={[styles.paragraph, { fontSize: 9 }]}>Please list three professional references:</Text>
+
+        {[1, 2, 3].map((num) => (
+          <View key={num} style={{ marginBottom: 10 }}>
+            <View style={styles.twoColumn}>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Full Name</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Relationship</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+            </View>
+            <View style={styles.twoColumn}>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Company</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Phone</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+            </View>
+          </View>
+        ))}
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Previous Employment</Text>
+        </View>
+
+        {[1, 2].map((num) => (
+          <View key={num} style={{ marginBottom: 8 }}>
+            <View style={styles.twoColumn}>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Company</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Phone</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+            </View>
+            <View style={styles.twoColumn}>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Job Title / Supervisor</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Starting / Ending Salary</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+            </View>
+            <View style={styles.twoColumn}>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>From / To</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+              <View style={styles.column}>
+                <View style={styles.formField}>
+                  <Text style={styles.fieldLabel}>Reason for Leaving</Text>
+                  <View style={styles.fieldLine} />
+                </View>
+              </View>
+            </View>
+            <View style={styles.checkboxRow}>
+              <Text style={{ fontSize: 8, marginRight: 5 }}>May we contact this employer?</Text>
+              <View style={[styles.checkbox, { width: 10, height: 10 }]} />
+              <Text style={{ fontSize: 8, marginRight: 10 }}>Yes</Text>
+              <View style={[styles.checkbox, { width: 10, height: 10 }]} />
+              <Text style={{ fontSize: 8 }}>No</Text>
+            </View>
+          </View>
+        ))}
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Military Service</Text>
+        </View>
+
+        <View style={styles.twoColumn}>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Branch</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>From / To</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+        </View>
+        <View style={styles.twoColumn}>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Rank at Discharge</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+          <View style={styles.column}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Type of Discharge</Text>
+              <View style={styles.fieldLine} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Disclaimer and Signature</Text>
+        </View>
+
+        <Text style={[styles.paragraph, { fontSize: 8 }]}>
+          I certify that my answers are true and complete to the best of my knowledge. If this application
+          leads to employment, I understand that false or misleading information in my application or
+          interview may result in my release.
+        </Text>
+
+        <View style={styles.signatureSection} wrap={false}>
+          <View style={styles.signatureRow}>
+            <View style={styles.signatureBlock}>
+              <Text style={styles.prefilledName}>{data.employeeName}</Text>
+              <Text style={styles.signatureLabel}>Applicant Name (Printed)</Text>
+            </View>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureLabel}>Applicant Signature</Text>
+            </View>
+            <View style={{ width: 120 }}>
+              <View style={styles.dateLine} />
+              <Text style={styles.signatureLabel}>Date</Text>
+            </View>
+          </View>
+        </View>
+
+        <PageFooter pageNum={3} />
+      </Page>
+    </>
+  );
+}
+
+// Page 4: Employment Contract
 function EmploymentContractPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
@@ -427,12 +818,12 @@ function EmploymentContractPage({ data }: { data: EmployeeOnboardingData }) {
         <AdminSignature />
       </View>
 
-      <PageFooter pageNum={2} />
+      <PageFooter pageNum={4} />
     </Page>
   );
 }
 
-// Page 3: Job Description
+// Page 5: Job Description
 function JobDescriptionPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
@@ -529,12 +920,12 @@ function JobDescriptionPage({ data }: { data: EmployeeOnboardingData }) {
         <AdminSignature />
       </View>
 
-      <PageFooter pageNum={3} />
+      <PageFooter pageNum={5} />
     </Page>
   );
 }
 
-// Page 4: Reference Check Form
+// Page 6: Reference Check Form
 function ReferenceCheckPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
@@ -649,12 +1040,12 @@ function ReferenceCheckPage({ data }: { data: EmployeeOnboardingData }) {
         </View>
       </View>
 
-      <PageFooter pageNum={4} />
+      <PageFooter pageNum={6} />
     </Page>
   );
 }
 
-// Page 5: Confidentiality Agreement
+// Page 7: Confidentiality Agreement
 function ConfidentialityAgreementPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
@@ -754,12 +1145,12 @@ function ConfidentialityAgreementPage({ data }: { data: EmployeeOnboardingData }
         <AdminSignature />
       </View>
 
-      <PageFooter pageNum={5} />
+      <PageFooter pageNum={7} />
     </Page>
   );
 }
 
-// Page 6: Verification of Skills
+// Page 8: Verification of Skills
 function VerificationOfSkillsPage({ data }: { data: EmployeeOnboardingData }) {
   const skills = [
     { title: "Protecting Client Rights", description: "Reviewing and understanding client rights/violation precautions" },
@@ -818,12 +1209,12 @@ function VerificationOfSkillsPage({ data }: { data: EmployeeOnboardingData }) {
         <AdminSignature />
       </View>
 
-      <PageFooter pageNum={6} />
+      <PageFooter pageNum={8} />
     </Page>
   );
 }
 
-// Page 7: New Employee Orientation
+// Page 9: New Employee Orientation
 function NewEmployeeOrientationPage({ data }: { data: EmployeeOnboardingData }) {
   const orientationTopics = [
     "Personal introduction to facility and staff",
@@ -893,12 +1284,12 @@ function NewEmployeeOrientationPage({ data }: { data: EmployeeOnboardingData }) 
         <AdminSignature />
       </View>
 
-      <PageFooter pageNum={7} />
+      <PageFooter pageNum={9} />
     </Page>
   );
 }
 
-// Pages 8-9: Medication Administration Training
+// Pages 10-11: Medication Administration Training
 function MedicationTrainingPages({ data }: { data: EmployeeOnboardingData }) {
   const policyReviews = [
     { num: 1, title: "Pharmacy Packaging", desc: "Demonstrates competency regarding prescription label information (five rights)" },
@@ -963,7 +1354,7 @@ function MedicationTrainingPages({ data }: { data: EmployeeOnboardingData }) {
           ))}
         </View>
 
-        <PageFooter pageNum={8} />
+        <PageFooter pageNum={10} />
       </Page>
 
       <Page size="LETTER" style={styles.page}>
@@ -1025,13 +1416,13 @@ function MedicationTrainingPages({ data }: { data: EmployeeOnboardingData }) {
           </View>
         </View>
 
-        <PageFooter pageNum={9} />
+        <PageFooter pageNum={11} />
       </Page>
     </>
   );
 }
 
-// Page 10: Onboarding Checklist
+// Page 12: Onboarding Checklist
 function OnboardingChecklistPage({ data }: { data: EmployeeOnboardingData }) {
   const tasks = [
     "Facility/premise orientation",
@@ -1127,12 +1518,12 @@ function OnboardingChecklistPage({ data }: { data: EmployeeOnboardingData }) {
         </View>
       </View>
 
-      <PageFooter pageNum={10} />
+      <PageFooter pageNum={12} />
     </Page>
   );
 }
 
-// Page 11: Employee Packet Acknowledgment
+// Page 13: Employee Packet Acknowledgment
 function AcknowledgmentPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
@@ -1220,7 +1611,7 @@ function AcknowledgmentPage({ data }: { data: EmployeeOnboardingData }) {
         </View>
       </View>
 
-      <PageFooter pageNum={11} />
+      <PageFooter pageNum={13} />
     </Page>
   );
 }
@@ -1229,6 +1620,7 @@ export function EmployeeOnboardingPDF({ data }: { data: EmployeeOnboardingData }
   return (
     <Document>
       <IndexPage data={data} />
+      <EmployeeApplicationPages data={data} />
       <EmploymentContractPage data={data} />
       <JobDescriptionPage data={data} />
       <ReferenceCheckPage data={data} />
