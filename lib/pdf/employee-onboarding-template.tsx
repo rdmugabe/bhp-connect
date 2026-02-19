@@ -1243,44 +1243,44 @@ function NewEmployeeOrientationPage({ data }: { data: EmployeeOnboardingData }) 
 
   return (
     <Page size="LETTER" style={styles.page}>
-      <View style={styles.header}>
+      <View style={[styles.header, { marginBottom: 10, paddingBottom: 8 }]}>
         <Text style={styles.title}>NEW EMPLOYEE ORIENTATION</Text>
       </View>
 
-      <Text style={styles.paragraph}>
+      <Text style={[styles.paragraph, { marginBottom: 5, fontSize: 9 }]}>
         The topics covered during your orientation are designed to acquaint you with the facility,
         its personnel, residents, policies, procedures, routines, surroundings, and other related
         procedures to ensure the highest quality of care for residents within a safe and responsive environment.
       </Text>
 
-      <View style={styles.twoColumn}>
+      <View style={[styles.twoColumn, { marginBottom: 5 }]}>
         <View style={styles.column}>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 4 }]}>
             <Text style={styles.fieldLabel}>Employee Name</Text>
             <Text style={styles.prefilledName}>{data.employeeName}</Text>
           </View>
         </View>
         <View style={styles.column}>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 4 }]}>
             <Text style={styles.fieldLabel}>Date of Hire</Text>
             <Text style={styles.prefilledDate}>{data.hireDate}</Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.formField}>
+      <View style={[styles.formField, { marginBottom: 5 }]}>
         <Text style={styles.fieldLabel}>First Date Providing Service</Text>
         <View style={[styles.fieldLine, { width: 200 }]} />
       </View>
 
-      <View style={{ marginTop: 10 }}>
-        <View style={styles.tableHeader}>
+      <View style={{ marginTop: 5 }}>
+        <View style={[styles.tableHeader, { padding: 5 }]}>
           <Text style={[styles.tableHeaderText, { flex: 1 }]}>Subject</Text>
           <Text style={[styles.tableHeaderText, { width: "20%" }]}>Lead Person</Text>
           <Text style={[styles.tableHeaderText, { width: "15%" }]}>Employee Initials</Text>
         </View>
         {orientationTopics.map((topic, idx) => (
-          <View key={idx} style={idx % 2 === 0 ? styles.tableRow : styles.tableRowAlt}>
+          <View key={idx} style={idx % 2 === 0 ? [styles.tableRow, { padding: 4 }] : [styles.tableRowAlt, { padding: 4 }]}>
             <Text style={{ flex: 1, fontSize: 8 }}>{topic}</Text>
             <Text style={{ width: "20%", fontSize: 8 }}></Text>
             <Text style={{ width: "15%", fontSize: 8 }}></Text>
@@ -1288,7 +1288,7 @@ function NewEmployeeOrientationPage({ data }: { data: EmployeeOnboardingData }) 
         ))}
       </View>
 
-      <View style={styles.signatureSection} wrap={false}>
+      <View style={[styles.signatureSection, { marginTop: 10, paddingTop: 10 }]}>
         <AdminSignature />
       </View>
 
