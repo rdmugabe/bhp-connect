@@ -474,12 +474,12 @@ function Header({ data, showConfidential = false }: { data: ASAMData; showConfid
           <Text style={styles.headerInfoValue}>{formatDate(data.dateOfBirth)}</Text>
         </View>
         <View style={styles.headerInfoItem}>
-          <Text style={styles.headerInfoLabel}>Assessment Date:</Text>
-          <Text style={styles.headerInfoValue}>{formatDate(data.assessmentDate)}</Text>
-        </View>
-        <View style={styles.headerInfoItem}>
           <Text style={styles.headerInfoLabel}>Admission Date:</Text>
           <Text style={styles.headerInfoValue}>{data.admissionDate ? formatDate(data.admissionDate) : "N/A"}</Text>
+        </View>
+        <View style={styles.headerInfoItem}>
+          <Text style={styles.headerInfoLabel}>AHCCCS/Policy:</Text>
+          <Text style={styles.headerInfoValue}>{data.ahcccsId || "N/A"}</Text>
         </View>
       </View>
       <View style={styles.headerInfo}>
