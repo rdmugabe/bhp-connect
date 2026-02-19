@@ -231,7 +231,7 @@ interface EmployeeOnboardingData {
   facilityName?: string;
 }
 
-const TOTAL_PAGES = 13;
+const TOTAL_PAGES = 14;
 
 function PageFooter({ pageNum }: { pageNum: number }) {
   return (
@@ -292,15 +292,15 @@ function AdminSignature() {
 function IndexPage({ data }: { data: EmployeeOnboardingData }) {
   const indexItems = [
     { num: 1, title: "Employee Application", page: 2 },
-    { num: 2, title: "Employment Contract", page: 4 },
-    { num: 3, title: "Job Description and Qualifications (BHT)", page: 5 },
-    { num: 4, title: "Reference Check Form", page: 6 },
-    { num: 5, title: "Confidentiality Agreement", page: 7 },
-    { num: 6, title: "Verification of Skills", page: 8 },
-    { num: 7, title: "New Employee Orientation", page: 9 },
-    { num: 8, title: "Medication Administration Training", page: 10 },
-    { num: 9, title: "Onboarding Checklist Training", page: 12 },
-    { num: 10, title: "Employee Packet Acknowledgment", page: 13 },
+    { num: 2, title: "Employment Contract", page: 5 },
+    { num: 3, title: "Job Description and Qualifications (BHT)", page: 6 },
+    { num: 4, title: "Reference Check Form", page: 7 },
+    { num: 5, title: "Confidentiality Agreement", page: 8 },
+    { num: 6, title: "Verification of Skills", page: 9 },
+    { num: 7, title: "New Employee Orientation", page: 10 },
+    { num: 8, title: "Medication Administration Training", page: 11 },
+    { num: 9, title: "Onboarding Checklist Training", page: 13 },
+    { num: 10, title: "Employee Packet Acknowledgment", page: 14 },
   ];
 
   return (
@@ -713,11 +713,19 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           </View>
         </View>
 
+        <PageFooter pageNum={3} />
+      </Page>
+
+      <Page size="LETTER" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>EMPLOYEE APPLICATION (Continued)</Text>
+        </View>
+
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Disclaimer and Signature</Text>
         </View>
 
-        <Text style={[styles.paragraph, { fontSize: 8 }]}>
+        <Text style={[styles.paragraph, { fontSize: 9 }]}>
           I certify that my answers are true and complete to the best of my knowledge. If this application
           leads to employment, I understand that false or misleading information in my application or
           interview may result in my release.
@@ -740,7 +748,7 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           </View>
         </View>
 
-        <PageFooter pageNum={3} />
+        <PageFooter pageNum={4} />
       </Page>
     </>
   );
@@ -818,12 +826,12 @@ function EmploymentContractPage({ data }: { data: EmployeeOnboardingData }) {
         <AdminSignature />
       </View>
 
-      <PageFooter pageNum={4} />
+      <PageFooter pageNum={5} />
     </Page>
   );
 }
 
-// Page 5: Job Description
+// Page 6: Job Description
 function JobDescriptionPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
@@ -920,12 +928,12 @@ function JobDescriptionPage({ data }: { data: EmployeeOnboardingData }) {
         <AdminSignature />
       </View>
 
-      <PageFooter pageNum={5} />
+      <PageFooter pageNum={6} />
     </Page>
   );
 }
 
-// Page 6: Reference Check Form
+// Page 7: Reference Check Form
 function ReferenceCheckPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
@@ -1040,12 +1048,12 @@ function ReferenceCheckPage({ data }: { data: EmployeeOnboardingData }) {
         </View>
       </View>
 
-      <PageFooter pageNum={6} />
+      <PageFooter pageNum={7} />
     </Page>
   );
 }
 
-// Page 7: Confidentiality Agreement
+// Page 8: Confidentiality Agreement
 function ConfidentialityAgreementPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
@@ -1145,12 +1153,12 @@ function ConfidentialityAgreementPage({ data }: { data: EmployeeOnboardingData }
         <AdminSignature />
       </View>
 
-      <PageFooter pageNum={7} />
+      <PageFooter pageNum={8} />
     </Page>
   );
 }
 
-// Page 8: Verification of Skills
+// Page 9: Verification of Skills
 function VerificationOfSkillsPage({ data }: { data: EmployeeOnboardingData }) {
   const skills = [
     { title: "Protecting Client Rights", description: "Reviewing and understanding client rights/violation precautions" },
@@ -1209,12 +1217,12 @@ function VerificationOfSkillsPage({ data }: { data: EmployeeOnboardingData }) {
         <AdminSignature />
       </View>
 
-      <PageFooter pageNum={8} />
+      <PageFooter pageNum={9} />
     </Page>
   );
 }
 
-// Page 9: New Employee Orientation
+// Page 10: New Employee Orientation
 function NewEmployeeOrientationPage({ data }: { data: EmployeeOnboardingData }) {
   const orientationTopics = [
     "Personal introduction to facility and staff",
@@ -1284,12 +1292,12 @@ function NewEmployeeOrientationPage({ data }: { data: EmployeeOnboardingData }) 
         <AdminSignature />
       </View>
 
-      <PageFooter pageNum={9} />
+      <PageFooter pageNum={10} />
     </Page>
   );
 }
 
-// Pages 10-11: Medication Administration Training
+// Pages 11-12: Medication Administration Training
 function MedicationTrainingPages({ data }: { data: EmployeeOnboardingData }) {
   const policyReviews = [
     { num: 1, title: "Pharmacy Packaging", desc: "Demonstrates competency regarding prescription label information (five rights)" },
@@ -1354,7 +1362,7 @@ function MedicationTrainingPages({ data }: { data: EmployeeOnboardingData }) {
           ))}
         </View>
 
-        <PageFooter pageNum={10} />
+        <PageFooter pageNum={11} />
       </Page>
 
       <Page size="LETTER" style={styles.page}>
@@ -1416,13 +1424,13 @@ function MedicationTrainingPages({ data }: { data: EmployeeOnboardingData }) {
           </View>
         </View>
 
-        <PageFooter pageNum={11} />
+        <PageFooter pageNum={12} />
       </Page>
     </>
   );
 }
 
-// Page 12: Onboarding Checklist
+// Page 13: Onboarding Checklist
 function OnboardingChecklistPage({ data }: { data: EmployeeOnboardingData }) {
   const tasks = [
     "Facility/premise orientation",
@@ -1518,12 +1526,12 @@ function OnboardingChecklistPage({ data }: { data: EmployeeOnboardingData }) {
         </View>
       </View>
 
-      <PageFooter pageNum={12} />
+      <PageFooter pageNum={13} />
     </Page>
   );
 }
 
-// Page 13: Employee Packet Acknowledgment
+// Page 14: Employee Packet Acknowledgment
 function AcknowledgmentPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
@@ -1611,7 +1619,7 @@ function AcknowledgmentPage({ data }: { data: EmployeeOnboardingData }) {
         </View>
       </View>
 
-      <PageFooter pageNum={13} />
+      <PageFooter pageNum={14} />
     </Page>
   );
 }
