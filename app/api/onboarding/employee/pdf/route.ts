@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { EmployeeOnboardingPDF } from "@/lib/pdf/employee-onboarding-template";
 
@@ -15,6 +16,23 @@ export async function POST(request: NextRequest) {
     // Only BHRF users can generate onboarding packets
     if (session.user.role !== "BHRF") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    // Get the facility name from the BHRF profile
+    const bhrfProfile = await prisma.bHRFProfile.findUnique({
+      where: { userId: session.user.id },
+      include: {
+        facility: {
+          select: { name: true },
+        },
+      },
+    });
+
+    if (!bhrfProfile) {
+      return NextResponse.json(
+        { error: "Facility profile not found" },
+        { status: 400 }
+      );
     }
 
     const body = await request.json();
@@ -46,6 +64,7 @@ export async function POST(request: NextRequest) {
     const pdfData = {
       employeeName: employeeName.trim(),
       hireDate: formattedHireDate,
+      facilityName: bhrfProfile.facility.name,
     };
 
     const pdfBuffer = await renderToBuffer(EmployeeOnboardingPDF({ data: pdfData }));

@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
 interface EmployeeOnboardingData {
   employeeName: string;
   hireDate: string;
-  facilityName?: string;
+  facilityName: string;
 }
 
 const TOTAL_PAGES = 14;
@@ -763,7 +763,7 @@ function EmploymentContractPage({ data }: { data: EmployeeOnboardingData }) {
       </View>
 
       <Text style={styles.paragraph}>
-        [FACILITY NAME] hereby agrees to employ {data.employeeName} under the terms
+        {data.facilityName} hereby agrees to employ {data.employeeName} under the terms
         and conditions set forth herein, and Employee hereby agrees to accept those terms and conditions.
       </Text>
 
