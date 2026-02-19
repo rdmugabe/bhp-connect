@@ -1416,11 +1416,65 @@ export function IntakePDF({ data }: { data: IntakeData }) {
         </View>
 
         {/* Signatures */}
-        <View style={styles.section}>
+        <View style={styles.signatureSection} wrap={false}>
           <Text style={styles.sectionTitle}>SIGNATURES</Text>
-          <Text style={{ fontSize: 8, marginBottom: 15 }}>Client/Guardian: _________________________________ Date: _____________</Text>
-          <Text style={{ fontSize: 8, marginBottom: 15 }}>Assessment Completed By: _________________________ Date: _____________</Text>
-          <Text style={{ fontSize: 8 }}>Clinical Oversight / BHP Reviewer: __________________ Date: _____________</Text>
+
+          <View style={styles.signatureRow}>
+            <View style={styles.signatureBlock}>
+              {data.signatures?.clientSignature ? (
+                <Text style={styles.signatureValue}>{data.signatures.clientSignature}</Text>
+              ) : (
+                <View style={styles.signatureLine} />
+              )}
+              <Text style={styles.signatureLabel}>Client / Guardian</Text>
+            </View>
+            <View style={styles.dateBlock}>
+              {data.signatures?.clientSignatureDate ? (
+                <Text style={styles.signatureValue}>{formatDate(data.signatures.clientSignatureDate)}</Text>
+              ) : (
+                <View style={styles.dateLine} />
+              )}
+              <Text style={styles.dateLabel}>Date</Text>
+            </View>
+          </View>
+
+          <View style={styles.signatureRow}>
+            <View style={styles.signatureBlock}>
+              {data.signatures?.assessorSignature ? (
+                <Text style={styles.signatureValue}>{data.signatures.assessorSignature}</Text>
+              ) : (
+                <View style={styles.signatureLine} />
+              )}
+              <Text style={styles.signatureLabel}>Assessment Completed By</Text>
+            </View>
+            <View style={styles.dateBlock}>
+              {data.signatures?.assessorSignatureDate ? (
+                <Text style={styles.signatureValue}>{formatDate(data.signatures.assessorSignatureDate)}</Text>
+              ) : (
+                <View style={styles.dateLine} />
+              )}
+              <Text style={styles.dateLabel}>Date</Text>
+            </View>
+          </View>
+
+          <View style={styles.signatureRow}>
+            <View style={styles.signatureBlock}>
+              {data.signatures?.clinicalOversightSignature ? (
+                <Text style={styles.signatureValue}>{data.signatures.clinicalOversightSignature}</Text>
+              ) : (
+                <View style={styles.signatureLine} />
+              )}
+              <Text style={styles.signatureLabel}>Clinical Oversight / BHP Reviewer</Text>
+            </View>
+            <View style={styles.dateBlock}>
+              {data.signatures?.clinicalOversightSignatureDate ? (
+                <Text style={styles.signatureValue}>{formatDate(data.signatures.clinicalOversightSignatureDate)}</Text>
+              ) : (
+                <View style={styles.dateLine} />
+              )}
+              <Text style={styles.dateLabel}>Date</Text>
+            </View>
+          </View>
         </View>
       </Page>
     </Document>
