@@ -34,9 +34,9 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     backgroundColor: "#f0f4f8",
-    padding: 10,
-    marginBottom: 15,
-    marginTop: 10,
+    padding: 8,
+    marginBottom: 10,
+    marginTop: 8,
     borderLeft: "4 solid #1e3a5f",
   },
   sectionTitle: {
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   formField: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   fieldLabel: {
     fontSize: 9,
@@ -188,13 +188,13 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: "row",
     borderBottom: "1 solid #e2e8f0",
-    padding: 8,
+    padding: 6,
     backgroundColor: "#ffffff",
   },
   tableRowAlt: {
     flexDirection: "row",
     borderBottom: "1 solid #e2e8f0",
-    padding: 8,
+    padding: 6,
     backgroundColor: "#f7fafc",
   },
   indexItem: {
@@ -302,11 +302,11 @@ function IndexPage({ data }: { data: OnboardingData }) {
         <Text style={styles.subtitle}>Onboarding Document Packet</Text>
       </View>
 
-      <View style={[styles.sectionHeader, { marginTop: 20 }]}>
+      <View style={[styles.sectionHeader, { marginTop: 10 }]}>
         <Text style={styles.sectionTitle}>Resident: {data.residentName}</Text>
       </View>
 
-      <View style={{ marginTop: 20 }}>
+      <View style={{ marginTop: 10 }}>
         <View style={styles.tableHeader}>
           <Text style={[styles.tableHeaderText, { width: 30 }]}>#</Text>
           <Text style={[styles.tableHeaderText, { flex: 1 }]}>Document Title</Text>
@@ -321,7 +321,7 @@ function IndexPage({ data }: { data: OnboardingData }) {
         ))}
       </View>
 
-      <View style={[styles.importantBox, { marginTop: 30 }]}>
+      <View style={[styles.importantBox, { marginTop: 15 }]}>
         <Text style={styles.importantText}>
           All documents in this packet must be reviewed, signed, and dated by the resident.
           Staff must witness all signatures.
@@ -541,7 +541,7 @@ function ConsentPage({ data }: { data: OnboardingData }) {
         </Text>
       </View>
 
-      <View style={styles.signatureSection}>
+      <View style={styles.signatureSection} wrap={false}>
         <SignatureBlock name={data.residentName} />
         <StaffSignature />
       </View>
@@ -697,7 +697,7 @@ function ResidentRightsPages({ data }: { data: OnboardingData }) {
           </Text>
         </View>
 
-        <View style={styles.signatureSection}>
+        <View style={styles.signatureSection} wrap={false}>
           <SignatureBlock name={data.residentName} />
           <StaffSignature />
         </View>
@@ -857,7 +857,7 @@ function HouseRulesPages({ data }: { data: OnboardingData }) {
           </Text>
         </View>
 
-        <View style={styles.signatureSection}>
+        <View style={styles.signatureSection} wrap={false}>
           <SignatureBlock name={data.residentName} />
           <StaffSignature />
         </View>
@@ -956,7 +956,7 @@ function ContrabandPage({ data }: { data: OnboardingData }) {
         </Text>
       </View>
 
-      <View style={styles.signatureSection}>
+      <View style={styles.signatureSection} wrap={false}>
         <SignatureBlock name={data.residentName} />
         <StaffSignature />
       </View>
@@ -1041,7 +1041,7 @@ function OrientationPage({ data }: { data: OnboardingData }) {
         </Text>
       </View>
 
-      <View style={styles.signatureSection}>
+      <View style={styles.signatureSection} wrap={false}>
         <SignatureBlock name={data.residentName} />
         <StaffSignature />
       </View>
@@ -1121,7 +1121,7 @@ function PropertyPage({ data }: { data: OnboardingData }) {
         </Text>
       </View>
 
-      <View style={styles.signatureSection}>
+      <View style={styles.signatureSection} wrap={false}>
         <SignatureBlock name={data.residentName} />
         <StaffSignature />
       </View>
@@ -1198,7 +1198,7 @@ function ConfidentialityPage({ data }: { data: OnboardingData }) {
         </Text>
       </View>
 
-      <View style={styles.signatureSection}>
+      <View style={styles.signatureSection} wrap={false}>
         <SignatureBlock name={data.residentName} />
         <StaffSignature />
       </View>
@@ -1253,7 +1253,7 @@ function DisclosureListPage({ data }: { data: OnboardingData }) {
         </Text>
       </View>
 
-      <View style={styles.signatureSection}>
+      <View style={styles.signatureSection} wrap={false}>
         <SignatureBlock name={data.residentName} />
         <StaffSignature />
       </View>
@@ -1326,7 +1326,7 @@ function PhotoReleasePage({ data }: { data: OnboardingData }) {
         </Text>
       </View>
 
-      <View style={styles.signatureSection}>
+      <View style={styles.signatureSection} wrap={false}>
         <SignatureBlock name={data.residentName} />
         <StaffSignature />
       </View>
@@ -1403,7 +1403,7 @@ function VerificationPage({ data }: { data: OnboardingData }) {
         </Text>
       </View>
 
-      <View style={styles.signatureSection}>
+      <View style={styles.signatureSection} wrap={false}>
         <SignatureBlock name={data.residentName} />
         <StaffSignature />
       </View>
@@ -1576,7 +1576,7 @@ function BehavioralContractPages({ data }: { data: OnboardingData }) {
           </Text>
         </View>
 
-        <View style={styles.signatureSection}>
+        <View style={styles.signatureSection} wrap={false}>
           <SignatureBlock name={data.residentName} />
           <StaffSignature />
         </View>
@@ -1660,13 +1660,13 @@ function AdvancedDirectivesPage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={styles.content}>
-        <Text style={[styles.paragraph, { marginTop: 20 }]}>
+        <Text style={[styles.paragraph, { marginTop: 10 }]}>
           I, {data.residentName}, have been informed of my right to have advanced directives
           and have indicated my current status above.
         </Text>
       </View>
 
-      <View style={styles.signatureSection}>
+      <View style={[styles.signatureSection, { marginTop: 15 }]} wrap={false}>
         <SignatureBlock name={data.residentName} />
         <StaffSignature />
       </View>
@@ -1750,7 +1750,7 @@ function ServicePlanRightsPage({ data }: { data: OnboardingData }) {
         </Text>
       </View>
 
-      <View style={styles.signatureSection}>
+      <View style={styles.signatureSection} wrap={false}>
         <SignatureBlock name={data.residentName} />
         <StaffSignature />
       </View>
