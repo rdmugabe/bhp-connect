@@ -535,23 +535,6 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           </View>
         </View>
 
-        <View style={styles.signatureSection} wrap={false}>
-          <View style={styles.signatureRow}>
-            <View style={styles.signatureBlock}>
-              <Text style={styles.prefilledName}>{data.employeeName}</Text>
-              <Text style={styles.signatureLabel}>Applicant Name (Printed)</Text>
-            </View>
-            <View style={styles.signatureBlock}>
-              <View style={styles.signatureLine} />
-              <Text style={styles.signatureLabel}>Applicant Signature</Text>
-            </View>
-            <View style={{ width: 120 }}>
-              <View style={styles.dateLine} />
-              <Text style={styles.signatureLabel}>Date</Text>
-            </View>
-          </View>
-        </View>
-
         <PageFooter pageNum={2} />
       </Page>
 
