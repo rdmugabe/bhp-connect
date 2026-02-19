@@ -20,6 +20,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -37,7 +47,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Upload, ExternalLink, FileText, Settings, Plus, FolderOpen, Building2, User, Users } from "lucide-react";
+import { Upload, ExternalLink, FileText, Settings, Plus, FolderOpen, Building2, User, Users, Trash2, Download } from "lucide-react";
 import { formatDate, getExpirationStatus } from "@/lib/utils";
 
 interface DocumentCategory {
@@ -96,6 +106,8 @@ export default function FacilityDocumentsPage() {
   const [newDocEmployeeId, setNewDocEmployeeId] = useState("");
   const [newDocIntakeId, setNewDocIntakeId] = useState("");
   const [filterOwnerType, setFilterOwnerType] = useState<string>("ALL");
+  const [deletingDoc, setDeletingDoc] = useState<Document | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchDocuments();
@@ -288,6 +300,34 @@ export default function FacilityDocumentsPage() {
       });
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleDelete(doc: Document) {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/documents/${doc.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete document");
+
+      toast({
+        title: "Success",
+        description: "Document deleted successfully",
+      });
+
+      setDeletingDoc(null);
+      fetchDocuments();
+      fetchCategories();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete document",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -542,7 +582,7 @@ export default function FacilityDocumentsPage() {
                 <TableHead>Uploaded</TableHead>
                 <TableHead>Expires</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">View</TableHead>
+                <TableHead className="w-[120px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -575,19 +615,28 @@ export default function FacilityDocumentsPage() {
                     {getStatusBadge(doc.status, doc.expiresAt)}
                   </TableCell>
                   <TableCell>
-                    {doc.fileUrl ? (
-                      <Button variant="ghost" size="icon" asChild>
-                        <a
-                          href={`/api/documents/download?key=${encodeURIComponent(doc.fileUrl)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
+                    <div className="flex items-center gap-1">
+                      {doc.fileUrl && (
+                        <Button variant="ghost" size="icon" asChild title="Download">
+                          <a
+                            href={`/api/documents/download?key=${encodeURIComponent(doc.fileUrl)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeletingDoc(doc)}
+                        title="Delete"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">-</span>
-                    )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -764,6 +813,29 @@ export default function FacilityDocumentsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingDoc} onOpenChange={(open) => !open && setDeletingDoc(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deletingDoc?.name}&quot;? This action cannot be undone.
+              The file will be permanently removed from storage.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingDoc && handleDelete(deletingDoc)}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

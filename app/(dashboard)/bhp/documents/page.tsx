@@ -38,6 +38,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -48,7 +58,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, ExternalLink, Settings, FolderOpen, Building2, User, Users } from "lucide-react";
+import { Plus, ExternalLink, Settings, FolderOpen, Building2, User, Users, Trash2, Download } from "lucide-react";
 import { formatDate, getExpirationStatus } from "@/lib/utils";
 
 interface DocumentCategory {
@@ -92,6 +102,8 @@ export default function BHPDocumentsPage() {
   const [filterOwnerType, setFilterOwnerType] = useState<string>("ALL");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deletingDoc, setDeletingDoc] = useState<Document | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const form = useForm<DocumentRequestInput>({
     resolver: zodResolver(documentRequestSchema),
@@ -198,6 +210,48 @@ export default function BHPDocumentsPage() {
       });
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function fetchDocuments() {
+    try {
+      const url = selectedFacility && selectedFacility !== "all"
+        ? `/api/documents?facilityId=${selectedFacility}`
+        : "/api/documents";
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        setDocuments(data.documents || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch documents:", error);
+    }
+  }
+
+  async function handleDelete(doc: Document) {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/documents/${doc.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete document");
+
+      toast({
+        title: "Success",
+        description: "Document deleted successfully",
+      });
+
+      setDeletingDoc(null);
+      fetchDocuments();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete document",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -423,7 +477,7 @@ export default function BHPDocumentsPage() {
                 <TableHead>Category</TableHead>
                 <TableHead>Expires</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">View</TableHead>
+                <TableHead className="w-[120px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -454,21 +508,32 @@ export default function BHPDocumentsPage() {
                     {getStatusBadge(doc.status, doc.expiresAt)}
                   </TableCell>
                   <TableCell>
-                    {doc.fileUrl ? (
-                      <Button variant="ghost" size="icon" asChild>
-                        <a
-                          href={`/api/documents/download?key=${encodeURIComponent(doc.fileUrl)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
+                    <div className="flex items-center gap-1">
+                      {doc.fileUrl ? (
+                        <Button variant="ghost" size="icon" asChild title="Download">
+                          <a
+                            href={`/api/documents/download?key=${encodeURIComponent(doc.fileUrl)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          Pending
+                        </span>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeletingDoc(doc)}
+                        title="Delete"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">
-                        Pending
-                      </span>
-                    )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -486,6 +551,29 @@ export default function BHPDocumentsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingDoc} onOpenChange={(open) => !open && setDeletingDoc(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deletingDoc?.name}&quot;? This action cannot be undone.
+              The file will be permanently removed from storage.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingDoc && handleDelete(deletingDoc)}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
