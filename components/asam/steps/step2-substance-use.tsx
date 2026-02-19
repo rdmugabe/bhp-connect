@@ -65,7 +65,7 @@ export function Step2SubstanceUse() {
         <CardContent className="space-y-4">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium">Substance Use History</h4>
+              <h4 className="font-medium">Substances Used</h4>
               <Button
                 type="button"
                 variant="outline"
