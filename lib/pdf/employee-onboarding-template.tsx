@@ -937,96 +937,96 @@ function JobDescriptionPage({ data }: { data: EmployeeOnboardingData }) {
 function ReferenceCheckPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
-      <View style={styles.header}>
+      <View style={[styles.header, { marginBottom: 10, paddingBottom: 8 }]}>
         <Text style={styles.title}>REFERENCE CHECK FORM</Text>
       </View>
 
-      <View style={styles.formField}>
+      <View style={[styles.formField, { marginBottom: 5 }]}>
         <Text style={styles.fieldLabel}>APPLICANT NAME</Text>
         <Text style={styles.prefilledName}>{data.employeeName}</Text>
       </View>
 
       <View style={styles.twoColumn}>
         <View style={styles.column}>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 5 }]}>
             <Text style={styles.fieldLabel}>Name of Reference</Text>
-            <View style={styles.fieldLine} />
+            <View style={[styles.fieldLine, { height: 18 }]} />
           </View>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 5 }]}>
             <Text style={styles.fieldLabel}>Company</Text>
-            <View style={styles.fieldLine} />
+            <View style={[styles.fieldLine, { height: 18 }]} />
           </View>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 5 }]}>
             <Text style={styles.fieldLabel}>Title</Text>
-            <View style={styles.fieldLine} />
+            <View style={[styles.fieldLine, { height: 18 }]} />
           </View>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 5 }]}>
             <Text style={styles.fieldLabel}>Relationship with Applicant</Text>
-            <View style={styles.fieldLine} />
+            <View style={[styles.fieldLine, { height: 18 }]} />
           </View>
         </View>
         <View style={styles.column}>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 5 }]}>
             <Text style={styles.fieldLabel}>Applicant&apos;s Job Title</Text>
-            <View style={styles.fieldLine} />
+            <View style={[styles.fieldLine, { height: 18 }]} />
           </View>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 5 }]}>
             <Text style={styles.fieldLabel}>Date of Employment (From/To)</Text>
-            <View style={styles.fieldLine} />
+            <View style={[styles.fieldLine, { height: 18 }]} />
           </View>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 5 }]}>
             <Text style={styles.fieldLabel}>Salary</Text>
-            <View style={styles.fieldLine} />
+            <View style={[styles.fieldLine, { height: 18 }]} />
           </View>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 5 }]}>
             <Text style={styles.fieldLabel}>Reason for Leaving</Text>
-            <View style={styles.fieldLine} />
+            <View style={[styles.fieldLine, { height: 18 }]} />
           </View>
         </View>
       </View>
 
-      <View style={styles.formField}>
+      <View style={[styles.formField, { marginBottom: 5 }]}>
         <Text style={styles.fieldLabel}>Would You Rehire?</Text>
-        <View style={styles.fieldLine} />
+        <View style={[styles.fieldLine, { height: 18 }]} />
       </View>
 
-      <View style={styles.formField}>
+      <View style={[styles.formField, { marginBottom: 5 }]}>
         <Text style={styles.fieldLabel}>Job Duties</Text>
-        <View style={[styles.fieldLine, { height: 40 }]} />
+        <View style={[styles.fieldLine, { height: 30 }]} />
       </View>
 
-      <View style={styles.formField}>
+      <View style={[styles.formField, { marginBottom: 5 }]}>
         <Text style={styles.fieldLabel}>Relationship with Others</Text>
-        <View style={styles.fieldLine} />
+        <View style={[styles.fieldLine, { height: 18 }]} />
       </View>
 
-      <View style={styles.formField}>
+      <View style={[styles.formField, { marginBottom: 5 }]}>
         <Text style={styles.fieldLabel}>Quality and Productivity</Text>
-        <View style={styles.fieldLine} />
+        <View style={[styles.fieldLine, { height: 18 }]} />
       </View>
 
       <View style={styles.twoColumn}>
         <View style={styles.column}>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 5 }]}>
             <Text style={styles.fieldLabel}>Strengths</Text>
-            <View style={[styles.fieldLine, { height: 30 }]} />
+            <View style={[styles.fieldLine, { height: 25 }]} />
           </View>
         </View>
         <View style={styles.column}>
-          <View style={styles.formField}>
+          <View style={[styles.formField, { marginBottom: 5 }]}>
             <Text style={styles.fieldLabel}>Areas for Improvement</Text>
-            <View style={[styles.fieldLine, { height: 30 }]} />
+            <View style={[styles.fieldLine, { height: 25 }]} />
           </View>
         </View>
       </View>
 
-      <View style={styles.formField}>
+      <View style={[styles.formField, { marginBottom: 5 }]}>
         <Text style={styles.fieldLabel}>Work Habits (Attendance, Punctuality, Dependability)</Text>
-        <View style={styles.fieldLine} />
+        <View style={[styles.fieldLine, { height: 18 }]} />
       </View>
 
-      <View style={styles.signatureSection} wrap={false}>
-        <View style={styles.signatureRow}>
+      <View style={[styles.signatureSection, { marginTop: 10, paddingTop: 10 }]} wrap={false}>
+        <View style={[styles.signatureRow, { marginTop: 15 }]}>
           <View style={styles.signatureBlock}>
             <View style={styles.signatureLine} />
             <Text style={styles.signatureLabel}>Reference Name</Text>
@@ -1036,7 +1036,7 @@ function ReferenceCheckPage({ data }: { data: EmployeeOnboardingData }) {
             <Text style={styles.signatureLabel}>Date</Text>
           </View>
         </View>
-        <View style={styles.signatureRow}>
+        <View style={[styles.signatureRow, { marginTop: 15 }]}>
           <View style={styles.signatureBlock}>
             <View style={styles.signatureLine} />
             <Text style={styles.signatureLabel}>Interviewer Name</Text>
@@ -1057,98 +1057,98 @@ function ReferenceCheckPage({ data }: { data: EmployeeOnboardingData }) {
 function ConfidentialityAgreementPage({ data }: { data: EmployeeOnboardingData }) {
   return (
     <Page size="LETTER" style={styles.page}>
-      <View style={styles.header}>
+      <View style={[styles.header, { marginBottom: 10, paddingBottom: 8 }]}>
         <Text style={styles.title}>CONFIDENTIALITY AGREEMENT</Text>
       </View>
 
-      <Text style={styles.paragraph}>
+      <Text style={[styles.paragraph, { marginBottom: 5, fontSize: 9 }]}>
         I, {data.employeeName}, understand that I may hear, see, and create information that is
         private and confidential.
       </Text>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Examples of Confidential Information</Text>
+      <View style={[styles.sectionHeader, { marginBottom: 5, marginTop: 5, padding: 5 }]}>
+        <Text style={[styles.sectionTitle, { fontSize: 12 }]}>Examples of Confidential Information</Text>
       </View>
 
-      <View style={styles.bulletPoint}>
+      <View style={[styles.bulletPoint, { marginBottom: 2 }]}>
         <Text style={styles.bullet}>•</Text>
-        <Text style={styles.bulletText}>All resident information - written and verbal</Text>
+        <Text style={[styles.bulletText, { fontSize: 9 }]}>All resident information - written and verbal</Text>
       </View>
-      <View style={styles.bulletPoint}>
+      <View style={[styles.bulletPoint, { marginBottom: 2 }]}>
         <Text style={styles.bullet}>•</Text>
-        <Text style={styles.bulletText}>Private employee information (such as salaries, disciplinary actions, etc.)</Text>
+        <Text style={[styles.bulletText, { fontSize: 9 }]}>Private employee information (such as salaries, disciplinary actions, etc.)</Text>
       </View>
-      <View style={styles.bulletPoint}>
+      <View style={[styles.bulletPoint, { marginBottom: 2 }]}>
         <Text style={styles.bullet}>•</Text>
-        <Text style={styles.bulletText}>Business information that belongs to the facility, including:</Text>
+        <Text style={[styles.bulletText, { fontSize: 9 }]}>Business information that belongs to the facility, including:</Text>
       </View>
       <View style={{ paddingLeft: 25 }}>
-        <View style={styles.bulletPoint}>
+        <View style={[styles.bulletPoint, { marginBottom: 1 }]}>
           <Text style={styles.bullet}>-</Text>
-          <Text style={styles.bulletText}>Copyrighted computer programs</Text>
+          <Text style={[styles.bulletText, { fontSize: 9 }]}>Copyrighted computer programs</Text>
         </View>
-        <View style={styles.bulletPoint}>
+        <View style={[styles.bulletPoint, { marginBottom: 1 }]}>
           <Text style={styles.bullet}>-</Text>
-          <Text style={styles.bulletText}>Business plans</Text>
+          <Text style={[styles.bulletText, { fontSize: 9 }]}>Business plans</Text>
         </View>
-        <View style={styles.bulletPoint}>
+        <View style={[styles.bulletPoint, { marginBottom: 1 }]}>
           <Text style={styles.bullet}>-</Text>
-          <Text style={styles.bulletText}>Contract terms, financial cost data and other internal intellectual property</Text>
+          <Text style={[styles.bulletText, { fontSize: 9 }]}>Contract terms, financial cost data and other internal intellectual property</Text>
         </View>
       </View>
 
-      <View style={[styles.importantBox, { marginTop: 15 }]}>
-        <Text style={styles.importantText}>
+      <View style={[styles.importantBox, { marginTop: 8, marginBottom: 8, padding: 8 }]}>
+        <Text style={[styles.importantText, { fontSize: 9 }]}>
           Keeping resident, employee, and intellectual property information private and confidential
           is critically important. Failure to do so may result in corrective action, including
           termination and possibly legal action.
         </Text>
       </View>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>I Promise</Text>
+      <View style={[styles.sectionHeader, { marginBottom: 5, marginTop: 5, padding: 5 }]}>
+        <Text style={[styles.sectionTitle, { fontSize: 12 }]}>I Promise</Text>
       </View>
 
-      <View style={styles.numberedItem}>
+      <View style={[styles.numberedItem, { marginBottom: 3 }]}>
         <Text style={styles.number}>1.</Text>
-        <Text style={styles.numberedText}>
+        <Text style={[styles.numberedText, { fontSize: 9 }]}>
           I will use confidential information only as needed to do my job. I will not access resident
           or employee information that is not needed to do my job.
         </Text>
       </View>
-      <View style={styles.numberedItem}>
+      <View style={[styles.numberedItem, { marginBottom: 3 }]}>
         <Text style={styles.number}>2.</Text>
-        <Text style={styles.numberedText}>
+        <Text style={[styles.numberedText, { fontSize: 9 }]}>
           I will release resident information in accordance with the facility&apos;s Confidentiality,
           Code of Ethics, Use and Disclosure policies.
         </Text>
       </View>
-      <View style={styles.numberedItem}>
+      <View style={[styles.numberedItem, { marginBottom: 3 }]}>
         <Text style={styles.number}>3.</Text>
-        <Text style={styles.numberedText}>
+        <Text style={[styles.numberedText, { fontSize: 9 }]}>
           I will not share confidential information in a careless manner.
         </Text>
       </View>
-      <View style={styles.numberedItem}>
+      <View style={[styles.numberedItem, { marginBottom: 3 }]}>
         <Text style={styles.number}>4.</Text>
-        <Text style={styles.numberedText}>
+        <Text style={[styles.numberedText, { fontSize: 9 }]}>
           I understand that information on facility computers may not be protected from legal discovery.
         </Text>
       </View>
-      <View style={styles.numberedItem}>
+      <View style={[styles.numberedItem, { marginBottom: 3 }]}>
         <Text style={styles.number}>5.</Text>
-        <Text style={styles.numberedText}>
+        <Text style={[styles.numberedText, { fontSize: 9 }]}>
           I will report if I think private or confidential information is being accessed improperly.
         </Text>
       </View>
-      <View style={styles.numberedItem}>
+      <View style={[styles.numberedItem, { marginBottom: 3 }]}>
         <Text style={styles.number}>6.</Text>
-        <Text style={styles.numberedText}>
+        <Text style={[styles.numberedText, { fontSize: 9 }]}>
           I understand that these promises carry over even if my employment should end.
         </Text>
       </View>
 
-      <View style={styles.signatureSection} wrap={false}>
+      <View style={[styles.signatureSection, { marginTop: 10, paddingTop: 10 }]} wrap={false}>
         <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
         <AdminSignature />
       </View>
