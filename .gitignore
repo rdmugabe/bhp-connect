@@ -49,3 +49,6 @@ Clients/
 # Templates and backup files
 templates/
 *-backup.tsx
+
+# AWS credentials
+access keys/
