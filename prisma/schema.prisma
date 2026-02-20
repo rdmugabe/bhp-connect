@@ -118,6 +118,8 @@ model Facility {
   employees             Employee[]
   employeeDocumentTypes EmployeeDocumentType[]
   meetings              Meeting[]
+  fireDrillReports      FireDrillReport[]
+  evacuationDrillReports EvacuationDrillReport[]
 
   @@index([bhpId])
 }
@@ -641,6 +643,110 @@ model Meeting {
   @@index([scheduledAt])
   @@index([status])
   @@index([createdBy])
+}
+
+// Fire Drill Report Enums
+enum DrillShift {
+  AM
+  PM
+}
+
+enum DrillType {
+  ANNOUNCED
+  UNANNOUNCED
+}
+
+enum DrillResult {
+  SATISFACTORY
+  NEEDS_IMPROVEMENT
+  UNSATISFACTORY
+}
+
+// Fire Drill Safety Report
+model FireDrillReport {
+  id                  String      @id @default(cuid())
+  facilityId          String
+  facility            Facility    @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  reportMonth         Int         // 1-12
+  reportYear          Int
+  drillDate           DateTime
+  drillTime           String
+  location            String?
+  shift               DrillShift
+  drillType           DrillType
+  conductedBy         String
+  alarmActivatedTime  String?
+  buildingClearTime   String?
+  totalEvacuationTime String?
+  numberEvacuated     Int?
+  safetyChecklist     Json        // 6 boolean items
+  residentsPresent    Json?       // [{name, evacuated}]
+  observations        String?     @db.Text
+  correctiveActions   String?     @db.Text
+  drillResult         DrillResult
+  signatures          Json?
+  submittedBy         String
+  submittedAt         DateTime    @default(now())
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@unique([facilityId, reportMonth, reportYear, shift])
+  @@index([facilityId])
+  @@index([reportMonth, reportYear])
+}
+
+// Evacuation/Disaster Drill Enums
+enum EvacuationDrillType {
+  EVACUATION  // Staff and Residents - Every 6 months
+  DISASTER    // Staff Only - Every 3 months
+}
+
+enum EvacuationShift {
+  AM  // 7:00AM - 7:00PM
+  PM  // 7:00PM - 7:00AM
+}
+
+enum Quarter {
+  Q1  // Jan, Feb, Mar
+  Q2  // Apr, May, Jun
+  Q3  // Jul, Aug, Sep
+  Q4  // Oct, Nov, Dec
+}
+
+// Evacuation/Disaster Drill Report
+model EvacuationDrillReport {
+  id                  String              @id @default(cuid())
+  facilityId          String
+  facility            Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  drillType           EvacuationDrillType
+  drillDate           DateTime
+  drillTime           String
+  dayOfWeek           String
+  totalLengthMinutes  Int?
+  shift               EvacuationShift
+  quarter             Quarter
+  year                Int
+  disasterDrillType   String?             // e.g., "Fire", "Earthquake", "Flood" - only for disaster drills
+  staffInvolved       Json                // [{name: string}]
+  residentsInvolved   Json?               // [{name: string, assistanceRequired: string}] - only for evacuation drills
+  exitBlocked         String?             // Scenario description
+  exitUsed            String?
+  assemblyPoint       String?
+  correctLocation     Boolean?
+  allAccountedFor     Boolean?
+  issuesIdentified    Boolean?
+  observations        String?             @db.Text
+  drillResult         DrillResult
+  signatures          Json?               // {conductedBy, conductedByDate, supervisor, supervisorDate}
+  submittedBy         String
+  submittedAt         DateTime            @default(now())
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@unique([facilityId, drillType, quarter, year, shift])
+  @@index([facilityId])
+  @@index([drillType])
+  @@index([quarter, year])
 }
 
 // ASAM Assessment - Substance Abuse Prevention and Control

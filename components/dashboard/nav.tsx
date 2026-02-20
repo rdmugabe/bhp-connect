@@ -19,13 +19,14 @@ import {
   Video,
   Activity,
   UserPlus,
+  ClipboardCheck,
 } from "lucide-react";
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  showBadge?: "messages" | "applications" | "intakes" | "asam" | "meetings";
+  showBadge?: "messages" | "applications" | "intakes" | "asam" | "meetings" | "adminTasks";
 }
 
 const bhpNavItems: NavItem[] = [
@@ -133,6 +134,12 @@ const bhrfNavItems: NavItem[] = [
     showBadge: "meetings",
   },
   {
+    title: "Admin Tasks",
+    href: "/facility/admin-tasks",
+    icon: ClipboardCheck,
+    showBadge: "adminTasks",
+  },
+  {
     title: "BHP Info",
     href: "/facility/bhp",
     icon: UserCheck,
@@ -159,6 +166,7 @@ interface BadgeCounts {
   intakes: number;
   asam: number;
   meetings: number;
+  adminTasks: number;
 }
 
 interface DashboardNavProps {
@@ -173,6 +181,7 @@ export function DashboardNav({ role }: DashboardNavProps) {
     intakes: 0,
     asam: 0,
     meetings: 0,
+    adminTasks: 0,
   });
 
   useEffect(() => {

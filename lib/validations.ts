@@ -1183,3 +1183,82 @@ export type ASAMStep5Input = z.infer<typeof asamStep5Schema>;
 export type ASAMStep6Input = z.infer<typeof asamStep6Schema>;
 export type ASAMStep7Input = z.infer<typeof asamStep7Schema>;
 export type ASAMStep8Input = z.infer<typeof asamStep8Schema>;
+
+// =====================================================
+// Fire Drill Report Validation Schema
+// =====================================================
+
+export const fireDrillReportSchema = z.object({
+  drillDate: z.string().min(1, "Drill date is required"),
+  drillTime: z.string().min(1, "Drill time is required"),
+  location: z.string().optional(),
+  shift: z.enum(["AM", "PM"]),
+  drillType: z.enum(["ANNOUNCED", "UNANNOUNCED"]),
+  conductedBy: z.string().min(1, "Conducted by is required"),
+  alarmActivatedTime: z.string().optional(),
+  buildingClearTime: z.string().optional(),
+  totalEvacuationTime: z.string().optional(),
+  numberEvacuated: z.number().min(0).optional(),
+  safetyChecklist: z.object({
+    fireAlarmFunctioned: z.boolean().default(false),
+    allResidentsAccountedFor: z.boolean().default(false),
+    staffFollowedProcedures: z.boolean().default(false),
+    exitRoutesClear: z.boolean().default(false),
+    emergencyExitsOpenedProperly: z.boolean().default(false),
+    fireExtinguishersAccessible: z.boolean().default(false),
+  }),
+  residentsPresent: z.array(z.object({
+    name: z.string(),
+    evacuated: z.boolean(),
+  })).optional(),
+  observations: z.string().optional(),
+  correctiveActions: z.string().optional(),
+  drillResult: z.enum(["SATISFACTORY", "NEEDS_IMPROVEMENT", "UNSATISFACTORY"]),
+  signatures: z.object({
+    staffSignature: z.string().optional(),
+    staffSignatureDate: z.string().optional(),
+    supervisorSignature: z.string().optional(),
+    supervisorSignatureDate: z.string().optional(),
+  }).optional(),
+});
+
+export type FireDrillReportInput = z.infer<typeof fireDrillReportSchema>;
+
+// =====================================================
+// Evacuation/Disaster Drill Report Validation Schema
+// =====================================================
+
+export const evacuationDrillReportSchema = z.object({
+  drillType: z.enum(["EVACUATION", "DISASTER"]),
+  drillDate: z.string().min(1, "Drill date is required"),
+  drillTime: z.string().min(1, "Drill time is required"),
+  dayOfWeek: z.string().min(1, "Day of week is required"),
+  totalLengthMinutes: z.number().min(0).optional(),
+  shift: z.enum(["AM", "PM"]),
+  quarter: z.enum(["Q1", "Q2", "Q3", "Q4"]),
+  year: z.number().min(2020).max(2100),
+  disasterDrillType: z.string().optional(),
+  staffInvolved: z.array(z.object({
+    name: z.string().min(1, "Staff name is required"),
+  })).min(1, "At least one staff member is required"),
+  residentsInvolved: z.array(z.object({
+    name: z.string(),
+    assistanceRequired: z.string().optional(),
+  })).optional(),
+  exitBlocked: z.string().optional(),
+  exitUsed: z.string().optional(),
+  assemblyPoint: z.string().optional(),
+  correctLocation: z.boolean().optional(),
+  allAccountedFor: z.boolean().optional(),
+  issuesIdentified: z.boolean().optional(),
+  observations: z.string().optional(),
+  drillResult: z.enum(["SATISFACTORY", "NEEDS_IMPROVEMENT", "UNSATISFACTORY"]),
+  signatures: z.object({
+    conductedBy: z.string().optional(),
+    conductedByDate: z.string().optional(),
+    supervisor: z.string().optional(),
+    supervisorDate: z.string().optional(),
+  }).optional(),
+});
+
+export type EvacuationDrillReportInput = z.infer<typeof evacuationDrillReportSchema>;
