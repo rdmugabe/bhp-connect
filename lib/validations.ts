@@ -1198,7 +1198,7 @@ export const fireDrillReportSchema = z.object({
   alarmActivatedTime: z.string().optional(),
   buildingClearTime: z.string().optional(),
   totalEvacuationTime: z.string().optional(),
-  numberEvacuated: z.number().min(0).optional(),
+  numberEvacuated: z.number().min(0).nullish(),
   safetyChecklist: z.object({
     fireAlarmFunctioned: z.boolean().default(false),
     allResidentsAccountedFor: z.boolean().default(false),
@@ -1210,7 +1210,7 @@ export const fireDrillReportSchema = z.object({
   residentsPresent: z.array(z.object({
     name: z.string(),
     evacuated: z.boolean(),
-  })).optional(),
+  })).nullish(),
   observations: z.string().optional(),
   correctiveActions: z.string().optional(),
   drillResult: z.enum(["SATISFACTORY", "NEEDS_IMPROVEMENT", "UNSATISFACTORY"]),
@@ -1219,7 +1219,7 @@ export const fireDrillReportSchema = z.object({
     staffSignatureDate: z.string().optional(),
     supervisorSignature: z.string().optional(),
     supervisorSignatureDate: z.string().optional(),
-  }).optional(),
+  }).nullish(),
 });
 
 export type FireDrillReportInput = z.infer<typeof fireDrillReportSchema>;
