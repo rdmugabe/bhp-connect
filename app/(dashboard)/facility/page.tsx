@@ -20,8 +20,9 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  ClipboardList,
 } from "lucide-react";
-import { formatDate, getExpirationStatus } from "@/lib/utils";
+import { formatDate, getExpirationStatus, getCurrentBiWeekInfo } from "@/lib/utils";
 
 export default async function FacilityDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -88,10 +89,73 @@ export default async function FacilityDashboardPage() {
     return status === "expiring" || status === "expired";
   }).length;
 
-  // Calculate compliance health
+  // Get admin task compliance stats
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+  const month = now.getMonth();
+  const currentQuarter = month < 3 ? "Q1" : month < 6 ? "Q2" : month < 9 ? "Q3" : "Q4";
+  const inH1 = currentQuarter === "Q1" || currentQuarter === "Q2";
+
+  // Fire drill check (monthly AM + PM)
+  const fireDrillReports = await prisma.fireDrillReport.findMany({
+    where: {
+      facilityId: facility.id,
+      reportMonth: currentMonth,
+      reportYear: currentYear,
+    },
+  });
+  const hasAMFireDrill = fireDrillReports.some((r) => r.shift === "AM");
+  const hasPMFireDrill = fireDrillReports.some((r) => r.shift === "PM");
+  const fireDrillsMissing = !hasAMFireDrill || !hasPMFireDrill;
+
+  // Evacuation/Disaster drill check
+  const evacuationDrillReports = await prisma.evacuationDrillReport.findMany({
+    where: {
+      facilityId: facility.id,
+      year: currentYear,
+    },
+  });
+
+  // Evacuation drills (every 6 months with AM/PM shifts)
+  const hasEvacuationH1 =
+    evacuationDrillReports.some((r) => r.drillType === "EVACUATION" && (r.quarter === "Q1" || r.quarter === "Q2") && r.shift === "AM") &&
+    evacuationDrillReports.some((r) => r.drillType === "EVACUATION" && (r.quarter === "Q1" || r.quarter === "Q2") && r.shift === "PM");
+  const hasEvacuationH2 =
+    evacuationDrillReports.some((r) => r.drillType === "EVACUATION" && (r.quarter === "Q3" || r.quarter === "Q4") && r.shift === "AM") &&
+    evacuationDrillReports.some((r) => r.drillType === "EVACUATION" && (r.quarter === "Q3" || r.quarter === "Q4") && r.shift === "PM");
+  const evacuationMissing = (inH1 && !hasEvacuationH1) || (!inH1 && !hasEvacuationH2);
+
+  // Disaster drills (quarterly with AM/PM shifts)
+  const hasCurrentQuarterDisaster =
+    evacuationDrillReports.some((r) => r.drillType === "DISASTER" && r.quarter === currentQuarter && r.shift === "AM") &&
+    evacuationDrillReports.some((r) => r.drillType === "DISASTER" && r.quarter === currentQuarter && r.shift === "PM");
+  const disasterMissing = !hasCurrentQuarterDisaster;
+
+  // Oversight training check (bi-weekly)
+  const { biWeek: currentBiWeek, year: biWeekYear } = getCurrentBiWeekInfo();
+  const hasOversightTraining = await prisma.oversightTrainingReport.findFirst({
+    where: {
+      facilityId: facility.id,
+      biWeek: currentBiWeek,
+      year: biWeekYear,
+    },
+  });
+  const oversightMissing = !hasOversightTraining;
+
+  // Calculate total admin task issues
+  const adminTaskIssues = [
+    fireDrillsMissing,
+    evacuationMissing,
+    disasterMissing,
+    oversightMissing,
+  ].filter(Boolean).length;
+
+  // Calculate compliance health (documents + admin tasks)
   const totalDocIssues = requestedDocuments + expiringDocuments;
+  const totalIssues = totalDocIssues + adminTaskIssues;
   const complianceStatus =
-    totalDocIssues === 0 ? "good" : totalDocIssues <= 2 ? "warning" : "danger";
+    totalIssues === 0 ? "good" : totalIssues <= 2 ? "warning" : "danger";
 
   return (
     <div className="space-y-6">
@@ -169,11 +233,70 @@ export default async function FacilityDashboardPage() {
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {totalDocIssues} document issue(s)
+              {totalDocIssues > 0 && `${totalDocIssues} document issue(s)`}
+              {totalDocIssues > 0 && adminTaskIssues > 0 && ", "}
+              {adminTaskIssues > 0 && `${adminTaskIssues} admin task(s) pending`}
+              {totalIssues === 0 && "All compliant"}
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Admin Tasks Alert */}
+      {adminTaskIssues > 0 && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-amber-800">
+              <ClipboardList className="h-5 w-5" />
+              Admin Tasks Requiring Attention
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
+              {fireDrillsMissing && (
+                <Link href="/facility/admin-tasks/fire-drills">
+                  <div className="p-3 bg-white rounded-lg border border-amber-200 hover:border-amber-400 transition-colors">
+                    <p className="font-medium text-sm">Fire Drills</p>
+                    <p className="text-xs text-muted-foreground">
+                      {!hasAMFireDrill && !hasPMFireDrill ? "AM & PM" : !hasAMFireDrill ? "AM" : "PM"} shift missing
+                    </p>
+                  </div>
+                </Link>
+              )}
+              {evacuationMissing && (
+                <Link href="/facility/admin-tasks/evacuation-drills">
+                  <div className="p-3 bg-white rounded-lg border border-amber-200 hover:border-amber-400 transition-colors">
+                    <p className="font-medium text-sm">Evacuation Drill</p>
+                    <p className="text-xs text-muted-foreground">
+                      {inH1 ? "H1" : "H2"} period incomplete
+                    </p>
+                  </div>
+                </Link>
+              )}
+              {disasterMissing && (
+                <Link href="/facility/admin-tasks/evacuation-drills">
+                  <div className="p-3 bg-white rounded-lg border border-amber-200 hover:border-amber-400 transition-colors">
+                    <p className="font-medium text-sm">Disaster Drill</p>
+                    <p className="text-xs text-muted-foreground">
+                      {currentQuarter} incomplete
+                    </p>
+                  </div>
+                </Link>
+              )}
+              {oversightMissing && (
+                <Link href="/facility/admin-tasks/oversight-training">
+                  <div className="p-3 bg-white rounded-lg border border-amber-200 hover:border-amber-400 transition-colors">
+                    <p className="font-medium text-sm">Oversight Training</p>
+                    <p className="text-xs text-muted-foreground">
+                      Bi-week {currentBiWeek} pending
+                    </p>
+                  </div>
+                </Link>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Activity */}
       <div className="grid gap-4 md:grid-cols-2">

@@ -161,13 +161,13 @@ export async function PUT(
         alarmActivatedTime: validatedData.alarmActivatedTime,
         buildingClearTime: validatedData.buildingClearTime,
         totalEvacuationTime: validatedData.totalEvacuationTime,
-        numberEvacuated: validatedData.numberEvacuated,
+        numberEvacuated: validatedData.numberEvacuated ?? undefined,
         safetyChecklist: validatedData.safetyChecklist,
-        residentsPresent: validatedData.residentsPresent,
+        residentsPresent: validatedData.residentsPresent ?? undefined,
         observations: validatedData.observations,
         correctiveActions: validatedData.correctiveActions,
         drillResult: validatedData.drillResult,
-        signatures: validatedData.signatures,
+        signatures: validatedData.signatures ?? undefined,
       },
       include: {
         facility: {

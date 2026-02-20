@@ -20,7 +20,7 @@ import {
   ArrowRight,
   ClipboardList,
 } from "lucide-react";
-import { formatDate, getExpirationStatus } from "@/lib/utils";
+import { formatDate, getExpirationStatus, getCurrentBiWeekInfo } from "@/lib/utils";
 
 export default async function BHPDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -61,13 +61,83 @@ export default async function BHPDashboardPage() {
     return status === "expiring" || status === "expired";
   });
 
-  // Get out-of-compliance facilities
+  // Get out-of-compliance facilities (documents)
   const outOfComplianceFacilities = bhpProfile.facilities.filter((f) =>
     f.documents.some((d) => {
       const status = getExpirationStatus(d.expiresAt);
       return status === "expired" || d.status === "REQUESTED";
     })
   );
+
+  // Get admin task compliance status for all facilities
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+  const month = now.getMonth();
+  const currentQuarter = month < 3 ? "Q1" : month < 6 ? "Q2" : month < 9 ? "Q3" : "Q4";
+  const inH1 = currentQuarter === "Q1" || currentQuarter === "Q2";
+  const { biWeek: currentBiWeek, year: biWeekYear } = getCurrentBiWeekInfo();
+
+  const facilityIds = bhpProfile.facilities.map((f) => f.id);
+
+  // Get all fire drill reports for current month
+  const allFireDrills = await prisma.fireDrillReport.findMany({
+    where: {
+      facilityId: { in: facilityIds },
+      reportMonth: currentMonth,
+      reportYear: currentYear,
+    },
+  });
+
+  // Get all evacuation/disaster drill reports for current year
+  const allEvacuationDrills = await prisma.evacuationDrillReport.findMany({
+    where: {
+      facilityId: { in: facilityIds },
+      year: currentYear,
+    },
+  });
+
+  // Get all oversight training reports for current bi-week
+  const allOversightTraining = await prisma.oversightTrainingReport.findMany({
+    where: {
+      facilityId: { in: facilityIds },
+      biWeek: currentBiWeek,
+      year: biWeekYear,
+    },
+  });
+
+  // Calculate facilities with missing admin tasks
+  const facilitiesWithAdminTaskIssues = bhpProfile.facilities.filter((f) => {
+    const facilityFireDrills = allFireDrills.filter((fd) => fd.facilityId === f.id);
+    const hasAM = facilityFireDrills.some((fd) => fd.shift === "AM");
+    const hasPM = facilityFireDrills.some((fd) => fd.shift === "PM");
+    const fireDrillsMissing = !hasAM || !hasPM;
+
+    const facilityEvacDrills = allEvacuationDrills.filter((ed) => ed.facilityId === f.id);
+    const hasEvacH1 =
+      facilityEvacDrills.some((r) => r.drillType === "EVACUATION" && (r.quarter === "Q1" || r.quarter === "Q2") && r.shift === "AM") &&
+      facilityEvacDrills.some((r) => r.drillType === "EVACUATION" && (r.quarter === "Q1" || r.quarter === "Q2") && r.shift === "PM");
+    const hasEvacH2 =
+      facilityEvacDrills.some((r) => r.drillType === "EVACUATION" && (r.quarter === "Q3" || r.quarter === "Q4") && r.shift === "AM") &&
+      facilityEvacDrills.some((r) => r.drillType === "EVACUATION" && (r.quarter === "Q3" || r.quarter === "Q4") && r.shift === "PM");
+    const evacuationMissing = (inH1 && !hasEvacH1) || (!inH1 && !hasEvacH2);
+
+    const hasDisaster =
+      facilityEvacDrills.some((r) => r.drillType === "DISASTER" && r.quarter === currentQuarter && r.shift === "AM") &&
+      facilityEvacDrills.some((r) => r.drillType === "DISASTER" && r.quarter === currentQuarter && r.shift === "PM");
+    const disasterMissing = !hasDisaster;
+
+    const hasOversight = allOversightTraining.some((ot) => ot.facilityId === f.id);
+    const oversightMissing = !hasOversight;
+
+    return fireDrillsMissing || evacuationMissing || disasterMissing || oversightMissing;
+  });
+
+  // Combine document and admin task issues for total compliance count
+  const allOutOfComplianceFacilities = Array.from(new Set([
+    ...outOfComplianceFacilities.map((f) => f.id),
+    ...facilitiesWithAdminTaskIssues.map((f) => f.id),
+  ]));
 
   // Get recent intakes
   const recentIntakes = await prisma.intake.findMany({
@@ -161,7 +231,7 @@ export default async function BHPDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {outOfComplianceFacilities.length}
+              {allOutOfComplianceFacilities.length}
             </div>
             <p className="text-xs text-muted-foreground">
               Facilities need attention
@@ -232,40 +302,48 @@ export default async function BHPDashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Compliance Alerts
-              <Link href="/bhp/documents">
+              <Link href="/bhp/facilities">
                 <Button variant="ghost" size="sm">
                   View All <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </CardTitle>
             <CardDescription>
-              Facilities with document issues
+              Facilities with compliance issues
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {outOfComplianceFacilities.length > 0 ? (
+            {allOutOfComplianceFacilities.length > 0 ? (
               <div className="space-y-4">
-                {outOfComplianceFacilities.slice(0, 5).map((facility) => (
-                  <div
-                    key={facility.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="font-medium">{facility.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {
-                          facility.documents.filter(
-                            (d) =>
-                              getExpirationStatus(d.expiresAt) === "expired" ||
-                              d.status === "REQUESTED"
-                          ).length
-                        }{" "}
-                        document(s) need attention
-                      </p>
-                    </div>
-                    <Badge variant="danger">Action Required</Badge>
-                  </div>
-                ))}
+                {bhpProfile.facilities
+                  .filter((f) => allOutOfComplianceFacilities.includes(f.id))
+                  .slice(0, 5)
+                  .map((facility) => {
+                    const docIssues = facility.documents.filter(
+                      (d) =>
+                        getExpirationStatus(d.expiresAt) === "expired" ||
+                        d.status === "REQUESTED"
+                    ).length;
+                    const hasAdminTaskIssues = facilitiesWithAdminTaskIssues.some(
+                      (f) => f.id === facility.id
+                    );
+                    return (
+                      <div
+                        key={facility.id}
+                        className="flex items-center justify-between"
+                      >
+                        <div>
+                          <p className="font-medium">{facility.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {docIssues > 0 && `${docIssues} document(s)`}
+                            {docIssues > 0 && hasAdminTaskIssues && ", "}
+                            {hasAdminTaskIssues && "admin tasks pending"}
+                          </p>
+                        </div>
+                        <Badge variant="danger">Action Required</Badge>
+                      </div>
+                    );
+                  })}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
