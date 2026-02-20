@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { oversightTrainingReportSchema } from "@/lib/validations";
 import { uploadToS3, generateFileKey } from "@/lib/s3";
 import { createAuditLog, AuditActions } from "@/lib/audit";
-import { getBiWeekNumber } from "@/lib/utils";
+import { getBiWeekNumber, formatBiWeekLabel } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -195,27 +195,46 @@ export async function POST(request: NextRequest) {
       contentType: file.type,
     });
 
-    const report = await prisma.oversightTrainingReport.create({
-      data: {
-        facilityId: bhrfProfile.facilityId,
-        biWeek,
-        year,
-        trainingDate,
-        conductedBy: validatedData.conductedBy,
-        staffParticipants: validatedData.staffParticipants,
-        documentUrl: fileKey,
-        documentName: file.name,
-        notes: validatedData.notes,
-        submittedBy: session.user.id,
-      },
-      include: {
-        facility: {
-          select: {
-            id: true,
-            name: true,
+    // Create both Document and OversightTrainingReport in a transaction
+    const report = await prisma.$transaction(async (tx) => {
+      // Create Document record for unified document management
+      const document = await tx.document.create({
+        data: {
+          facilityId: bhrfProfile.facilityId,
+          name: `Oversight Training - Bi-Week ${biWeek}, ${year}`,
+          type: "Oversight Training",
+          fileUrl: fileKey,
+          ownerType: "FACILITY",
+          status: "UPLOADED",
+          uploadedBy: session.user.id,
+          uploadedAt: new Date(),
+        },
+      });
+
+      // Create OversightTrainingReport linked to the Document
+      return tx.oversightTrainingReport.create({
+        data: {
+          facilityId: bhrfProfile.facilityId,
+          biWeek,
+          year,
+          trainingDate,
+          conductedBy: validatedData.conductedBy,
+          staffParticipants: validatedData.staffParticipants,
+          documentUrl: fileKey,
+          documentName: file.name,
+          documentId: document.id,
+          notes: validatedData.notes,
+          submittedBy: session.user.id,
+        },
+        include: {
+          facility: {
+            select: {
+              id: true,
+              name: true,
+            },
           },
         },
-      },
+      });
     });
 
     await createAuditLog({

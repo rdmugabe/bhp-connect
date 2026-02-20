@@ -112,8 +112,19 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       // Continue with database deletion even if S3 deletion fails
     }
 
-    await prisma.oversightTrainingReport.delete({
-      where: { id },
+    // Delete both the OversightTrainingReport and linked Document in a transaction
+    await prisma.$transaction(async (tx) => {
+      // First delete the oversight training report
+      await tx.oversightTrainingReport.delete({
+        where: { id },
+      });
+
+      // Then delete the linked document if it exists
+      if (report.documentId) {
+        await tx.document.delete({
+          where: { id: report.documentId },
+        });
+      }
     });
 
     await createAuditLog({

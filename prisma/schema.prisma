@@ -475,6 +475,7 @@ model Document {
   uploadedBy  String?
   uploadedAt  DateTime?
   versions    DocumentVersion[]
+  oversightTrainingReport OversightTrainingReport?
 
   @@index([facilityId])
   @@index([categoryId])
@@ -945,6 +946,10 @@ model OversightTrainingReport {
   // Document upload (required)
   documentUrl         String
   documentName        String
+
+  // Link to Document for unified document management
+  documentId          String?     @unique
+  document            Document?   @relation(fields: [documentId], references: [id], onDelete: SetNull)
 
   // Optional notes
   notes               String?     @db.Text
