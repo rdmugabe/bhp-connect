@@ -73,16 +73,38 @@ async function main() {
     console.log("BHRF user created:", bhrfEmail);
   }
 
-  // Create BHRF profile
+  // Create or find BHRF profile
   let bhrfProfile = await prisma.bHRFProfile.findUnique({ where: { userId: bhrfUser.id } });
   if (!bhrfProfile) {
-    bhrfProfile = await prisma.bHRFProfile.create({
-      data: {
-        userId: bhrfUser.id,
-        facilityId: facility.id,
-      },
-    });
-    console.log("BHRF profile created");
+    // Check if facility already has a BHRF profile
+    const existingFacilityProfile = await prisma.bHRFProfile.findUnique({ where: { facilityId: facility.id } });
+    if (existingFacilityProfile) {
+      bhrfProfile = existingFacilityProfile;
+      console.log("Using existing BHRF profile for facility");
+    } else {
+      bhrfProfile = await prisma.bHRFProfile.create({
+        data: {
+          userId: bhrfUser.id,
+          facilityId: facility.id,
+        },
+      });
+      console.log("BHRF profile created");
+    }
+  } else {
+    console.log("BHRF profile already exists");
+  }
+
+  // Check if intake already exists for Genevieve Begay
+  const existingIntake = await prisma.intake.findFirst({
+    where: {
+      residentName: "Genevieve Begay",
+      facilityId: facility.id
+    }
+  });
+
+  if (existingIntake) {
+    console.log("Intake already exists for Genevieve Begay, ID:", existingIntake.id);
+    return;
   }
 
   // Create the intake for Genevieve Begay
