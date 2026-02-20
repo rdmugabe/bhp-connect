@@ -106,6 +106,8 @@ export default function FacilityDocumentsPage() {
   const [newDocEmployeeId, setNewDocEmployeeId] = useState("");
   const [newDocIntakeId, setNewDocIntakeId] = useState("");
   const [filterOwnerType, setFilterOwnerType] = useState<string>("ALL");
+  const [filterEmployeeId, setFilterEmployeeId] = useState<string>("ALL");
+  const [filterResidentId, setFilterResidentId] = useState<string>("ALL");
   const [deletingDoc, setDeletingDoc] = useState<Document | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -375,10 +377,30 @@ export default function FacilityDocumentsPage() {
   const requestedDocs = documents.filter((d) => d.status === "REQUESTED");
   const uploadedDocs = documents.filter((d) => d.status !== "REQUESTED");
 
-  // Apply owner type filter
-  const filteredDocs = filterOwnerType === "ALL"
-    ? uploadedDocs
-    : uploadedDocs.filter(d => d.ownerType === filterOwnerType);
+  // Apply owner type filter and specific employee/resident filter
+  const filteredDocs = uploadedDocs.filter(d => {
+    // First filter by owner type
+    if (filterOwnerType !== "ALL" && d.ownerType !== filterOwnerType) {
+      return false;
+    }
+    // Then filter by specific employee if selected
+    if (filterOwnerType === "EMPLOYEE" && filterEmployeeId !== "ALL") {
+      return d.employee?.id === filterEmployeeId;
+    }
+    // Then filter by specific resident if selected
+    if (filterOwnerType === "RESIDENT" && filterResidentId !== "ALL") {
+      return d.intake?.id === filterResidentId;
+    }
+    return true;
+  });
+
+  // Get employees and residents that have documents
+  const employeesWithDocs = employees.filter(emp =>
+    uploadedDocs.some(d => d.ownerType === "EMPLOYEE" && d.employee?.id === emp.id)
+  );
+  const residentsWithDocs = residents.filter(res =>
+    uploadedDocs.some(d => d.ownerType === "RESIDENT" && d.intake?.id === res.id)
+  );
 
   // Group by category for required categories
   const bhpCategories = categories.filter((c) => c.bhpId !== null);
@@ -559,17 +581,58 @@ export default function FacilityDocumentsPage() {
                 Documents you have uploaded for your facility
               </CardDescription>
             </div>
-            <Select value={filterOwnerType} onValueChange={setFilterOwnerType}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by owner" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Owners</SelectItem>
-                <SelectItem value="FACILITY">Facility</SelectItem>
-                <SelectItem value="EMPLOYEE">Employees</SelectItem>
-                <SelectItem value="RESIDENT">Residents</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select
+                value={filterOwnerType}
+                onValueChange={(value) => {
+                  setFilterOwnerType(value);
+                  setFilterEmployeeId("ALL");
+                  setFilterResidentId("ALL");
+                }}
+              >
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Filter by owner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Owners</SelectItem>
+                  <SelectItem value="FACILITY">Facility</SelectItem>
+                  <SelectItem value="EMPLOYEE">Employees</SelectItem>
+                  <SelectItem value="RESIDENT">Residents</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {filterOwnerType === "EMPLOYEE" && employeesWithDocs.length > 0 && (
+                <Select value={filterEmployeeId} onValueChange={setFilterEmployeeId}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="All employees" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Employees</SelectItem>
+                    {employeesWithDocs.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.firstName} {emp.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {filterOwnerType === "RESIDENT" && residentsWithDocs.length > 0 && (
+                <Select value={filterResidentId} onValueChange={setFilterResidentId}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="All residents" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Residents</SelectItem>
+                    {residentsWithDocs.map((res) => (
+                      <SelectItem key={res.id} value={res.id}>
+                        {res.residentName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
