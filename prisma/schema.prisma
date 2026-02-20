@@ -120,6 +120,7 @@ model Facility {
   meetings              Meeting[]
   fireDrillReports      FireDrillReport[]
   evacuationDrillReports EvacuationDrillReport[]
+  oversightTrainingReports OversightTrainingReport[]
 
   @@index([bhpId])
 }
@@ -922,4 +923,37 @@ model ASAMAssessment {
   @@index([facilityId])
   @@index([status])
   @@index([createdAt])
+}
+
+// Oversight Training Report - Bi-weekly admin task
+model OversightTrainingReport {
+  id                  String      @id @default(cuid())
+  facilityId          String
+  facility            Facility    @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  // Bi-weekly tracking (1-26)
+  biWeek              Int
+  year                Int
+
+  // Training details
+  trainingDate        DateTime
+  conductedBy         String
+
+  // Staff participants
+  staffParticipants   Json        // [{name: string, position?: string}]
+
+  // Document upload (required)
+  documentUrl         String
+  documentName        String
+
+  // Optional notes
+  notes               String?     @db.Text
+
+  // Submission tracking
+  submittedBy         String
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@unique([facilityId, biWeek, year])
+  @@index([facilityId])
 }

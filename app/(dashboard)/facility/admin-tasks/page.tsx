@@ -11,7 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Flame, Users, AlertTriangle } from "lucide-react";
+import { Flame, Users, AlertTriangle, ClipboardCheck } from "lucide-react";
+import { getCurrentBiWeekInfo, formatBiWeekLabel } from "@/lib/utils";
 
 export default async function AdminTasksPage() {
   const session = await getServerSession(authOptions);
@@ -109,6 +110,23 @@ export default async function AdminTasksPage() {
 
   const evacuationDrillsNeedAttention = evacuationDrillMissing || currentQuarterDisasterMissing;
 
+  // Get oversight training reports for the current year
+  const { biWeek: currentBiWeek, year: biWeekYear } = getCurrentBiWeekInfo();
+
+  const oversightTrainingReports = await prisma.oversightTrainingReport.findMany({
+    where: {
+      facilityId: bhrfProfile.facilityId,
+      year: biWeekYear,
+    },
+  });
+
+  const hasCurrentBiWeekOversightReport = oversightTrainingReports.some(
+    (r) => r.biWeek === currentBiWeek && r.year === biWeekYear
+  );
+
+  const oversightTrainingMissing = !hasCurrentBiWeekOversightReport;
+  const oversightReportsThisYear = oversightTrainingReports.length;
+
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -123,8 +141,21 @@ export default async function AdminTasksPage() {
         </p>
       </div>
 
-      {(missingReports || evacuationDrillsNeedAttention) && (
+      {(missingReports || evacuationDrillsNeedAttention || oversightTrainingMissing) && (
         <div className="space-y-3">
+          {oversightTrainingMissing && (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-purple-600 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-purple-800">
+                  Oversight Training Report Missing for Bi-Week {currentBiWeek}
+                </h3>
+                <p className="text-sm text-purple-700 mt-1">
+                  {formatBiWeekLabel(currentBiWeek, biWeekYear)} - Submit your signed training document.
+                </p>
+              </div>
+            </div>
+          )}
           {missingReports && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
@@ -246,6 +277,44 @@ export default async function AdminTasksPage() {
                   </Badge>
                   <Badge variant={hasEvacuationH2 ? "default" : "outline"} className="text-xs">
                     H2 {hasEvacuationH2 ? "Done" : `${hasEvacuationH2AM ? "PM" : hasEvacuationH2PM ? "AM" : "AM/PM"}`}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/facility/admin-tasks/oversight-training">
+          <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <ClipboardCheck className="h-6 w-6 text-purple-600" />
+                </div>
+                {oversightTrainingMissing && (
+                  <Badge variant="destructive">Action Required</Badge>
+                )}
+              </div>
+              <CardTitle className="mt-4">Oversight Training</CardTitle>
+              <CardDescription>
+                Bi-weekly oversight training documentation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Current bi-week:</span>
+                  <span className="font-medium">
+                    Week {currentBiWeek} {hasCurrentBiWeekOversightReport ? "(Done)" : "(Pending)"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">This year:</span>
+                  <span className="font-medium">{oversightReportsThisYear} of {currentBiWeek} bi-weeks</span>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Badge variant={hasCurrentBiWeekOversightReport ? "default" : "outline"}>
+                    Bi-Week {currentBiWeek} {hasCurrentBiWeekOversightReport ? "Done" : "Pending"}
                   </Badge>
                 </div>
               </div>

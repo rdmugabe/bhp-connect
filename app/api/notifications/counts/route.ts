@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getCurrentBiWeekInfo } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -160,7 +161,20 @@ export async function GET(request: NextRequest) {
         );
         const missingDisasterShifts = (!hasCurrentQuarterDisasterAM ? 1 : 0) + (!hasCurrentQuarterDisasterPM ? 1 : 0);
 
-        adminTasks = missingFireDrills + missingEvacuationShifts + missingDisasterShifts;
+        // Check oversight training for current bi-week
+        const { biWeek: currentBiWeek, year: biWeekYear } = getCurrentBiWeekInfo();
+        const hasCurrentBiWeekOversightReport = await prisma.oversightTrainingReport.findUnique({
+          where: {
+            facilityId_biWeek_year: {
+              facilityId: bhrfProfile.facilityId,
+              biWeek: currentBiWeek,
+              year: biWeekYear,
+            },
+          },
+        });
+        const missingOversightTraining = hasCurrentBiWeekOversightReport ? 0 : 1;
+
+        adminTasks = missingFireDrills + missingEvacuationShifts + missingDisasterShifts + missingOversightTraining;
       }
     } else if (role === "ADMIN") {
       // Count pending BHP registrations

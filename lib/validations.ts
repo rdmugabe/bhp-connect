@@ -1262,3 +1262,19 @@ export const evacuationDrillReportSchema = z.object({
 });
 
 export type EvacuationDrillReportInput = z.infer<typeof evacuationDrillReportSchema>;
+
+// =====================================================
+// Oversight Training Report Validation Schema
+// =====================================================
+
+export const oversightTrainingReportSchema = z.object({
+  trainingDate: z.string().min(1, "Training date is required"),
+  conductedBy: z.string().min(1, "Conducted by is required"),
+  staffParticipants: z.array(z.object({
+    name: z.string().min(1, "Staff name is required"),
+    position: z.string().optional(),
+  })).min(1, "At least one staff participant is required"),
+  notes: z.string().optional(),
+});
+
+export type OversightTrainingReportInput = z.infer<typeof oversightTrainingReportSchema>;
