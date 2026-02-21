@@ -86,7 +86,6 @@ export default async function FacilityResidentsPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Date of Birth</TableHead>
                 <TableHead>Admission Date</TableHead>
-                <TableHead>Intake Status</TableHead>
                 <TableHead>Documents</TableHead>
                 <TableHead className="w-[100px]">Action</TableHead>
               </TableRow>
@@ -103,11 +102,6 @@ export default async function FacilityResidentsPage() {
                     </TableCell>
                     <TableCell>{formatDate(resident.dateOfBirth)}</TableCell>
                     <TableCell>{formatDate(resident.createdAt)}</TableCell>
-                    <TableCell>
-                      <Badge className="bg-green-500">
-                        {resident.status}
-                      </Badge>
-                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="flex items-center gap-1">
@@ -135,7 +129,7 @@ export default async function FacilityResidentsPage() {
               })}
               {residents.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
                     No residents found. Create an intake to add a resident.
                   </TableCell>
                 </TableRow>

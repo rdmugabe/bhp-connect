@@ -74,6 +74,35 @@ export async function GET(
       return val;
     };
 
+    // Helper to sanitize numeric values for PDF rendering
+    const sanitizeNumber = (val: number | null | undefined): number | null => {
+      if (val === null || val === undefined) return null;
+      if (!Number.isFinite(val)) return null;
+      if (Math.abs(val) > 1e10) return null; // Reject extremely large numbers
+      return val;
+    };
+
+    // Helper to sanitize an array of numbers
+    const sanitizeNumberArray = (arr: unknown): number[] | null => {
+      if (!arr || !Array.isArray(arr)) return null;
+      const sanitized = arr.map(val => {
+        if (typeof val !== 'number') return 0;
+        if (!Number.isFinite(val)) return 0;
+        if (Math.abs(val) > 1e10) return 0;
+        return val;
+      });
+      return sanitized.length > 0 ? sanitized : null;
+    };
+
+    // Helper to sanitize BMI (stored as string in DB, needs to be safe for display)
+    const sanitizeBMI = (val: string | null | undefined): string | null => {
+      if (val === null || val === undefined) return null;
+      const parsed = parseFloat(val);
+      if (!Number.isFinite(parsed)) return null;
+      if (parsed < 0 || parsed > 100) return null; // BMI should be in reasonable range
+      return val;
+    };
+
     // Prepare PDF data - include all fields from intake
     const pdfData = {
       id: intake.id,
@@ -138,7 +167,7 @@ export async function GET(
       medicalConditions: emptyToNull(intake.medicalConditions) ? JSON.stringify(intake.medicalConditions) : null,
       height: intake.height,
       weight: intake.weight,
-      bmi: intake.bmi,
+      bmi: sanitizeBMI(intake.bmi),
       // Psychiatric
       isCOT: intake.isCOT,
       personalPsychHX: intake.personalPsychHX,
@@ -187,8 +216,8 @@ export async function GET(
       hygieneSkills: emptyToNull(intake.hygieneSkills) as Record<string, string> | null,
       skillsContinuation: emptyToNull(intake.skillsContinuation) as Record<string, string> | null,
       // PHQ-9
-      phq9Responses: emptyToNull(intake.phq9Responses) as number[] | null,
-      phq9TotalScore: intake.phq9TotalScore,
+      phq9Responses: sanitizeNumberArray(intake.phq9Responses),
+      phq9TotalScore: sanitizeNumber(intake.phq9TotalScore),
       // Treatment
       treatmentObjectives: intake.treatmentObjectives,
       dischargePlanObjectives: intake.dischargePlanObjectives,

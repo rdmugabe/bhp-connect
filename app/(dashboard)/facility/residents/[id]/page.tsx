@@ -23,23 +23,6 @@ import {
 import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "DRAFT":
-      return <Badge variant="secondary">Draft</Badge>;
-    case "PENDING":
-      return <Badge variant="outline">Pending</Badge>;
-    case "APPROVED":
-      return <Badge className="bg-green-500">Approved</Badge>;
-    case "CONDITIONAL":
-      return <Badge className="bg-yellow-500">Conditional</Badge>;
-    case "DENIED":
-      return <Badge variant="destructive">Denied</Badge>;
-    default:
-      return <Badge>{status}</Badge>;
-  }
-};
-
 export default async function FacilityResidentDetailPage({
   params,
 }: {
@@ -170,7 +153,6 @@ export default async function FacilityResidentDetailPage({
             <TableHeader>
               <TableRow>
                 <TableHead>Document</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Last Updated</TableHead>
                 <TableHead className="w-[200px]">Actions</TableHead>
@@ -181,7 +163,6 @@ export default async function FacilityResidentDetailPage({
                 <TableCell className="font-medium">
                   Full Intake Assessment
                 </TableCell>
-                <TableCell>{getStatusBadge(resident.status)}</TableCell>
                 <TableCell>{formatDate(resident.createdAt)}</TableCell>
                 <TableCell>{formatDate(resident.updatedAt)}</TableCell>
                 <TableCell>
@@ -233,7 +214,6 @@ export default async function FacilityResidentDetailPage({
             <TableHeader>
               <TableRow>
                 <TableHead>Assessment</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Level of Care</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="w-[200px]">Actions</TableHead>
@@ -245,7 +225,6 @@ export default async function FacilityResidentDetailPage({
                   <TableCell className="font-medium">
                     ASAM Assessment
                   </TableCell>
-                  <TableCell>{getStatusBadge(asam.status)}</TableCell>
                   <TableCell>
                     <Badge variant="outline">
                       {asam.recommendedLevelOfCare || "N/A"}
@@ -278,7 +257,7 @@ export default async function FacilityResidentDetailPage({
               ))}
               {resident.asamAssessments.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
                     No ASAM assessments yet.{" "}
                     <Link href={`/facility/asam/new?intakeId=${resident.id}`} className="text-primary hover:underline">
                       Create one
