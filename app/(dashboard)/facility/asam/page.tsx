@@ -22,23 +22,6 @@ import {
 import { Eye, Plus, Edit, FileText } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "DRAFT":
-      return <Badge variant="secondary">Draft</Badge>;
-    case "PENDING":
-      return <Badge variant="outline">Pending Review</Badge>;
-    case "APPROVED":
-      return <Badge className="bg-green-500">Approved</Badge>;
-    case "CONDITIONAL":
-      return <Badge className="bg-yellow-500">Conditional</Badge>;
-    case "DENIED":
-      return <Badge variant="destructive">Denied</Badge>;
-    default:
-      return <Badge>{status}</Badge>;
-  }
-};
-
 export default async function FacilityASAMPage() {
   const session = await getServerSession(authOptions);
 
@@ -181,7 +164,6 @@ export default async function FacilityASAMPage() {
                 <TableHead>Patient</TableHead>
                 <TableHead>Linked Intake</TableHead>
                 <TableHead>DOB</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Submitted</TableHead>
                 <TableHead className="w-[150px]">Action</TableHead>
               </TableRow>
@@ -201,7 +183,6 @@ export default async function FacilityASAMPage() {
                     </Link>
                   </TableCell>
                   <TableCell>{formatDate(assessment.dateOfBirth)}</TableCell>
-                  <TableCell>{getStatusBadge(assessment.status)}</TableCell>
                   <TableCell>{formatDate(assessment.createdAt)}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
@@ -223,7 +204,7 @@ export default async function FacilityASAMPage() {
               ))}
               {submittedAssessments.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
                     No submitted ASAM assessments found
                   </TableCell>
                 </TableRow>

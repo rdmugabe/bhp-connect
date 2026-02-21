@@ -23,17 +23,6 @@ import {
 import { Eye, Edit, FileText } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "DRAFT":
-      return <Badge variant="secondary">Draft</Badge>;
-    case "APPROVED":
-      return <Badge className="bg-green-500">Approved</Badge>;
-    default:
-      return <Badge>{status}</Badge>;
-  }
-};
-
 export default async function BHPASAMPage() {
   const session = await getServerSession(authOptions);
 
@@ -100,7 +89,6 @@ export default async function BHPASAMPage() {
                 <TableHead>Facility</TableHead>
                 <TableHead>Linked Intake</TableHead>
                 <TableHead>DOB</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Submitted</TableHead>
                 <TableHead>Rec. Level of Care</TableHead>
                 <TableHead className="w-[150px]">Action</TableHead>
@@ -122,7 +110,6 @@ export default async function BHPASAMPage() {
                     </Link>
                   </TableCell>
                   <TableCell>{formatDate(assessment.dateOfBirth)}</TableCell>
-                  <TableCell>{getStatusBadge(assessment.status)}</TableCell>
                   <TableCell>{formatDate(assessment.createdAt)}</TableCell>
                   <TableCell>
                     <Badge variant="outline">
@@ -149,7 +136,7 @@ export default async function BHPASAMPage() {
               ))}
               {assessments.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground">
                     No ASAM assessments found
                   </TableCell>
                 </TableRow>

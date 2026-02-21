@@ -10,24 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "PENDING":
-      return <Badge variant="outline">Pending Review</Badge>;
-    case "APPROVED":
-      return <Badge className="bg-green-500">Approved</Badge>;
-    case "CONDITIONAL":
-      return <Badge className="bg-yellow-500">Conditional</Badge>;
-    case "DENIED":
-      return <Badge variant="destructive">Denied</Badge>;
-    default:
-      return <Badge>{status}</Badge>;
-  }
-};
 
 const getSeverityLabel = (severity: number | null) => {
   if (severity === null) return "Not Rated";
@@ -84,7 +68,6 @@ export default async function ViewASAMPage({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {getStatusBadge(assessment.status)}
           <Link href={`/api/asam/${assessment.id}/pdf`} target="_blank">
             <Button variant="outline">
               <Download className="h-4 w-4 mr-2" />
@@ -93,22 +76,6 @@ export default async function ViewASAMPage({
           </Link>
         </div>
       </div>
-
-      {assessment.decisionReason && (
-        <Card className={assessment.status === "DENIED" ? "border-red-200 bg-red-50" : assessment.status === "CONDITIONAL" ? "border-yellow-200 bg-yellow-50" : "border-green-200 bg-green-50"}>
-          <CardHeader>
-            <CardTitle className="text-lg">BHP Decision</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{assessment.decisionReason}</p>
-            {assessment.decidedAt && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Decision made on {formatDate(assessment.decidedAt)}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>

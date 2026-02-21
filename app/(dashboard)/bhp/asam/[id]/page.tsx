@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import {
   ArrowLeft,
@@ -45,24 +44,12 @@ interface Assessment {
   matDetails: string | null;
   suicidalThoughts: boolean;
   thoughtsOfHarmingOthers: boolean;
-  status: string;
   createdAt: string;
   facility: {
     id: string;
     name: string;
   };
 }
-
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "DRAFT":
-      return <Badge variant="secondary">Draft</Badge>;
-    case "APPROVED":
-      return <Badge className="bg-green-500">Approved</Badge>;
-    default:
-      return <Badge>{status}</Badge>;
-  }
-};
 
 const getSeverityLabel = (severity: number | null) => {
   if (severity === null) return "Not Rated";
@@ -148,7 +135,6 @@ export default function BHPASAMViewPage({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {getStatusBadge(assessment.status)}
           <Link href={`/bhp/asam/${assessment.id}/edit`}>
             <Button variant="outline">
               <Edit className="h-4 w-4 mr-2" />
