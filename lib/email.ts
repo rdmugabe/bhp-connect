@@ -19,6 +19,7 @@ interface EnrollmentEmailParams {
   to: string[];
   residentName: string;
   facilityName: string;
+  admissionDate: string | null;
   bhpName: string;
   bhpEmail: string;
 }
@@ -27,6 +28,7 @@ export async function sendEnrollmentEmail({
   to,
   residentName,
   facilityName,
+  admissionDate,
   bhpName,
   bhpEmail,
 }: EnrollmentEmailParams) {
@@ -53,6 +55,10 @@ export async function sendEnrollmentEmail({
       <tr>
         <td style="padding: 8px 0; color: #666;">Facility:</td>
         <td style="padding: 8px 0; font-weight: 500;">${facilityName}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; color: #666;">Admission Date:</td>
+        <td style="padding: 8px 0; font-weight: 500;">${admissionDate || 'Not specified'}</td>
       </tr>
     </table>
   </div>

@@ -151,11 +151,20 @@ export async function POST(
     // Remove duplicates
     const uniqueRecipients = Array.from(new Set(recipients));
 
+    // Format admission date
+    const formatDate = (date: Date | null) => {
+      if (!date) return null;
+      const d = new Date(date);
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+    };
+
     // Send the email (HIPAA compliant - no PHI like DOB or insurance info)
     const result = await sendEnrollmentEmail({
       to: uniqueRecipients,
       residentName: intake.residentName,
       facilityName: intake.facility.name,
+      admissionDate: formatDate(intake.admissionDate),
       bhpName: bhpName,
       bhpEmail: bhpEmail,
     });
