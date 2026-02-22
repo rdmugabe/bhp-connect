@@ -20,6 +20,7 @@ interface EnrollmentEmailParams {
   residentName: string;
   facilityName: string;
   bhpName: string;
+  bhpEmail: string;
 }
 
 export async function sendEnrollmentEmail({
@@ -27,6 +28,7 @@ export async function sendEnrollmentEmail({
   residentName,
   facilityName,
   bhpName,
+  bhpEmail,
 }: EnrollmentEmailParams) {
   const emailHtml = `
 <!DOCTYPE html>
@@ -68,7 +70,8 @@ export async function sendEnrollmentEmail({
   `.trim();
 
   return getResendClient().emails.send({
-    from: process.env.RESEND_FROM_EMAIL || 'BHP Connect <notifications@bhpconnect.com>',
+    from: `${facilityName} via BHP Connect <notifications@bhpconnekt.com>`,
+    replyTo: bhpEmail,
     to,
     subject: `New Resident Enrollment: ${residentName}`,
     html: emailHtml,

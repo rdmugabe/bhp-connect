@@ -151,13 +151,13 @@ export async function POST(
     // Remove duplicates
     const uniqueRecipients = Array.from(new Set(recipients));
 
-    // Format dates for email
     // Send the email (HIPAA compliant - no PHI like DOB or insurance info)
     const result = await sendEnrollmentEmail({
       to: uniqueRecipients,
       residentName: intake.residentName,
       facilityName: intake.facility.name,
       bhpName: bhpName,
+      bhpEmail: bhpEmail,
     });
 
     // Create audit log for HIPAA compliance
