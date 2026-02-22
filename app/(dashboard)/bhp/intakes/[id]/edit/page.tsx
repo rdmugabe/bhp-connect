@@ -11,6 +11,7 @@ interface IntakeData {
   id: string;
   status: string;
   draftStep: number | null;
+  // Demographics
   residentName: string;
   ssn: string | null;
   dateOfBirth: string;
@@ -21,61 +22,209 @@ interface IntakeData {
   nativeAmericanTribe: string | null;
   language: string | null;
   religion: string | null;
+  // Contact Information
+  patientAddress: string | null;
+  patientPhone: string | null;
+  patientEmail: string | null;
+  contactPreference: string | null;
+  // Emergency Contact
+  emergencyContactName: string | null;
+  emergencyContactRelationship: string | null;
+  emergencyContactPhone: string | null;
+  emergencyContactAddress: string | null;
+  // Healthcare Providers
+  primaryCarePhysician: string | null;
+  primaryCarePhysicianPhone: string | null;
+  caseManagerName: string | null;
+  caseManagerPhone: string | null;
+  // Insurance & Directives
   insuranceProvider: string | null;
   policyNumber: string | null;
   groupNumber: string | null;
+  ahcccsHealthPlan: string | null;
   hasDNR: boolean;
   hasAdvancedDirective: boolean;
   hasWill: boolean;
   poaLegalGuardian: string | null;
+  // Referral
+  referralSource: string | null;
+  evaluatorName: string | null;
+  evaluatorCredentials: string | null;
   reasonsForReferral: string | null;
   residentNeeds: string | null;
   residentExpectedLOS: string | null;
   teamExpectedLOS: string | null;
   strengthsAndLimitations: string | null;
   familyInvolved: string | null;
+  // Behavioral Health Symptoms
+  reasonForServices: string | null;
+  currentBehavioralSymptoms: string | null;
+  copingWithSymptoms: string | null;
+  symptomsLimitations: string | null;
+  immediateUrgentNeeds: string | null;
+  signsOfImprovement: string | null;
+  assistanceExpectations: string | null;
+  involvedInTreatment: string | null;
+  // Medical
   allergies: string | null;
   historyNonCompliance: boolean;
   potentialViolence: boolean;
   medicalUrgency: string | null;
   personalMedicalHX: string | null;
   familyMedicalHX: string | null;
+  medicalConditions: Record<string, boolean> | null;
+  height: string | null;
+  weight: string | null;
+  bmi: string | null;
+  // Psychiatric
   isCOT: boolean;
   personalPsychHX: string | null;
   familyPsychHX: string | null;
+  treatmentPreferences: string | null;
+  psychMedicationEfficacy: string | null;
+  // Risk Assessment
   suicideHistory: string | null;
+  suicideAttemptDetails: string | null;
   currentSuicideIdeation: boolean;
-  historyHarmingOthers: boolean;
+  suicideIdeationDetails: string | null;
+  mostRecentSuicideIdeation: string | null;
   historySelfHarm: boolean;
+  selfHarmDetails: string | null;
+  dtsRiskFactors: Record<string, boolean> | null;
+  dtsProtectiveFactors: Record<string, boolean> | null;
+  historyHarmingOthers: boolean;
+  harmingOthersDetails: string | null;
+  homicidalIdeation: boolean;
+  homicidalIdeationDetails: string | null;
+  dtoRiskFactors: Record<string, boolean> | null;
+  dutyToWarnCompleted: boolean;
+  dutyToWarnDetails: string | null;
   previousHospitalizations: string | null;
   hospitalizationDetails: string | null;
+  // Developmental History
+  inUteroExposure: boolean;
+  inUteroExposureDetails: string | null;
+  developmentalMilestones: string | null;
+  developmentalDetails: string | null;
+  speechDifficulties: boolean;
+  speechDetails: string | null;
+  visualImpairment: boolean;
+  visualDetails: string | null;
+  hearingImpairment: boolean;
+  hearingDetails: string | null;
+  motorSkillsImpairment: boolean;
+  motorSkillsDetails: string | null;
+  cognitiveImpairment: boolean;
+  cognitiveDetails: string | null;
+  socialSkillsDeficits: boolean;
+  socialSkillsDetails: string | null;
+  immunizationStatus: string | null;
+  // Skills Assessment
   hygieneSkills: Record<string, string> | null;
   skillsContinuation: Record<string, string> | null;
+  // PHQ-9
   phq9Responses: number[] | null;
   phq9TotalScore: number | null;
+  // Treatment
   treatmentObjectives: string | null;
   dischargePlanObjectives: string | null;
   supportSystem: string | null;
   communityResources: string | null;
+  // Social History
+  childhoodDescription: string | null;
+  abuseHistory: string | null;
+  familyMentalHealthHistory: string | null;
+  relationshipStatus: string | null;
+  relationshipSatisfaction: string | null;
+  friendsDescription: string | null;
+  // Education History
+  highestEducation: string | null;
+  specialEducation: boolean;
+  specialEducationDetails: string | null;
+  plan504: boolean;
+  iep: boolean;
+  educationDetails: string | null;
+  // Employment History
+  currentlyEmployed: boolean;
+  employmentDetails: string | null;
+  workVolunteerHistory: string | null;
+  employmentBarriers: string | null;
+  // Legal History
   criminalLegalHistory: string | null;
+  courtOrderedTreatment: boolean;
+  courtOrderedDetails: string | null;
+  otherLegalIssues: string | null;
+  // Substance Use History
   substanceHistory: string | null;
+  substanceUseTable: Array<Record<string, string>> | null;
+  drugOfChoice: string | null;
+  longestSobriety: string | null;
+  substanceTreatmentHistory: string | null;
   nicotineUse: boolean;
+  nicotineDetails: string | null;
+  substanceImpact: string | null;
   historyOfAbuse: string | null;
+  // Current Living Situation
+  livingArrangements: string | null;
+  sourceOfFinances: string | null;
+  transportationMethod: string | null;
+  // ADLs
   adlChecklist: Record<string, string> | null;
   preferredActivities: string | null;
   significantOthers: string | null;
   supportLevel: string | null;
+  typicalDay: string | null;
+  strengthsAbilitiesInterests: string | null;
+  // Behavioral Observations
+  appearanceAge: string | null;
+  appearanceHeight: string | null;
+  appearanceWeight: string | null;
+  appearanceAttire: string | null;
+  appearanceGrooming: string | null;
+  appearanceDescription: string | null;
+  demeanorMood: string | null;
+  demeanorAffect: string | null;
+  demeanorEyeContact: string | null;
+  demeanorCooperation: string | null;
+  demeanorDescription: string | null;
+  speechArticulation: string | null;
+  speechTone: string | null;
+  speechRate: string | null;
+  speechLatency: string | null;
+  speechDescription: string | null;
+  motorGait: string | null;
+  motorPosture: string | null;
+  motorActivity: string | null;
+  motorMannerisms: string | null;
+  motorDescription: string | null;
+  cognitionThoughtContent: string | null;
+  cognitionThoughtProcess: string | null;
+  cognitionDelusions: string | null;
+  cognitionPerception: string | null;
+  cognitionJudgment: string | null;
+  cognitionImpulseControl: string | null;
+  cognitionInsight: string | null;
+  cognitionDescription: string | null;
+  estimatedIntelligence: string | null;
+  // Wellness
   healthNeeds: string | null;
   nutritionalNeeds: string | null;
   spiritualNeeds: string | null;
   culturalNeeds: string | null;
   educationHistory: string | null;
   vocationalHistory: string | null;
+  // Crisis/Discharge
   crisisInterventionPlan: string | null;
   feedbackFrequency: string | null;
   dischargePlanning: string | null;
+  // Diagnosis
+  diagnosis: string | null;
+  treatmentRecommendation: string | null;
+  // Signatures
   signatures: Record<string, string> | null;
+  // Medications
   medications: { name: string; dosage: string; frequency: string }[];
+  // Facility info
   facility?: {
     name: string;
   };
@@ -129,6 +278,7 @@ export default function BHPEditIntakePage() {
 
   // Transform intake data for the form
   const initialData = {
+    // Demographics
     residentName: intake.residentName || "",
     ssn: intake.ssn || "",
     dateOfBirth: intake.dateOfBirth,
@@ -139,34 +289,104 @@ export default function BHPEditIntakePage() {
     nativeAmericanTribe: intake.nativeAmericanTribe || "",
     language: intake.language || "",
     religion: intake.religion || "",
+    // Contact Information
+    patientAddress: intake.patientAddress || "",
+    patientPhone: intake.patientPhone || "",
+    patientEmail: intake.patientEmail || "",
+    contactPreference: intake.contactPreference || "",
+    // Emergency Contact
+    emergencyContactName: intake.emergencyContactName || "",
+    emergencyContactRelationship: intake.emergencyContactRelationship || "",
+    emergencyContactPhone: intake.emergencyContactPhone || "",
+    emergencyContactAddress: intake.emergencyContactAddress || "",
+    // Healthcare Providers
+    primaryCarePhysician: intake.primaryCarePhysician || "",
+    primaryCarePhysicianPhone: intake.primaryCarePhysicianPhone || "",
+    caseManagerName: intake.caseManagerName || "",
+    caseManagerPhone: intake.caseManagerPhone || "",
+    // Insurance & Directives
     insuranceProvider: intake.insuranceProvider || "",
     policyNumber: intake.policyNumber || "",
     groupNumber: intake.groupNumber || "",
+    ahcccsHealthPlan: intake.ahcccsHealthPlan || "",
     hasDNR: intake.hasDNR,
     hasAdvancedDirective: intake.hasAdvancedDirective,
     hasWill: intake.hasWill,
     poaLegalGuardian: intake.poaLegalGuardian || "",
+    // Referral
+    referralSource: intake.referralSource || "",
+    evaluatorName: intake.evaluatorName || "",
+    evaluatorCredentials: intake.evaluatorCredentials || "",
     reasonsForReferral: intake.reasonsForReferral || "",
     residentNeeds: intake.residentNeeds || "",
     residentExpectedLOS: intake.residentExpectedLOS || "",
     teamExpectedLOS: intake.teamExpectedLOS || "",
     strengthsAndLimitations: intake.strengthsAndLimitations || "",
     familyInvolved: intake.familyInvolved || "",
+    // Behavioral Health Symptoms
+    reasonForServices: intake.reasonForServices || "",
+    currentBehavioralSymptoms: intake.currentBehavioralSymptoms || "",
+    copingWithSymptoms: intake.copingWithSymptoms || "",
+    symptomsLimitations: intake.symptomsLimitations || "",
+    immediateUrgentNeeds: intake.immediateUrgentNeeds || "",
+    signsOfImprovement: intake.signsOfImprovement || "",
+    assistanceExpectations: intake.assistanceExpectations || "",
+    involvedInTreatment: intake.involvedInTreatment || "",
+    // Medical
     allergies: intake.allergies || "",
     historyNonCompliance: intake.historyNonCompliance,
     potentialViolence: intake.potentialViolence,
     medicalUrgency: intake.medicalUrgency || "",
     personalMedicalHX: intake.personalMedicalHX || "",
     familyMedicalHX: intake.familyMedicalHX || "",
+    medicalConditions: intake.medicalConditions || {},
+    height: intake.height || "",
+    weight: intake.weight || "",
+    bmi: intake.bmi || "",
+    // Psychiatric
     isCOT: intake.isCOT,
     personalPsychHX: intake.personalPsychHX || "",
     familyPsychHX: intake.familyPsychHX || "",
+    treatmentPreferences: intake.treatmentPreferences || "",
+    psychMedicationEfficacy: intake.psychMedicationEfficacy || "",
+    // Risk Assessment
     suicideHistory: intake.suicideHistory || "",
+    suicideAttemptDetails: intake.suicideAttemptDetails || "",
     currentSuicideIdeation: intake.currentSuicideIdeation,
-    historyHarmingOthers: intake.historyHarmingOthers,
+    suicideIdeationDetails: intake.suicideIdeationDetails || "",
+    mostRecentSuicideIdeation: intake.mostRecentSuicideIdeation || "",
     historySelfHarm: intake.historySelfHarm,
+    selfHarmDetails: intake.selfHarmDetails || "",
+    dtsRiskFactors: intake.dtsRiskFactors || {},
+    dtsProtectiveFactors: intake.dtsProtectiveFactors || {},
+    historyHarmingOthers: intake.historyHarmingOthers,
+    harmingOthersDetails: intake.harmingOthersDetails || "",
+    homicidalIdeation: intake.homicidalIdeation,
+    homicidalIdeationDetails: intake.homicidalIdeationDetails || "",
+    dtoRiskFactors: intake.dtoRiskFactors || {},
+    dutyToWarnCompleted: intake.dutyToWarnCompleted,
+    dutyToWarnDetails: intake.dutyToWarnDetails || "",
     previousHospitalizations: intake.previousHospitalizations || "",
     hospitalizationDetails: intake.hospitalizationDetails || "",
+    // Developmental History
+    inUteroExposure: intake.inUteroExposure,
+    inUteroExposureDetails: intake.inUteroExposureDetails || "",
+    developmentalMilestones: intake.developmentalMilestones || "",
+    developmentalDetails: intake.developmentalDetails || "",
+    speechDifficulties: intake.speechDifficulties,
+    speechDetails: intake.speechDetails || "",
+    visualImpairment: intake.visualImpairment,
+    visualDetails: intake.visualDetails || "",
+    hearingImpairment: intake.hearingImpairment,
+    hearingDetails: intake.hearingDetails || "",
+    motorSkillsImpairment: intake.motorSkillsImpairment,
+    motorSkillsDetails: intake.motorSkillsDetails || "",
+    cognitiveImpairment: intake.cognitiveImpairment,
+    cognitiveDetails: intake.cognitiveDetails || "",
+    socialSkillsDeficits: intake.socialSkillsDeficits,
+    socialSkillsDetails: intake.socialSkillsDetails || "",
+    immunizationStatus: intake.immunizationStatus || "",
+    // Skills Assessment
     hygieneSkills: intake.hygieneSkills || {
       bathing: "",
       grooming: "",
@@ -183,16 +403,53 @@ export default function BHPEditIntakePage() {
       communication: "",
       medication: "",
     },
+    // PHQ-9
     phq9Responses: intake.phq9Responses || [0, 0, 0, 0, 0, 0, 0, 0, 0],
     phq9TotalScore: intake.phq9TotalScore || 0,
+    // Treatment
     treatmentObjectives: intake.treatmentObjectives || "",
     dischargePlanObjectives: intake.dischargePlanObjectives || "",
     supportSystem: intake.supportSystem || "",
     communityResources: intake.communityResources || "",
+    // Social History
+    childhoodDescription: intake.childhoodDescription || "",
+    abuseHistory: intake.abuseHistory || "",
+    familyMentalHealthHistory: intake.familyMentalHealthHistory || "",
+    relationshipStatus: intake.relationshipStatus || "",
+    relationshipSatisfaction: intake.relationshipSatisfaction || "",
+    friendsDescription: intake.friendsDescription || "",
+    // Education History
+    highestEducation: intake.highestEducation || "",
+    specialEducation: intake.specialEducation,
+    specialEducationDetails: intake.specialEducationDetails || "",
+    plan504: intake.plan504,
+    iep: intake.iep,
+    educationDetails: intake.educationDetails || "",
+    // Employment History
+    currentlyEmployed: intake.currentlyEmployed,
+    employmentDetails: intake.employmentDetails || "",
+    workVolunteerHistory: intake.workVolunteerHistory || "",
+    employmentBarriers: intake.employmentBarriers || "",
+    // Legal History
     criminalLegalHistory: intake.criminalLegalHistory || "",
+    courtOrderedTreatment: intake.courtOrderedTreatment,
+    courtOrderedDetails: intake.courtOrderedDetails || "",
+    otherLegalIssues: intake.otherLegalIssues || "",
+    // Substance Use History
     substanceHistory: intake.substanceHistory || "",
+    substanceUseTable: intake.substanceUseTable || [],
+    drugOfChoice: intake.drugOfChoice || "",
+    longestSobriety: intake.longestSobriety || "",
+    substanceTreatmentHistory: intake.substanceTreatmentHistory || "",
     nicotineUse: intake.nicotineUse,
+    nicotineDetails: intake.nicotineDetails || "",
+    substanceImpact: intake.substanceImpact || "",
     historyOfAbuse: intake.historyOfAbuse || "",
+    // Current Living Situation
+    livingArrangements: intake.livingArrangements || "",
+    sourceOfFinances: intake.sourceOfFinances || "",
+    transportationMethod: intake.transportationMethod || "",
+    // ADLs
     adlChecklist: intake.adlChecklist || {
       eating: "",
       bathing: "",
@@ -204,19 +461,61 @@ export default function BHPEditIntakePage() {
     preferredActivities: intake.preferredActivities || "",
     significantOthers: intake.significantOthers || "",
     supportLevel: intake.supportLevel || "",
+    typicalDay: intake.typicalDay || "",
+    strengthsAbilitiesInterests: intake.strengthsAbilitiesInterests || "",
+    // Behavioral Observations
+    appearanceAge: intake.appearanceAge || "",
+    appearanceHeight: intake.appearanceHeight || "",
+    appearanceWeight: intake.appearanceWeight || "",
+    appearanceAttire: intake.appearanceAttire || "",
+    appearanceGrooming: intake.appearanceGrooming || "",
+    appearanceDescription: intake.appearanceDescription || "",
+    demeanorMood: intake.demeanorMood || "",
+    demeanorAffect: intake.demeanorAffect || "",
+    demeanorEyeContact: intake.demeanorEyeContact || "",
+    demeanorCooperation: intake.demeanorCooperation || "",
+    demeanorDescription: intake.demeanorDescription || "",
+    speechArticulation: intake.speechArticulation || "",
+    speechTone: intake.speechTone || "",
+    speechRate: intake.speechRate || "",
+    speechLatency: intake.speechLatency || "",
+    speechDescription: intake.speechDescription || "",
+    motorGait: intake.motorGait || "",
+    motorPosture: intake.motorPosture || "",
+    motorActivity: intake.motorActivity || "",
+    motorMannerisms: intake.motorMannerisms || "",
+    motorDescription: intake.motorDescription || "",
+    cognitionThoughtContent: intake.cognitionThoughtContent || "",
+    cognitionThoughtProcess: intake.cognitionThoughtProcess || "",
+    cognitionDelusions: intake.cognitionDelusions || "",
+    cognitionPerception: intake.cognitionPerception || "",
+    cognitionJudgment: intake.cognitionJudgment || "",
+    cognitionImpulseControl: intake.cognitionImpulseControl || "",
+    cognitionInsight: intake.cognitionInsight || "",
+    cognitionDescription: intake.cognitionDescription || "",
+    estimatedIntelligence: intake.estimatedIntelligence || "",
+    // Wellness
     healthNeeds: intake.healthNeeds || "",
     nutritionalNeeds: intake.nutritionalNeeds || "",
     spiritualNeeds: intake.spiritualNeeds || "",
     culturalNeeds: intake.culturalNeeds || "",
     educationHistory: intake.educationHistory || "",
     vocationalHistory: intake.vocationalHistory || "",
+    // Crisis/Discharge
     crisisInterventionPlan: intake.crisisInterventionPlan || "",
     feedbackFrequency: intake.feedbackFrequency || "",
     dischargePlanning: intake.dischargePlanning || "",
+    // Diagnosis
+    diagnosis: intake.diagnosis || "",
+    treatmentRecommendation: intake.treatmentRecommendation || "",
+    // Signatures
     signatures: intake.signatures || {
-      residentSignature: "",
-      staffSignature: "",
-      date: new Date().toISOString().split("T")[0],
+      clientSignature: "",
+      clientSignatureDate: new Date().toISOString().split("T")[0],
+      assessorSignature: "",
+      assessorSignatureDate: new Date().toISOString().split("T")[0],
+      clinicalOversightSignature: "",
+      clinicalOversightSignatureDate: "",
     },
     draftStep: intake.draftStep || 1,
   };
