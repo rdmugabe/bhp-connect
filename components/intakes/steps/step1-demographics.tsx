@@ -163,21 +163,19 @@ export function Step1Demographics() {
               </FormItem>
             )}
           />
-          {ethnicity === "Native American" && (
-            <FormField
-              control={control}
-              name="nativeAmericanTribe"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Native American Tribe</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter tribe name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={control}
+            name="nativeAmericanTribe"
+            render={({ field }) => (
+              <FormItem className={ethnicity !== "Native American" ? "hidden" : ""}>
+                <FormLabel>Native American Tribe</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter tribe name" {...field} value={field.value || ""} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={control}
             name="language"
