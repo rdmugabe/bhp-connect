@@ -168,101 +168,47 @@ const styles = StyleSheet.create({
     color: "#1a365d",
   },
   signatureSection: {
-    marginTop: 20,
-    paddingTop: 15,
-    borderTop: "2 solid #1a365d",
-  },
-  signatureSectionTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#1a365d",
-    marginBottom: 5,
-    textAlign: "center",
-  },
-  signatureSectionSubtitle: {
-    fontSize: 8,
-    color: "#4a5568",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  signatureGrid: {
-    flexDirection: "row",
-    gap: 15,
-    marginBottom: 10,
-  },
-  signatureCard: {
-    flex: 1,
-    border: "1 solid #e2e8f0",
-    borderRadius: 4,
-    padding: 10,
-    backgroundColor: "#fafafa",
-  },
-  signatureCardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-    paddingBottom: 6,
-    borderBottom: "1 solid #e2e8f0",
-  },
-  signatureCardIcon: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#e2e8f0",
-    marginRight: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  signatureCardTitle: {
-    fontSize: 9,
-    fontWeight: "bold",
-    color: "#1a365d",
-  },
-  signatureCardSubtitle: {
-    fontSize: 7,
-    color: "#718096",
-    marginTop: 1,
-  },
-  signatureFieldLabel: {
-    fontSize: 7,
-    color: "#718096",
-    marginBottom: 2,
-    marginTop: 6,
-  },
-  signatureLineContainer: {
-    borderBottom: "1 solid #1a365d",
-    minHeight: 22,
-    marginBottom: 2,
-    justifyContent: "flex-end",
-    paddingBottom: 2,
-  },
-  signatureText: {
-    fontSize: 12,
-    color: "#1a365d",
-    fontFamily: "Helvetica-Oblique",
-  },
-  signatureDateContainer: {
-    borderBottom: "1 solid #a0aec0",
-    minHeight: 16,
-    marginBottom: 2,
-    justifyContent: "flex-end",
-    paddingBottom: 2,
-  },
-  signatureDateText: {
-    fontSize: 9,
-    color: "#2d3748",
-  },
-  signatureDisclaimer: {
-    marginTop: 12,
-    padding: 8,
+    marginTop: 15,
+    padding: 12,
     backgroundColor: "#f7fafc",
     borderRadius: 3,
     border: "1 solid #e2e8f0",
   },
-  signatureDisclaimerText: {
-    fontSize: 7,
+  signatureRow: {
+    flexDirection: "row",
+    marginBottom: 20,
+    alignItems: "flex-end",
+  },
+  signatureBlock: {
+    flex: 1,
+    marginRight: 15,
+  },
+  signatureLine: {
+    borderBottom: "1 solid #1a365d",
+    marginBottom: 4,
+    height: 20,
+  },
+  signatureLabel: {
+    fontSize: 8,
     color: "#4a5568",
-    lineHeight: 1.4,
+  },
+  signatureValue: {
+    fontSize: 9,
+    color: "#1a365d",
+    height: 20,
+    paddingTop: 4,
+  },
+  dateBlock: {
+    width: 100,
+  },
+  dateLine: {
+    borderBottom: "1 solid #1a365d",
+    marginBottom: 4,
+    height: 20,
+  },
+  dateLabel: {
+    fontSize: 8,
+    color: "#4a5568",
   },
 });
 
@@ -1477,116 +1423,11 @@ export function IntakePDF({ data }: { data: IntakeData }) {
         </View>
 
         {/* Signatures */}
-        <View style={styles.signatureSection} break>
-          <Text style={styles.signatureSectionTitle}>AUTHORIZATION & SIGNATURES</Text>
-          <Text style={styles.signatureSectionSubtitle}>
-            By signing below, the undersigned parties acknowledge the accuracy of this assessment and consent to the recommended treatment plan.
-          </Text>
-
-          <View style={styles.signatureGrid}>
-            {/* Client/Guardian Signature */}
-            <View style={styles.signatureCard}>
-              <View style={styles.signatureCardHeader}>
-                <View style={styles.signatureCardIcon}>
-                  <Text style={{ fontSize: 8, color: "#4a5568" }}>1</Text>
-                </View>
-                <View>
-                  <Text style={styles.signatureCardTitle}>Client / Legal Guardian</Text>
-                  <Text style={styles.signatureCardSubtitle}>Resident or authorized representative</Text>
-                </View>
-              </View>
-              <Text style={styles.signatureFieldLabel}>SIGNATURE (PRINTED NAME)</Text>
-              <View style={styles.signatureLineContainer}>
-                {data.signatures?.clientSignature && (
-                  <Text style={styles.signatureText}>{data.signatures.clientSignature}</Text>
-                )}
-              </View>
-              <Text style={styles.signatureFieldLabel}>DATE SIGNED</Text>
-              <View style={styles.signatureDateContainer}>
-                {data.signatures?.clientSignatureDate && (
-                  <Text style={styles.signatureDateText}>
-                    {new Date(data.signatures.clientSignatureDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </Text>
-                )}
-              </View>
-            </View>
-
-            {/* Assessor Signature */}
-            <View style={styles.signatureCard}>
-              <View style={styles.signatureCardHeader}>
-                <View style={styles.signatureCardIcon}>
-                  <Text style={{ fontSize: 8, color: "#4a5568" }}>2</Text>
-                </View>
-                <View>
-                  <Text style={styles.signatureCardTitle}>Assessment Completed By</Text>
-                  <Text style={styles.signatureCardSubtitle}>Facility staff conducting intake</Text>
-                </View>
-              </View>
-              <Text style={styles.signatureFieldLabel}>SIGNATURE (PRINTED NAME)</Text>
-              <View style={styles.signatureLineContainer}>
-                {data.signatures?.assessorSignature && (
-                  <Text style={styles.signatureText}>{data.signatures.assessorSignature}</Text>
-                )}
-              </View>
-              <Text style={styles.signatureFieldLabel}>DATE SIGNED</Text>
-              <View style={styles.signatureDateContainer}>
-                {data.signatures?.assessorSignatureDate && (
-                  <Text style={styles.signatureDateText}>
-                    {new Date(data.signatures.assessorSignatureDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </Text>
-                )}
-              </View>
-            </View>
-
-            {/* Clinical Oversight Signature */}
-            <View style={styles.signatureCard}>
-              <View style={styles.signatureCardHeader}>
-                <View style={styles.signatureCardIcon}>
-                  <Text style={{ fontSize: 8, color: "#4a5568" }}>3</Text>
-                </View>
-                <View>
-                  <Text style={styles.signatureCardTitle}>Clinical Oversight / BHP</Text>
-                  <Text style={styles.signatureCardSubtitle}>Behavioral Health Professional review</Text>
-                </View>
-              </View>
-              <Text style={styles.signatureFieldLabel}>SIGNATURE (PRINTED NAME)</Text>
-              <View style={styles.signatureLineContainer}>
-                {data.signatures?.clinicalOversightSignature && (
-                  <Text style={styles.signatureText}>{data.signatures.clinicalOversightSignature}</Text>
-                )}
-              </View>
-              <Text style={styles.signatureFieldLabel}>DATE SIGNED</Text>
-              <View style={styles.signatureDateContainer}>
-                {data.signatures?.clinicalOversightSignatureDate && (
-                  <Text style={styles.signatureDateText}>
-                    {new Date(data.signatures.clinicalOversightSignatureDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </Text>
-                )}
-              </View>
-            </View>
-          </View>
-
-          {/* Legal Disclaimer */}
-          <View style={styles.signatureDisclaimer}>
-            <Text style={styles.signatureDisclaimerText}>
-              ELECTRONIC SIGNATURE DISCLOSURE: The signatures above were captured electronically and constitute legally binding agreements.
-              By signing, each party certifies they have reviewed the information contained in this intake assessment and attest to its accuracy
-              to the best of their knowledge. This document is maintained in accordance with HIPAA regulations and applicable state laws
-              governing electronic healthcare records and signatures.
-            </Text>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>SIGNATURES</Text>
+          <Text style={{ fontSize: 8, marginBottom: 15 }}>Client/Guardian: _________________________________ Date: _____________</Text>
+          <Text style={{ fontSize: 8, marginBottom: 15 }}>Assessment Completed By: _________________________ Date: _____________</Text>
+          <Text style={{ fontSize: 8 }}>Clinical Oversight / BHP Reviewer: __________________ Date: _____________</Text>
         </View>
       </Page>
     </Document>
