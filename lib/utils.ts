@@ -5,13 +5,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
+export function formatDate(date: Date | string | null | undefined): string {
+  if (!date) return "";
+
+  // Handle both Date objects and strings
+  const d = typeof date === "string" ? new Date(date) : date;
+
+  // Extract UTC components to avoid timezone shifts
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth();
+  const day = d.getUTCDate();
+
+  // Format using UTC values
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[month]} ${day}, ${year}`;
 }
 
 export function formatDateTime(date: Date | string): string {
