@@ -38,9 +38,6 @@ export async function sendEnrollmentEmail({
   bhpName,
   residentId,
 }: EnrollmentEmailParams) {
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://bhpconnekt.com';
-  const viewIntakeUrl = `${baseUrl}/bhp/residents/${residentId}`;
-
   const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -97,8 +94,8 @@ export async function sendEnrollmentEmail({
   </div>
   ` : ''}
 
-  <div style="text-align: center; margin: 30px 0;">
-    <a href="${viewIntakeUrl}" style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500;">View Full Intake</a>
+  <div style="text-align: center; margin: 30px 0; padding: 16px; background-color: #f3f4f6; border-radius: 6px;">
+    <p style="margin: 0; color: #4b5563; font-size: 14px;">For a copy of the resident's full intake, please contact the facility administrator or staff.</p>
   </div>
 
   <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px; text-align: center; color: #666; font-size: 12px;">
