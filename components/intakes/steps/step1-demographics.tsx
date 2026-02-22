@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,6 +20,7 @@ import {
 
 export function Step1Demographics() {
   const { control } = useFormContext();
+  const ethnicity = useWatch({ control, name: "ethnicity" });
 
   return (
     <Card>
@@ -162,6 +163,21 @@ export function Step1Demographics() {
               </FormItem>
             )}
           />
+          {ethnicity === "Native American" && (
+            <FormField
+              control={control}
+              name="nativeAmericanTribe"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Native American Tribe</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter tribe name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <FormField
             control={control}
             name="language"

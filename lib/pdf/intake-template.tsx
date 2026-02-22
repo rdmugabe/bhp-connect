@@ -232,6 +232,7 @@ interface IntakeData {
   admissionDate: string | null;
   sex: string | null;
   ethnicity: string | null;
+  nativeAmericanTribe: string | null;
   language: string | null;
   religion: string | null;
   sexualOrientation: string | null;
@@ -522,6 +523,12 @@ export function IntakePDF({ data }: { data: IntakeData }) {
                 <Text style={styles.label}>Ethnicity:</Text>
                 <Text style={styles.value}>{data.ethnicity || "N/A"}</Text>
               </View>
+              {data.ethnicity === "Native American" && data.nativeAmericanTribe && (
+                <View style={styles.row}>
+                  <Text style={styles.label}>Tribe:</Text>
+                  <Text style={styles.value}>{data.nativeAmericanTribe}</Text>
+                </View>
+              )}
               <View style={styles.row}>
                 <Text style={styles.label}>Language:</Text>
                 <Text style={styles.value}>{data.language || "N/A"}</Text>

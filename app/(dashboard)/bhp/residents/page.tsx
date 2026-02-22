@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -10,18 +9,9 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Users, Eye, FileText, Activity } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { Users } from "lucide-react";
+import { ResidentsTable } from "@/components/residents/residents-table";
 
 export default async function BHPResidentsPage() {
   const session = await getServerSession(authOptions);
@@ -32,6 +22,13 @@ export default async function BHPResidentsPage() {
 
   const bhpProfile = await prisma.bHPProfile.findUnique({
     where: { userId: session.user.id },
+    include: {
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
   });
 
   if (!bhpProfile) {
@@ -86,63 +83,10 @@ export default async function BHPResidentsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Facility</TableHead>
-                <TableHead>Date of Birth</TableHead>
-                <TableHead>Admission Date</TableHead>
-                <TableHead>Documents</TableHead>
-                <TableHead className="w-[100px]">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {residents.map((resident) => {
-                const asamCount = resident.asamAssessments.length;
-
-                return (
-                  <TableRow key={resident.id}>
-                    <TableCell className="font-medium">
-                      {resident.residentName}
-                    </TableCell>
-                    <TableCell>{resident.facility.name}</TableCell>
-                    <TableCell>{formatDate(resident.dateOfBirth)}</TableCell>
-                    <TableCell>{formatDate(resident.createdAt)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <FileText className="h-3 w-3" />
-                          1 Intake
-                        </Badge>
-                        {asamCount > 0 && (
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <Activity className="h-3 w-3" />
-                            {asamCount} ASAM
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/bhp/residents/${resident.id}`}>
-                        <Button size="sm">
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {residents.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    No residents found in your facilities.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          <ResidentsTable
+            residents={residents}
+            bhpEmail={bhpProfile.user.email}
+          />
         </CardContent>
       </Card>
     </div>

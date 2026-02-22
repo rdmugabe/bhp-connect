@@ -84,6 +84,7 @@ export const intakeStep1Schema = z.object({
   sex: z.string().optional(),
   sexualOrientation: z.string().optional(),
   ethnicity: z.string().optional(),
+  nativeAmericanTribe: z.string().optional(),
   language: z.string().optional(),
   religion: z.string().min(1, "Religion is required"),
 });
@@ -438,6 +439,7 @@ export const intakeDraftSchema = z.object({
   sex: z.string().optional(),
   sexualOrientation: z.string().optional(),
   ethnicity: z.string().optional(),
+  nativeAmericanTribe: z.string().optional(),
   language: z.string().optional(),
   religion: z.string().optional(),
 

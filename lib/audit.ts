@@ -134,6 +134,9 @@ export const AuditActions = {
   // Oversight Training Report actions
   OVERSIGHT_TRAINING_SUBMITTED: "OVERSIGHT_TRAINING_SUBMITTED",
   OVERSIGHT_TRAINING_DELETED: "OVERSIGHT_TRAINING_DELETED",
+
+  // Email actions
+  ENROLLMENT_EMAIL_SENT: "ENROLLMENT_EMAIL_SENT",
 } as const;
 
 export type AuditAction = (typeof AuditActions)[keyof typeof AuditActions];

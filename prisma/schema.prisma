@@ -167,7 +167,8 @@ model Intake {
   dateOfBirth   DateTime
   admissionDate DateTime?
   sex           String?
-  ethnicity    String?
+  ethnicity           String?
+  nativeAmericanTribe String?
   language     String?
   religion     String?
   sexualOrientation String?

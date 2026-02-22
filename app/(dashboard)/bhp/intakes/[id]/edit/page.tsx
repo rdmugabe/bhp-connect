@@ -16,6 +16,7 @@ interface IntakeData {
   dateOfBirth: string;
   sex: string | null;
   ethnicity: string | null;
+  nativeAmericanTribe: string | null;
   language: string | null;
   religion: string | null;
   insuranceProvider: string | null;
@@ -131,6 +132,7 @@ export default function BHPEditIntakePage() {
     dateOfBirth: intake.dateOfBirth,
     sex: intake.sex || "",
     ethnicity: intake.ethnicity || "",
+    nativeAmericanTribe: intake.nativeAmericanTribe || "",
     language: intake.language || "",
     religion: intake.religion || "",
     insuranceProvider: intake.insuranceProvider || "",

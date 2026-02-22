@@ -116,7 +116,8 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
       admissionDate: "",
       sex: "",
       sexualOrientation: "",
-      ethnicity: "Native American",
+      ethnicity: "",
+      nativeAmericanTribe: "",
       language: "English",
       religion: "",
 
@@ -431,7 +432,9 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
     }
   };
 
-  const handleNext = async () => {
+  const handleNext = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     const isValid = await validateCurrentStep();
     if (isValid && currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
@@ -495,6 +498,10 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
   };
 
   const handleSubmit = async (data: FormData) => {
+    // Only allow submission from the last step
+    if (currentStep !== TOTAL_STEPS) {
+      return;
+    }
     setIsSubmitting(true);
     try {
       const url = intakeId ? `/api/intakes/${intakeId}` : "/api/intakes";
@@ -624,7 +631,7 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
           </div>
 
           {currentStep < TOTAL_STEPS ? (
-            <Button type="button" onClick={handleNext}>
+            <Button type="button" onClick={(e) => handleNext(e)}>
               Next
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

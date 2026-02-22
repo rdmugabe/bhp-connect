@@ -83,6 +83,7 @@ export async function GET(
       admissionDate: intake.admissionDate?.toISOString() || null,
       sex: intake.sex,
       ethnicity: intake.ethnicity,
+      nativeAmericanTribe: intake.nativeAmericanTribe,
       language: intake.language,
       religion: intake.religion,
       sexualOrientation: intake.sexualOrientation,
