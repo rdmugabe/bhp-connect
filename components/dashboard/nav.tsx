@@ -26,7 +26,7 @@ interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  showBadge?: "messages" | "applications" | "intakes" | "asam" | "meetings" | "adminTasks";
+  showBadge?: "messages" | "applications" | "intakes" | "asam" | "meetings" | "adminTasks" | "artMeetings";
 }
 
 const bhpNavItems: NavItem[] = [
@@ -60,6 +60,11 @@ const bhpNavItems: NavItem[] = [
     title: "ASAM Assessments",
     href: "/bhp/asam",
     icon: Activity,
+  },
+  {
+    title: "ART Meetings",
+    href: "/bhp/art-meetings",
+    icon: ClipboardCheck,
   },
   {
     title: "Credentials",
@@ -110,6 +115,12 @@ const bhrfNavItems: NavItem[] = [
     title: "ASAM Assessments",
     href: "/facility/asam",
     icon: Activity,
+  },
+  {
+    title: "ART Meetings",
+    href: "/facility/art-meetings",
+    icon: ClipboardCheck,
+    showBadge: "artMeetings",
   },
   {
     title: "Documents",
@@ -167,6 +178,7 @@ interface BadgeCounts {
   asam: number;
   meetings: number;
   adminTasks: number;
+  artMeetings: number;
 }
 
 interface DashboardNavProps {
@@ -182,6 +194,7 @@ export function DashboardNav({ role }: DashboardNavProps) {
     asam: 0,
     meetings: 0,
     adminTasks: 0,
+    artMeetings: 0,
   });
 
   useEffect(() => {

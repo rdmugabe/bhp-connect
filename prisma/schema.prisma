@@ -121,6 +121,7 @@ model Facility {
   fireDrillReports      FireDrillReport[]
   evacuationDrillReports EvacuationDrillReport[]
   oversightTrainingReports OversightTrainingReport[]
+  artMeetings           ARTMeeting[]
 
   @@index([bhpId])
 }
@@ -410,6 +411,7 @@ model Intake {
   medications      IntakeMedication[]
   asamAssessments  ASAMAssessment[]
   documents        Document[]  // Documents owned by this resident
+  artMeetings      ARTMeeting[]
 
   @@index([facilityId])
   @@index([status])
@@ -962,4 +964,55 @@ model OversightTrainingReport {
 
   @@unique([facilityId, biWeek, year])
   @@index([facilityId])
+}
+
+// ART Meeting Worksheet - Monthly required assessment for residents
+model ARTMeeting {
+  id          String   @id @default(cuid())
+  intakeId    String
+  intake      Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  facilityId  String
+  facility    Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  // Month tracking (for monthly requirement)
+  meetingMonth Int      // 1-12
+  meetingYear  Int      // e.g., 2026
+
+  // Meeting details
+  meetingDate  DateTime?
+
+  // Skipped meeting
+  isSkipped    Boolean  @default(false)
+  skipReason   String?  @db.Text
+
+  // Form fields (from template)
+  dxCodes              String?  @db.Text
+  presentDuringMeeting String[] // Array: Resident, Case Manager, BHP, BHT/Administrator, RN, Probationary Officer
+  absentDuringMeeting  String[]
+  focusOfMeeting       String?  @db.Text
+  resolutions          String?  @db.Text
+  strengths            String?  @db.Text
+  barriers             String?  @db.Text
+  whatHasWorked        String?  @db.Text
+  whatHasNotWorked     String?  @db.Text
+  goals                String?  @db.Text
+  concreteSteps        String?  @db.Text
+  progressIndicators   String?  @db.Text
+  medicalIssues        String?  @db.Text
+  plan                 String?  @db.Text
+  notesTakenBy         String?
+  meetingStartTime     String?
+  meetingEndTime       String?
+
+  // Workflow
+  status      IntakeStatus @default(DRAFT) // DRAFT, PENDING (submitted), APPROVED
+  submittedAt DateTime?
+  submittedBy String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([intakeId, meetingMonth, meetingYear])
+  @@index([facilityId])
+  @@index([intakeId])
+  @@index([meetingMonth, meetingYear])
 }

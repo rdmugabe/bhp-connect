@@ -151,6 +151,46 @@ export async function GET(request: NextRequest) {
             linkText: "View",
           });
         }
+
+        // Check for pending ART meetings this month
+        const currentMonth = new Date().getMonth() + 1;
+        const currentYear = new Date().getFullYear();
+
+        const residents = await prisma.intake.findMany({
+          where: {
+            facilityId: bhrfProfile.facilityId,
+            status: "APPROVED",
+          },
+          select: {
+            id: true,
+            artMeetings: {
+              where: {
+                meetingMonth: currentMonth,
+                meetingYear: currentYear,
+              },
+              select: {
+                id: true,
+                status: true,
+                isSkipped: true,
+              },
+            },
+          },
+        });
+
+        const pendingArtMeetings = residents.filter((resident) => {
+          const meeting = resident.artMeetings[0];
+          return !meeting || (meeting.status === "DRAFT" && !meeting.isSkipped);
+        }).length;
+
+        if (pendingArtMeetings > 0) {
+          notifications.push({
+            id: "pending-art-meetings",
+            type: "warning",
+            message: `${pendingArtMeetings} resident${pendingArtMeetings > 1 ? "s" : ""} need${pendingArtMeetings === 1 ? "s" : ""} an ART meeting this month.`,
+            link: "/facility/art-meetings",
+            linkText: "View",
+          });
+        }
       }
     } else if (role === "ADMIN") {
       // Check for pending BHP registrations

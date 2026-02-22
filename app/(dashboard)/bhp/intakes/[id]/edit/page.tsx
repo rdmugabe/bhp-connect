@@ -14,7 +14,9 @@ interface IntakeData {
   residentName: string;
   ssn: string | null;
   dateOfBirth: string;
+  admissionDate: string | null;
   sex: string | null;
+  sexualOrientation: string | null;
   ethnicity: string | null;
   nativeAmericanTribe: string | null;
   language: string | null;
@@ -130,7 +132,9 @@ export default function BHPEditIntakePage() {
     residentName: intake.residentName || "",
     ssn: intake.ssn || "",
     dateOfBirth: intake.dateOfBirth,
+    admissionDate: intake.admissionDate || "",
     sex: intake.sex || "",
+    sexualOrientation: intake.sexualOrientation || "",
     ethnicity: intake.ethnicity || "",
     nativeAmericanTribe: intake.nativeAmericanTribe || "",
     language: intake.language || "",

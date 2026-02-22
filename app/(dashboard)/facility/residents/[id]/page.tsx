@@ -20,7 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus } from "lucide-react";
+import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus, ClipboardList } from "lucide-react";
+import { ARTMeetingBadge } from "@/components/art-meetings/art-meeting-badge";
 import { formatDate } from "@/lib/utils";
 
 export default async function FacilityResidentDetailPage({
@@ -51,6 +52,13 @@ export default async function FacilityResidentDetailPage({
       asamAssessments: {
         orderBy: { createdAt: "desc" },
       },
+      artMeetings: {
+        orderBy: [
+          { meetingYear: "desc" },
+          { meetingMonth: "desc" },
+        ],
+        take: 3, // Show only last 3 meetings
+      },
       facility: {
         select: {
           name: true,
@@ -58,6 +66,13 @@ export default async function FacilityResidentDetailPage({
       },
     },
   });
+
+  // Check if current month needs an ART meeting
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
+  const hasCurrentMonthART = resident?.artMeetings.some(
+    (m) => m.meetingMonth === currentMonth && m.meetingYear === currentYear && (m.status === "APPROVED" || m.isSkipped)
+  );
 
   if (!resident || resident.facilityId !== bhrfProfile.facilityId) {
     notFound();
@@ -262,6 +277,91 @@ export default async function FacilityResidentDetailPage({
                     <Link href={`/facility/asam/new?intakeId=${resident.id}`} className="text-primary hover:underline">
                       Create one
                     </Link>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* ART Meetings */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                ART Meetings
+                {resident.artMeetings.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {resident.artMeetings.length}
+                  </Badge>
+                )}
+                {!hasCurrentMonthART && resident.status === "APPROVED" && (
+                  <Badge variant="destructive" className="ml-2">
+                    Due
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Monthly Assessment and Recovery Team meetings
+              </CardDescription>
+            </div>
+            <Link href={`/facility/residents/${resident.id}/art-meetings`}>
+              <Button variant="outline" size="sm">
+                View All
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Month/Year</TableHead>
+                <TableHead>Meeting Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[150px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {resident.artMeetings.map((meeting) => (
+                <TableRow key={meeting.id}>
+                  <TableCell className="font-medium">
+                    {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][meeting.meetingMonth - 1]} {meeting.meetingYear}
+                  </TableCell>
+                  <TableCell>
+                    {meeting.meetingDate
+                      ? formatDate(meeting.meetingDate)
+                      : meeting.isSkipped
+                      ? "Skipped"
+                      : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <ARTMeetingBadge status={meeting.status} isSkipped={meeting.isSkipped} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Link href={`/facility/residents/${resident.id}/art-meetings/${meeting.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </Link>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {resident.artMeetings.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    No ART meetings yet.{" "}
+                    {resident.status === "APPROVED" && (
+                      <Link href={`/facility/residents/${resident.id}/art-meetings/new`} className="text-primary hover:underline">
+                        Create one
+                      </Link>
+                    )}
                   </TableCell>
                 </TableRow>
               )}

@@ -20,7 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, FileText, Activity, Download, Eye, Edit } from "lucide-react";
+import { ArrowLeft, FileText, Activity, Download, Eye, Edit, ClipboardList } from "lucide-react";
+import { ARTMeetingBadge } from "@/components/art-meetings/art-meeting-badge";
 import { formatDate } from "@/lib/utils";
 
 const getStatusBadge = (status: string) => {
@@ -67,6 +68,13 @@ export default async function BHPResidentDetailPage({
     include: {
       asamAssessments: {
         orderBy: { createdAt: "desc" },
+      },
+      artMeetings: {
+        orderBy: [
+          { meetingYear: "desc" },
+          { meetingMonth: "desc" },
+        ],
+        take: 5,
       },
       facility: {
         select: {
@@ -269,6 +277,79 @@ export default async function BHPResidentDetailPage({
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground">
                     No ASAM assessments for this resident.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* ART Meetings */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                ART Meetings
+                {resident.artMeetings.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {resident.artMeetings.length}
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Monthly Assessment and Recovery Team meetings
+              </CardDescription>
+            </div>
+            <Link href={`/bhp/residents/${resident.id}/art-meetings`}>
+              <Button variant="outline" size="sm">
+                View All
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Month/Year</TableHead>
+                <TableHead>Meeting Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {resident.artMeetings.map((meeting) => (
+                <TableRow key={meeting.id}>
+                  <TableCell className="font-medium">
+                    {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][meeting.meetingMonth - 1]} {meeting.meetingYear}
+                  </TableCell>
+                  <TableCell>
+                    {meeting.meetingDate
+                      ? formatDate(meeting.meetingDate)
+                      : meeting.isSkipped
+                      ? "Skipped"
+                      : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <ARTMeetingBadge status={meeting.status} isSkipped={meeting.isSkipped} />
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/bhp/residents/${resident.id}/art-meetings/${meeting.id}`}>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {resident.artMeetings.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    No ART meetings for this resident.
                   </TableCell>
                 </TableRow>
               )}

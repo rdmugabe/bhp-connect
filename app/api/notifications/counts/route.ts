@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     let asam = 0;
     let meetings = 0;
     let adminTasks = 0;
+    let artMeetings = 0;
 
     if (role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
@@ -175,6 +176,35 @@ export async function GET(request: NextRequest) {
         const missingOversightTraining = hasCurrentBiWeekOversightReport ? 0 : 1;
 
         adminTasks = missingFireDrills + missingEvacuationShifts + missingDisasterShifts + missingOversightTraining;
+
+        // Count residents needing ART meetings this month
+        const residents = await prisma.intake.findMany({
+          where: {
+            facilityId: bhrfProfile.facilityId,
+            status: "APPROVED",
+          },
+          select: {
+            id: true,
+            artMeetings: {
+              where: {
+                meetingMonth: currentMonth,
+                meetingYear: currentYear,
+              },
+              select: {
+                id: true,
+                status: true,
+                isSkipped: true,
+              },
+            },
+          },
+        });
+
+        // Count residents without a completed ART meeting this month
+        artMeetings = residents.filter((resident) => {
+          const meeting = resident.artMeetings[0];
+          // Needs meeting if no meeting exists, or meeting is DRAFT
+          return !meeting || (meeting.status === "DRAFT" && !meeting.isSkipped);
+        }).length;
       }
     } else if (role === "ADMIN") {
       // Count pending BHP registrations
@@ -193,6 +223,7 @@ export async function GET(request: NextRequest) {
       asam,
       meetings,
       adminTasks,
+      artMeetings,
     });
   } catch (error) {
     console.error("Get notification counts error:", error);

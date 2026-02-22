@@ -1280,3 +1280,67 @@ export const oversightTrainingReportSchema = z.object({
 });
 
 export type OversightTrainingReportInput = z.infer<typeof oversightTrainingReportSchema>;
+
+// =====================================================
+// ART Meeting Worksheet Validation Schema
+// =====================================================
+
+// Attendee options for Present/Absent
+export const ART_MEETING_ATTENDEES = [
+  "Resident",
+  "Case Manager",
+  "BHP",
+  "BHT/Administrator",
+  "RN",
+  "Probationary Officer",
+] as const;
+
+export const artMeetingSchema = z.object({
+  meetingDate: z.string().min(1, "Meeting date is required"),
+  dxCodes: z.string().optional(),
+  presentDuringMeeting: z.array(z.string()).default([]),
+  absentDuringMeeting: z.array(z.string()).default([]),
+  focusOfMeeting: z.string().optional(),
+  resolutions: z.string().optional(),
+  strengths: z.string().optional(),
+  barriers: z.string().optional(),
+  whatHasWorked: z.string().optional(),
+  whatHasNotWorked: z.string().optional(),
+  goals: z.string().optional(),
+  concreteSteps: z.string().optional(),
+  progressIndicators: z.string().optional(),
+  medicalIssues: z.string().optional(),
+  plan: z.string().optional(),
+  notesTakenBy: z.string().optional(),
+  meetingStartTime: z.string().optional(),
+  meetingEndTime: z.string().optional(),
+});
+
+export const artMeetingDraftSchema = z.object({
+  meetingDate: z.string().optional(),
+  dxCodes: z.string().optional(),
+  presentDuringMeeting: z.array(z.string()).optional().default([]),
+  absentDuringMeeting: z.array(z.string()).optional().default([]),
+  focusOfMeeting: z.string().optional(),
+  resolutions: z.string().optional(),
+  strengths: z.string().optional(),
+  barriers: z.string().optional(),
+  whatHasWorked: z.string().optional(),
+  whatHasNotWorked: z.string().optional(),
+  goals: z.string().optional(),
+  concreteSteps: z.string().optional(),
+  progressIndicators: z.string().optional(),
+  medicalIssues: z.string().optional(),
+  plan: z.string().optional(),
+  notesTakenBy: z.string().optional(),
+  meetingStartTime: z.string().optional(),
+  meetingEndTime: z.string().optional(),
+});
+
+export const skipArtMeetingSchema = z.object({
+  skipReason: z.string().min(10, "Skip reason must be at least 10 characters"),
+});
+
+export type ARTMeetingInput = z.infer<typeof artMeetingSchema>;
+export type ARTMeetingDraftInput = z.infer<typeof artMeetingDraftSchema>;
+export type SkipARTMeetingInput = z.infer<typeof skipArtMeetingSchema>;
