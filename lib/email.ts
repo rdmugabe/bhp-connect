@@ -5,10 +5,12 @@ let resend: Resend | null = null;
 
 function getResendClient(): Resend {
   if (!resend) {
-    if (!process.env.RESEND_API_KEY) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.error('RESEND_API_KEY is missing. Available env vars:', Object.keys(process.env).filter(k => k.includes('RESEND') || k.includes('NEXT')));
       throw new Error('RESEND_API_KEY environment variable is not set');
     }
-    resend = new Resend(process.env.RESEND_API_KEY);
+    resend = new Resend(apiKey);
   }
   return resend;
 }
