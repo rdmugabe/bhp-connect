@@ -152,26 +152,12 @@ export async function POST(
     const uniqueRecipients = Array.from(new Set(recipients));
 
     // Format dates for email
-    const formatDate = (date: Date | null) => {
-      if (!date) return null;
-      return new Intl.DateTimeFormat("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }).format(new Date(date));
-    };
-
-    // Send the email
+    // Send the email (HIPAA compliant - no PHI like DOB or insurance info)
     const result = await sendEnrollmentEmail({
       to: uniqueRecipients,
       residentName: intake.residentName,
-      dateOfBirth: formatDate(intake.dateOfBirth) || "Not specified",
-      admissionDate: formatDate(intake.admissionDate),
       facilityName: intake.facility.name,
-      insuranceProvider: intake.insuranceProvider,
-      policyNumber: intake.policyNumber,
       bhpName: bhpName,
-      residentId: intake.id,
     });
 
     // Create audit log for HIPAA compliance

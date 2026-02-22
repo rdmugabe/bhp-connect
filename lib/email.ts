@@ -18,25 +18,15 @@ function getResendClient(): Resend {
 interface EnrollmentEmailParams {
   to: string[];
   residentName: string;
-  dateOfBirth: string;
-  admissionDate: string | null;
   facilityName: string;
-  insuranceProvider: string | null;
-  policyNumber: string | null;
   bhpName: string;
-  residentId: string;
 }
 
 export async function sendEnrollmentEmail({
   to,
   residentName,
-  dateOfBirth,
-  admissionDate,
   facilityName,
-  insuranceProvider,
-  policyNumber,
   bhpName,
-  residentId,
 }: EnrollmentEmailParams) {
   const emailHtml = `
 <!DOCTYPE html>
@@ -53,20 +43,10 @@ export async function sendEnrollmentEmail({
   </div>
 
   <div style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
-    <h2 style="color: #1a1a1a; margin: 0 0 16px 0; font-size: 18px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px;">Resident Information</h2>
-
     <table style="width: 100%; border-collapse: collapse;">
       <tr>
-        <td style="padding: 8px 0; color: #666; width: 140px;">Full Name:</td>
+        <td style="padding: 8px 0; color: #666; width: 140px;">Resident:</td>
         <td style="padding: 8px 0; font-weight: 500;">${residentName}</td>
-      </tr>
-      <tr>
-        <td style="padding: 8px 0; color: #666;">Date of Birth:</td>
-        <td style="padding: 8px 0; font-weight: 500;">${dateOfBirth}</td>
-      </tr>
-      <tr>
-        <td style="padding: 8px 0; color: #666;">Admission Date:</td>
-        <td style="padding: 8px 0; font-weight: 500;">${admissionDate || 'Not specified'}</td>
       </tr>
       <tr>
         <td style="padding: 8px 0; color: #666;">Facility:</td>
@@ -75,27 +55,8 @@ export async function sendEnrollmentEmail({
     </table>
   </div>
 
-  ${insuranceProvider ? `
-  <div style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
-    <h2 style="color: #1a1a1a; margin: 0 0 16px 0; font-size: 18px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px;">Insurance Information</h2>
-
-    <table style="width: 100%; border-collapse: collapse;">
-      <tr>
-        <td style="padding: 8px 0; color: #666; width: 140px;">Provider:</td>
-        <td style="padding: 8px 0; font-weight: 500;">${insuranceProvider}</td>
-      </tr>
-      ${policyNumber ? `
-      <tr>
-        <td style="padding: 8px 0; color: #666;">Policy Number:</td>
-        <td style="padding: 8px 0; font-weight: 500;">${policyNumber}</td>
-      </tr>
-      ` : ''}
-    </table>
-  </div>
-  ` : ''}
-
-  <div style="text-align: center; margin: 30px 0; padding: 16px; background-color: #f3f4f6; border-radius: 6px;">
-    <p style="margin: 0; color: #4b5563; font-size: 14px;">For a copy of the resident's full intake, please contact the facility administrator or staff.</p>
+  <div style="text-align: center; margin: 30px 0; padding: 16px; background-color: #e0f2fe; border-radius: 6px;">
+    <p style="margin: 0; color: #0369a1; font-size: 14px; font-weight: 500;">Please log in to BHP Connect to view full resident details and intake information.</p>
   </div>
 
   <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px; text-align: center; color: #666; font-size: 12px;">
