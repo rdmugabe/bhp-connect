@@ -83,18 +83,27 @@ export async function GET(
     };
 
     // Helper to sanitize an array of numbers (with defensive error handling)
+    // Returns a simple array of integers to avoid any floating point issues
     const sanitizeNumberArray = (arr: unknown): number[] | null => {
       try {
         if (!arr || !Array.isArray(arr)) return null;
-        const sanitized = arr.map(val => {
-          const num = typeof val === 'number' ? val : Number(val);
-          if (!Number.isFinite(num)) return 0;
-          if (Math.abs(num) > 1000) return 0; // PHQ-9 scores are 0-3, so anything > 1000 is invalid
-          return Math.floor(num); // Ensure integer
-        });
-        return sanitized.length > 0 ? sanitized : null;
+        if (arr.length === 0) return null;
+        // Force conversion to simple integers
+        const sanitized: number[] = [];
+        for (let i = 0; i < arr.length; i++) {
+          const val = arr[i];
+          const num = typeof val === 'number' ? val : parseInt(String(val), 10);
+          if (Number.isNaN(num) || !Number.isFinite(num)) {
+            sanitized.push(0);
+          } else if (num < 0 || num > 3) {
+            sanitized.push(0); // PHQ-9 scores are 0-3
+          } else {
+            sanitized.push(num | 0); // Bitwise OR to force integer
+          }
+        }
+        return sanitized;
       } catch {
-        return null; // Return null if any error occurs
+        return null;
       }
     };
 
@@ -219,8 +228,8 @@ export async function GET(
       // Skills
       hygieneSkills: emptyToNull(intake.hygieneSkills) as Record<string, string> | null,
       skillsContinuation: emptyToNull(intake.skillsContinuation) as Record<string, string> | null,
-      // PHQ-9 - phq9Responses disabled due to potential data corruption
-      // Total score still displays; individual responses omitted for safety
+      // PHQ-9 - individual responses disabled due to react-pdf rendering bug
+      // The total score still displays correctly
       phq9Responses: null,
       phq9TotalScore: sanitizeNumber(intake.phq9TotalScore),
       // Treatment
