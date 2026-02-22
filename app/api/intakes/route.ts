@@ -122,6 +122,7 @@ export async function POST(request: NextRequest) {
           admissionDate: validatedData.admissionDate ? new Date(validatedData.admissionDate) : null,
           sex: validatedData.sex,
           ethnicity: validatedData.ethnicity,
+          nativeAmericanTribe: validatedData.nativeAmericanTribe,
           language: validatedData.language,
           religion: validatedData.religion,
           sexualOrientation: validatedData.sexualOrientation,
