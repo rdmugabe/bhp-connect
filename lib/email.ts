@@ -38,7 +38,7 @@ export async function sendEnrollmentEmail({
   bhpName,
   residentId,
 }: EnrollmentEmailParams) {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://bhpconnekt.com';
   const viewIntakeUrl = `${baseUrl}/bhp/residents/${residentId}`;
 
   const emailHtml = `
