@@ -137,6 +137,7 @@ export const AuditActions = {
 
   // Email actions
   ENROLLMENT_EMAIL_SENT: "ENROLLMENT_EMAIL_SENT",
+  EMPLOYEE_EMAIL_SENT: "EMPLOYEE_EMAIL_SENT",
 } as const;
 
 export type AuditAction = (typeof AuditActions)[keyof typeof AuditActions];

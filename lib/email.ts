@@ -83,3 +83,78 @@ export async function sendEnrollmentEmail({
     html: emailHtml,
   });
 }
+
+interface EmployeeEmailParams {
+  to: string[];
+  employeeName: string;
+  position: string;
+  facilityName: string;
+  hireDate: string | null;
+  bhpName: string;
+  bhpEmail: string;
+}
+
+export async function sendEmployeeEmail({
+  to,
+  employeeName,
+  position,
+  facilityName,
+  hireDate,
+  bhpName,
+  bhpEmail,
+}: EmployeeEmailParams) {
+  const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Employee Notification</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
+    <h1 style="color: #1a1a1a; margin: 0 0 10px 0; font-size: 24px;">New Employee Notification</h1>
+    <p style="color: #666; margin: 0; font-size: 14px;">A new employee has been added at one of your facilities.</p>
+  </div>
+
+  <div style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
+    <table style="width: 100%; border-collapse: collapse;">
+      <tr>
+        <td style="padding: 8px 0; color: #666; width: 140px;">Employee:</td>
+        <td style="padding: 8px 0; font-weight: 500;">${employeeName}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; color: #666;">Position:</td>
+        <td style="padding: 8px 0; font-weight: 500;">${position}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; color: #666;">Facility:</td>
+        <td style="padding: 8px 0; font-weight: 500;">${facilityName}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; color: #666;">Hire Date:</td>
+        <td style="padding: 8px 0; font-weight: 500;">${hireDate || 'Not specified'}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="text-align: center; margin: 30px 0; padding: 16px; background-color: #e0f2fe; border-radius: 6px;">
+    <p style="margin: 0; color: #0369a1; font-size: 14px; font-weight: 500;">Please log in to BHP Connect to view full employee details and documentation.</p>
+  </div>
+
+  <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px; text-align: center; color: #666; font-size: 12px;">
+    <p style="margin: 0 0 8px 0;">This email was sent from <strong>BHP Connect</strong></p>
+    <p style="margin: 0;">Sent on behalf of ${bhpName}</p>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  return getResendClient().emails.send({
+    from: `${facilityName} via BHP Connect <notifications@bhpconnekt.com>`,
+    replyTo: bhpEmail,
+    to,
+    subject: `New Employee: ${employeeName}`,
+    html: emailHtml,
+  });
+}

@@ -21,9 +21,10 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Search, Users, Eye } from "lucide-react";
+import { ArrowLeft, Search, Users, Eye, Mail } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { EmployeeComplianceBadge } from "@/components/employees/employee-compliance-badge";
+import { EmployeeEmailDialog } from "@/components/employees/employee-email-dialog";
 
 interface Facility {
   id: string;
@@ -55,6 +56,9 @@ export default function BHPFacilityEmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [bhpEmail, setBhpEmail] = useState("");
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchFacility();
@@ -79,6 +83,9 @@ export default function BHPFacilityEmployeesPage() {
       if (response.ok) {
         const data = await response.json();
         setEmployees(data.employees || []);
+        if (data.bhpEmail) {
+          setBhpEmail(data.bhpEmail);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch employees:", error);
@@ -91,6 +98,11 @@ export default function BHPFacilityEmployeesPage() {
       setIsLoading(false);
     }
   }
+
+  const handleOpenEmailDialog = (employeeId: string, employeeName: string) => {
+    setSelectedEmployee({ id: employeeId, name: employeeName });
+    setEmailDialogOpen(true);
+  };
 
   const filteredEmployees = employees.filter((emp) => {
     const searchLower = searchQuery.toLowerCase();
@@ -216,7 +228,7 @@ export default function BHPFacilityEmployeesPage() {
                   <TableHead>Hire Date</TableHead>
                   <TableHead>Documents</TableHead>
                   <TableHead>Compliance</TableHead>
-                  <TableHead className="w-[100px]">View</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -239,13 +251,27 @@ export default function BHPFacilityEmployeesPage() {
                       />
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link
-                          href={`/bhp/facilities/${params.id}/employees/${employee.id}`}
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link
+                            href={`/bhp/facilities/${params.id}/employees/${employee.id}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            handleOpenEmailDialog(
+                              employee.id,
+                              `${employee.firstName} ${employee.lastName}`
+                            )
+                          }
                         >
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                      </Button>
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -266,6 +292,16 @@ export default function BHPFacilityEmployeesPage() {
           )}
         </CardContent>
       </Card>
+
+      {selectedEmployee && bhpEmail && (
+        <EmployeeEmailDialog
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          employeeId={selectedEmployee.id}
+          employeeName={selectedEmployee.name}
+          bhpEmail={bhpEmail}
+        />
+      )}
     </div>
   );
 }

@@ -20,10 +20,11 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Search, Users, Settings, Eye } from "lucide-react";
+import { Plus, Search, Users, Settings, Eye, Mail } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { EmployeeComplianceBadge } from "@/components/employees/employee-compliance-badge";
+import { EmployeeEmailDialog } from "@/components/employees/employee-email-dialog";
 
 interface Employee {
   id: string;
@@ -50,6 +51,9 @@ export default function FacilityEmployeesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [bhpEmail, setBhpEmail] = useState("");
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchEmployees();
@@ -61,6 +65,9 @@ export default function FacilityEmployeesPage() {
       if (response.ok) {
         const data = await response.json();
         setEmployees(data.employees || []);
+        if (data.bhpEmail) {
+          setBhpEmail(data.bhpEmail);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch employees:", error);
@@ -73,6 +80,11 @@ export default function FacilityEmployeesPage() {
       setIsLoading(false);
     }
   }
+
+  const handleOpenEmailDialog = (employeeId: string, employeeName: string) => {
+    setSelectedEmployee({ id: employeeId, name: employeeName });
+    setEmailDialogOpen(true);
+  };
 
   const filteredEmployees = employees.filter((emp) => {
     const searchLower = searchQuery.toLowerCase();
@@ -232,6 +244,18 @@ export default function FacilityEmployeesPage() {
                             <Eye className="h-4 w-4" />
                           </Link>
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            handleOpenEmailDialog(
+                              employee.id,
+                              `${employee.firstName} ${employee.lastName}`
+                            )
+                          }
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -265,6 +289,16 @@ export default function FacilityEmployeesPage() {
         employee={editingEmployee}
         onSuccess={fetchEmployees}
       />
+
+      {selectedEmployee && bhpEmail && (
+        <EmployeeEmailDialog
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          employeeId={selectedEmployee.id}
+          employeeName={selectedEmployee.name}
+          bhpEmail={bhpEmail}
+        />
+      )}
     </div>
   );
 }

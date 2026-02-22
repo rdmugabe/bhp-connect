@@ -18,10 +18,24 @@ export async function GET(request: NextRequest) {
     const includeInactive = searchParams.get("includeInactive") === "true";
 
     let targetFacilityId: string | null = null;
+    let bhpEmail: string | null = null;
 
     if (session.user.role === "BHRF") {
       const bhrfProfile = await prisma.bHRFProfile.findUnique({
         where: { userId: session.user.id },
+        include: {
+          facility: {
+            include: {
+              bhp: {
+                include: {
+                  user: {
+                    select: { email: true },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!bhrfProfile) {
@@ -29,6 +43,7 @@ export async function GET(request: NextRequest) {
       }
 
       targetFacilityId = bhrfProfile.facilityId;
+      bhpEmail = bhrfProfile.facility.bhp.user.email;
     } else if (session.user.role === "BHP") {
       if (!facilityId) {
         return NextResponse.json(
@@ -40,6 +55,11 @@ export async function GET(request: NextRequest) {
       // Verify BHP owns this facility
       const bhpProfile = await prisma.bHPProfile.findUnique({
         where: { userId: session.user.id },
+        include: {
+          user: {
+            select: { email: true },
+          },
+        },
       });
 
       if (!bhpProfile) {
@@ -61,6 +81,7 @@ export async function GET(request: NextRequest) {
       }
 
       targetFacilityId = facilityId;
+      bhpEmail = bhpProfile.user.email;
     }
 
     if (!targetFacilityId) {
@@ -112,7 +133,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({ employees: employeesWithCompliance });
+    return NextResponse.json({ employees: employeesWithCompliance, bhpEmail });
   } catch (error) {
     console.error("Get employees error:", error);
     return NextResponse.json(
