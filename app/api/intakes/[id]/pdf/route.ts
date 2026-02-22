@@ -82,16 +82,20 @@ export async function GET(
       return val;
     };
 
-    // Helper to sanitize an array of numbers
+    // Helper to sanitize an array of numbers (with defensive error handling)
     const sanitizeNumberArray = (arr: unknown): number[] | null => {
-      if (!arr || !Array.isArray(arr)) return null;
-      const sanitized = arr.map(val => {
-        if (typeof val !== 'number') return 0;
-        if (!Number.isFinite(val)) return 0;
-        if (Math.abs(val) > 1e10) return 0;
-        return val;
-      });
-      return sanitized.length > 0 ? sanitized : null;
+      try {
+        if (!arr || !Array.isArray(arr)) return null;
+        const sanitized = arr.map(val => {
+          const num = typeof val === 'number' ? val : Number(val);
+          if (!Number.isFinite(num)) return 0;
+          if (Math.abs(num) > 1000) return 0; // PHQ-9 scores are 0-3, so anything > 1000 is invalid
+          return Math.floor(num); // Ensure integer
+        });
+        return sanitized.length > 0 ? sanitized : null;
+      } catch {
+        return null; // Return null if any error occurs
+      }
     };
 
     // Helper to sanitize BMI (stored as string in DB, needs to be safe for display)
@@ -167,7 +171,7 @@ export async function GET(
       medicalConditions: emptyToNull(intake.medicalConditions) ? JSON.stringify(intake.medicalConditions) : null,
       height: intake.height,
       weight: intake.weight,
-      bmi: sanitizeBMI(intake.bmi),
+      bmi: sanitizeBMI(intake.bmi), // Re-enabled with sanitization
       // Psychiatric
       isCOT: intake.isCOT,
       personalPsychHX: intake.personalPsychHX,
@@ -215,8 +219,9 @@ export async function GET(
       // Skills
       hygieneSkills: emptyToNull(intake.hygieneSkills) as Record<string, string> | null,
       skillsContinuation: emptyToNull(intake.skillsContinuation) as Record<string, string> | null,
-      // PHQ-9
-      phq9Responses: sanitizeNumberArray(intake.phq9Responses),
+      // PHQ-9 - phq9Responses disabled due to potential data corruption
+      // Total score still displays; individual responses omitted for safety
+      phq9Responses: null,
       phq9TotalScore: sanitizeNumber(intake.phq9TotalScore),
       // Treatment
       treatmentObjectives: intake.treatmentObjectives,
