@@ -36,7 +36,7 @@ export function Step2Insurance() {
                 <FormItem>
                   <FormLabel>Insurance Provider</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter provider name" {...field} />
+                    <Input placeholder="Enter provider name" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -49,7 +49,7 @@ export function Step2Insurance() {
                 <FormItem>
                   <FormLabel>Policy Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="Policy #" {...field} />
+                    <Input placeholder="Policy #" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -62,7 +62,7 @@ export function Step2Insurance() {
                 <FormItem>
                   <FormLabel>Group Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="Group #" {...field} />
+                    <Input placeholder="Group #" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -75,7 +75,7 @@ export function Step2Insurance() {
                 <FormItem>
                   <FormLabel>AHCCCS Health Plan</FormLabel>
                   <FormControl>
-                    <Input placeholder="Health plan name" {...field} />
+                    <Input placeholder="Health plan name" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -94,7 +94,7 @@ export function Step2Insurance() {
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value ?? false}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
@@ -114,7 +114,7 @@ export function Step2Insurance() {
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value ?? false}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
@@ -134,7 +134,7 @@ export function Step2Insurance() {
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value ?? false}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
@@ -161,6 +161,7 @@ export function Step2Insurance() {
                   placeholder="Enter POA or legal guardian information including name, relationship, and contact information..."
                   className="min-h-[100px]"
                   {...field}
+                  value={field.value || ""}
                 />
               </FormControl>
               <FormMessage />

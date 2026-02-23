@@ -20,6 +20,7 @@ import {
   Activity,
   UserPlus,
   ClipboardCheck,
+  AlertTriangle,
 } from "lucide-react";
 
 interface NavItem {
@@ -65,6 +66,11 @@ const bhpNavItems: NavItem[] = [
     title: "ART Meetings",
     href: "/bhp/art-meetings",
     icon: ClipboardCheck,
+  },
+  {
+    title: "Incident Reports",
+    href: "/bhp/incident-reports",
+    icon: AlertTriangle,
   },
   {
     title: "Credentials",
@@ -121,6 +127,11 @@ const bhrfNavItems: NavItem[] = [
     href: "/facility/art-meetings",
     icon: ClipboardCheck,
     showBadge: "artMeetings",
+  },
+  {
+    title: "Incident Reports",
+    href: "/facility/incident-reports",
+    icon: AlertTriangle,
   },
   {
     title: "Documents",

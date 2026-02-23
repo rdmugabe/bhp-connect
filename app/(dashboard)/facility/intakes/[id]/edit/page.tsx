@@ -305,9 +305,9 @@ export default function EditIntakePage() {
     policyNumber: intake.policyNumber || "",
     groupNumber: intake.groupNumber || "",
     ahcccsHealthPlan: intake.ahcccsHealthPlan || "",
-    hasDNR: intake.hasDNR,
-    hasAdvancedDirective: intake.hasAdvancedDirective,
-    hasWill: intake.hasWill,
+    hasDNR: intake.hasDNR ?? false,
+    hasAdvancedDirective: intake.hasAdvancedDirective ?? false,
+    hasWill: intake.hasWill ?? false,
     poaLegalGuardian: intake.poaLegalGuardian || "",
     // Referral
     referralSource: intake.referralSource || "",

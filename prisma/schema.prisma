@@ -123,6 +123,7 @@ model Facility {
   oversightTrainingReports OversightTrainingReport[]
   artMeetings           ARTMeeting[]
   dischargeSummaries    DischargeSummary[]
+  incidentReports       IncidentReport[]
 
   @@index([bhpId])
 }
@@ -414,6 +415,7 @@ model Intake {
   documents        Document[]  // Documents owned by this resident
   artMeetings      ARTMeeting[]
   dischargeSummary DischargeSummary?
+  incidentReports  IncidentReport[]
 
   @@index([facilityId])
   @@index([status])
@@ -1096,4 +1098,92 @@ model DischargeSummary {
   @@index([facilityId])
   @@index([intakeId])
   @@index([dischargeDate])
+}
+
+// Incident Report - Records incidents involving residents
+model IncidentReport {
+  id          String   @id @default(cuid())
+  facilityId  String
+  facility    Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  // Optional link to resident (intake)
+  intakeId    String?
+  intake      Intake?  @relation(fields: [intakeId], references: [id], onDelete: SetNull)
+
+  // Report tracking
+  reportNumber String?  // Auto-generated or manual
+
+  // Incident Information
+  incidentDate     DateTime
+  incidentTime     String
+  incidentLocation String
+  reportDate       DateTime  @default(now())
+  reportCompletedBy String
+  reporterTitle    String?
+
+  // Resident Information (manual entry if no intake linked)
+  residentName     String?
+  residentDOB      DateTime?
+  residentAdmissionDate DateTime?
+  residentAhcccsId String?
+
+  // Incident Types (multi-select)
+  incidentTypes    String[]  // Array of incident type codes
+  otherIncidentType String?  // If "OTHER" is selected
+
+  // Incident Description
+  incidentDescription String @db.Text
+
+  // Persons Involved
+  residentsInvolved Json?  // [{name, dob, roleInIncident}]
+  staffInvolved     Json?  // [{name, title, roleInIncident}]
+  witnesses         Json?  // [{name, titleOrRelationship, contactInfo}]
+
+  // Injuries
+  anyInjuries            Boolean @default(false)
+  injuryDescription      String? @db.Text
+  medicalAttentionRequired Boolean @default(false)
+  treatmentProvided      String? @db.Text
+  was911Called           Boolean @default(false)
+  wasTransportedToHospital Boolean @default(false)
+  hospitalName           String?
+
+  // Interventions
+  interventionsUsed      String[]  // Array of intervention codes
+  otherIntervention      String?
+  actionsDescription     String?   @db.Text
+
+  // Notifications
+  notifications          Json?  // [{personEntity, name, dateTime, method, notifiedBy}]
+
+  // Resident Status Post-Incident
+  residentCurrentCondition String? @db.Text
+  residentStatement        String? @db.Text
+  currentSupervisionLevel  String?  // Routine, Increased, 1:1, Other
+  otherSupervisionLevel    String?
+
+  // Follow-Up Required
+  followUpRequired         String[]  // Array of follow-up codes
+  otherFollowUp            String?
+  followUpActionsTimeline  String?   @db.Text
+
+  // Signatures (for PDF generation)
+  staffSignatureName       String?
+  staffSignatureDate       DateTime?
+  adminSignatureName       String?
+  adminSignatureDate       DateTime?
+  bhpSignatureName         String?
+  bhpSignatureDate         DateTime?
+
+  // Workflow
+  status      IntakeStatus @default(DRAFT)
+  submittedAt DateTime?
+  submittedBy String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([facilityId])
+  @@index([intakeId])
+  @@index([incidentDate])
+  @@index([status])
 }

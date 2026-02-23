@@ -484,8 +484,6 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
       if (!intakeId && result.intake?.id) {
         router.push(`/facility/intakes/${result.intake.id}/edit`);
       }
-
-      router.refresh();
     } catch (error) {
       toast({
         variant: "destructive",

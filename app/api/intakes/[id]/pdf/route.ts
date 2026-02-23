@@ -74,6 +74,18 @@ export async function GET(
       return val;
     };
 
+    // Helper to safely handle long text for PDF rendering
+    // react-pdf layout engine can overflow with very long strings, causing the
+    // "unsupported number" error. We truncate to a safe maximum length.
+    const safeText = (text: string | null | undefined, maxLength = 2000): string | null => {
+      if (!text) return null;
+      // Truncate if exceeds max length to prevent react-pdf layout overflow
+      if (text.length > maxLength) {
+        return text.slice(0, maxLength) + '... [Content truncated for PDF - see full record in system]';
+      }
+      return text;
+    };
+
     // Prepare PDF data - include all fields from intake
     const pdfData = {
       id: intake.id,
@@ -113,21 +125,21 @@ export async function GET(
       referralSource: intake.referralSource,
       evaluatorName: intake.evaluatorName,
       evaluatorCredentials: intake.evaluatorCredentials,
-      reasonsForReferral: intake.reasonsForReferral,
-      residentNeeds: intake.residentNeeds,
+      reasonsForReferral: safeText(intake.reasonsForReferral),
+      residentNeeds: safeText(intake.residentNeeds),
       residentExpectedLOS: intake.residentExpectedLOS,
       teamExpectedLOS: intake.teamExpectedLOS,
-      strengthsAndLimitations: intake.strengthsAndLimitations,
-      familyInvolved: intake.familyInvolved,
+      strengthsAndLimitations: safeText(intake.strengthsAndLimitations),
+      familyInvolved: safeText(intake.familyInvolved),
       // Behavioral Symptoms
-      reasonForServices: intake.reasonForServices,
-      currentBehavioralSymptoms: intake.currentBehavioralSymptoms,
-      copingWithSymptoms: intake.copingWithSymptoms,
-      symptomsLimitations: intake.symptomsLimitations,
-      immediateUrgentNeeds: intake.immediateUrgentNeeds,
-      signsOfImprovement: intake.signsOfImprovement,
-      assistanceExpectations: intake.assistanceExpectations,
-      involvedInTreatment: intake.involvedInTreatment,
+      reasonForServices: safeText(intake.reasonForServices),
+      currentBehavioralSymptoms: safeText(intake.currentBehavioralSymptoms),
+      copingWithSymptoms: safeText(intake.copingWithSymptoms),
+      symptomsLimitations: safeText(intake.symptomsLimitations),
+      immediateUrgentNeeds: safeText(intake.immediateUrgentNeeds),
+      signsOfImprovement: safeText(intake.signsOfImprovement),
+      assistanceExpectations: safeText(intake.assistanceExpectations),
+      involvedInTreatment: safeText(intake.involvedInTreatment),
       // Medical
       allergies: intake.allergies,
       medications: emptyToNull(intake.medications) as { name: string; dosage?: string | null; frequency?: string | null; route?: string | null }[] | null,
@@ -142,10 +154,10 @@ export async function GET(
       bmi: intake.bmi,
       // Psychiatric
       isCOT: intake.isCOT,
-      personalPsychHX: intake.personalPsychHX,
-      familyPsychHX: intake.familyPsychHX,
-      treatmentPreferences: intake.treatmentPreferences,
-      psychMedicationEfficacy: intake.psychMedicationEfficacy,
+      personalPsychHX: safeText(intake.personalPsychHX),
+      familyPsychHX: safeText(intake.familyPsychHX),
+      treatmentPreferences: safeText(intake.treatmentPreferences),
+      psychMedicationEfficacy: safeText(intake.psychMedicationEfficacy),
       // Risk Assessment - DTS
       suicideHistory: intake.suicideHistory,
       suicideAttemptDetails: intake.suicideAttemptDetails,
@@ -191,33 +203,33 @@ export async function GET(
       phq9Responses: emptyToNull(intake.phq9Responses) as number[] | null,
       phq9TotalScore: intake.phq9TotalScore,
       // Treatment
-      treatmentObjectives: intake.treatmentObjectives,
-      dischargePlanObjectives: intake.dischargePlanObjectives,
-      supportSystem: intake.supportSystem,
-      communityResources: intake.communityResources,
+      treatmentObjectives: safeText(intake.treatmentObjectives),
+      dischargePlanObjectives: safeText(intake.dischargePlanObjectives),
+      supportSystem: safeText(intake.supportSystem),
+      communityResources: safeText(intake.communityResources),
       // Social/Education
-      childhoodDescription: intake.childhoodDescription,
-      abuseHistory: intake.abuseHistory,
-      familyMentalHealthHistory: intake.familyMentalHealthHistory,
+      childhoodDescription: safeText(intake.childhoodDescription),
+      abuseHistory: safeText(intake.abuseHistory),
+      familyMentalHealthHistory: safeText(intake.familyMentalHealthHistory),
       relationshipStatus: intake.relationshipStatus,
-      relationshipSatisfaction: intake.relationshipSatisfaction,
-      friendsDescription: intake.friendsDescription,
+      relationshipSatisfaction: safeText(intake.relationshipSatisfaction),
+      friendsDescription: safeText(intake.friendsDescription),
       highestEducation: intake.highestEducation,
       specialEducation: intake.specialEducation,
-      specialEducationDetails: intake.specialEducationDetails,
+      specialEducationDetails: safeText(intake.specialEducationDetails),
       plan504: intake.plan504,
       iep: intake.iep,
-      educationDetails: intake.educationDetails,
+      educationDetails: safeText(intake.educationDetails),
       currentlyEmployed: intake.currentlyEmployed,
-      employmentDetails: intake.employmentDetails,
-      workVolunteerHistory: intake.workVolunteerHistory,
-      employmentBarriers: intake.employmentBarriers,
+      employmentDetails: safeText(intake.employmentDetails),
+      workVolunteerHistory: safeText(intake.workVolunteerHistory),
+      employmentBarriers: safeText(intake.employmentBarriers),
       // Legal/Substance
-      criminalLegalHistory: intake.criminalLegalHistory,
+      criminalLegalHistory: safeText(intake.criminalLegalHistory),
       courtOrderedTreatment: intake.courtOrderedTreatment,
-      courtOrderedDetails: intake.courtOrderedDetails,
-      otherLegalIssues: intake.otherLegalIssues,
-      substanceHistory: intake.substanceHistory,
+      courtOrderedDetails: safeText(intake.courtOrderedDetails),
+      otherLegalIssues: safeText(intake.otherLegalIssues),
+      substanceHistory: safeText(intake.substanceHistory),
       substanceUseTable: emptyToNull(intake.substanceUseTable) as Record<string, unknown>[] | null,
       drugOfChoice: intake.drugOfChoice,
       longestSobriety: intake.longestSobriety,
@@ -268,8 +280,8 @@ export async function GET(
       cognitionDescription: intake.cognitionDescription,
       estimatedIntelligence: intake.estimatedIntelligence,
       // Diagnosis
-      diagnosis: intake.diagnosis,
-      treatmentRecommendation: intake.treatmentRecommendation,
+      diagnosis: safeText(intake.diagnosis),
+      treatmentRecommendation: safeText(intake.treatmentRecommendation),
       // Wellness
       healthNeeds: intake.healthNeeds,
       nutritionalNeeds: intake.nutritionalNeeds,
@@ -278,9 +290,9 @@ export async function GET(
       educationHistory: intake.educationHistory,
       vocationalHistory: intake.vocationalHistory,
       // Crisis/Discharge
-      crisisInterventionPlan: intake.crisisInterventionPlan,
+      crisisInterventionPlan: safeText(intake.crisisInterventionPlan),
       feedbackFrequency: intake.feedbackFrequency,
-      dischargePlanning: intake.dischargePlanning,
+      dischargePlanning: safeText(intake.dischargePlanning),
       signatures: emptyToNull(intake.signatures) as Record<string, string> | null,
       // Status
       status: intake.status as "DRAFT" | "PENDING" | "APPROVED" | "CONDITIONAL" | "DENIED",

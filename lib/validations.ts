@@ -1556,3 +1556,241 @@ export const dischargeSummaryDraftSchema = z.object({
 
 export type DischargeSummaryInput = z.infer<typeof dischargeSummarySchema>;
 export type DischargeSummaryDraftInput = z.infer<typeof dischargeSummaryDraftSchema>;
+
+// =====================================================
+// Incident Report Validation Schema
+// =====================================================
+
+export const INCIDENT_TYPES = [
+  { code: "BEHAVIORAL", label: "Behavioral (aggression, verbal outburst, property damage)" },
+  { code: "MEDICAL_EMERGENCY", label: "Medical emergency" },
+  { code: "INJURY", label: "Injury (resident or staff)" },
+  { code: "FALL", label: "Fall" },
+  { code: "MEDICATION_ERROR", label: "Medication error" },
+  { code: "SUICIDE_ATTEMPT", label: "Suicide attempt/self-harm" },
+  { code: "SUICIDAL_HOMICIDAL_IDEATION", label: "Suicidal/homicidal ideation" },
+  { code: "ELOPEMENT", label: "Elopement/AWOL" },
+  { code: "AMA", label: "AMA (Against Medical Advice) discharge" },
+  { code: "SUBSTANCE_USE", label: "Substance use/positive drug screen" },
+  { code: "CONTRABAND", label: "Contraband" },
+  { code: "ALTERCATION", label: "Altercation between residents" },
+  { code: "ABUSE_NEGLECT", label: "Alleged abuse/neglect" },
+  { code: "THEFT_LOSS", label: "Property theft/loss" },
+  { code: "DEATH", label: "Death" },
+  { code: "OTHER", label: "Other" },
+] as const;
+
+export const INTERVENTION_TYPES = [
+  { code: "VERBAL_DEESCALATION", label: "Verbal de-escalation" },
+  { code: "REDIRECTION", label: "Redirection" },
+  { code: "PRN_MEDICATION", label: "PRN medication administered" },
+  { code: "ONE_ON_ONE", label: "1:1 supervision initiated" },
+  { code: "ROOM_RESTRICTION", label: "Room restriction" },
+  { code: "PHYSICAL_INTERVENTION", label: "Physical intervention/restraint" },
+  { code: "SECLUSION", label: "Seclusion" },
+  { code: "CRISIS_SERVICES", label: "Crisis services contacted" },
+  { code: "CALL_911", label: "911 called" },
+  { code: "FIRST_AID", label: "First aid administered" },
+  { code: "OTHER", label: "Other" },
+] as const;
+
+export const NOTIFICATION_ENTITIES = [
+  "Supervisor/Administrator",
+  "BHP",
+  "Physician/Prescriber",
+  "Family/Guardian",
+  "Case Manager",
+  "AHCCCS/Licensing",
+  "Law Enforcement",
+  "Other",
+] as const;
+
+export const SUPERVISION_LEVELS = [
+  "Routine",
+  "Increased",
+  "1:1",
+  "Other",
+] as const;
+
+export const FOLLOW_UP_TYPES = [
+  { code: "TREATMENT_PLAN_UPDATE", label: "Treatment plan update" },
+  { code: "PHYSICIAN_NOTIFICATION", label: "Physician/prescriber notification" },
+  { code: "MEDICATION_REVIEW", label: "Medication review" },
+  { code: "INCREASED_SUPERVISION", label: "Increased supervision" },
+  { code: "ROOM_CHANGE", label: "Room/environment change" },
+  { code: "FAMILY_MEETING", label: "Family meeting" },
+  { code: "INCIDENT_REVIEW", label: "Incident review meeting" },
+  { code: "REGULATORY_REPORT", label: "Regulatory report required" },
+  { code: "OTHER", label: "Other" },
+] as const;
+
+export const incidentReportSchema = z.object({
+  // Resident link (optional)
+  intakeId: z.string().optional(),
+
+  // Incident Information
+  incidentDate: z.string().min(1, "Incident date is required"),
+  incidentTime: z.string().min(1, "Incident time is required"),
+  incidentLocation: z.string().min(1, "Incident location is required"),
+  reportCompletedBy: z.string().min(1, "Report completed by is required"),
+  reporterTitle: z.string().optional(),
+
+  // Resident Information (manual if no intake linked)
+  residentName: z.string().optional(),
+  residentDOB: z.string().optional(),
+  residentAdmissionDate: z.string().optional(),
+  residentAhcccsId: z.string().optional(),
+
+  // Incident Types
+  incidentTypes: z.array(z.string()).min(1, "At least one incident type is required"),
+  otherIncidentType: z.string().optional(),
+
+  // Incident Description
+  incidentDescription: z.string().min(10, "Incident description must be at least 10 characters"),
+
+  // Persons Involved
+  residentsInvolved: z.array(z.object({
+    name: z.string(),
+    dob: z.string().optional(),
+    roleInIncident: z.string().optional(),
+  })).optional(),
+  staffInvolved: z.array(z.object({
+    name: z.string(),
+    title: z.string().optional(),
+    roleInIncident: z.string().optional(),
+  })).optional(),
+  witnesses: z.array(z.object({
+    name: z.string(),
+    titleOrRelationship: z.string().optional(),
+    contactInfo: z.string().optional(),
+  })).optional(),
+
+  // Injuries
+  anyInjuries: z.boolean().default(false),
+  injuryDescription: z.string().optional(),
+  medicalAttentionRequired: z.boolean().default(false),
+  treatmentProvided: z.string().optional(),
+  was911Called: z.boolean().default(false),
+  wasTransportedToHospital: z.boolean().default(false),
+  hospitalName: z.string().optional(),
+
+  // Interventions
+  interventionsUsed: z.array(z.string()).default([]),
+  otherIntervention: z.string().optional(),
+  actionsDescription: z.string().optional(),
+
+  // Notifications
+  notifications: z.array(z.object({
+    personEntity: z.string(),
+    name: z.string().optional(),
+    dateTime: z.string().optional(),
+    method: z.string().optional(),
+    notifiedBy: z.string().optional(),
+  })).optional(),
+
+  // Resident Status Post-Incident
+  residentCurrentCondition: z.string().optional(),
+  residentStatement: z.string().optional(),
+  currentSupervisionLevel: z.string().optional(),
+  otherSupervisionLevel: z.string().optional(),
+
+  // Follow-Up
+  followUpRequired: z.array(z.string()).default([]),
+  otherFollowUp: z.string().optional(),
+  followUpActionsTimeline: z.string().optional(),
+
+  // Signatures
+  staffSignatureName: z.string().optional(),
+  staffSignatureDate: z.string().optional(),
+  adminSignatureName: z.string().optional(),
+  adminSignatureDate: z.string().optional(),
+  bhpSignatureName: z.string().optional(),
+  bhpSignatureDate: z.string().optional(),
+});
+
+export const incidentReportDraftSchema = z.object({
+  // Resident link (optional)
+  intakeId: z.string().optional(),
+
+  // Incident Information
+  incidentDate: z.string().optional(),
+  incidentTime: z.string().optional(),
+  incidentLocation: z.string().optional(),
+  reportCompletedBy: z.string().optional(),
+  reporterTitle: z.string().optional(),
+
+  // Resident Information (manual if no intake linked)
+  residentName: z.string().optional(),
+  residentDOB: z.string().optional(),
+  residentAdmissionDate: z.string().optional(),
+  residentAhcccsId: z.string().optional(),
+
+  // Incident Types
+  incidentTypes: z.array(z.string()).optional().default([]),
+  otherIncidentType: z.string().optional(),
+
+  // Incident Description
+  incidentDescription: z.string().optional(),
+
+  // Persons Involved
+  residentsInvolved: z.array(z.object({
+    name: z.string(),
+    dob: z.string().optional(),
+    roleInIncident: z.string().optional(),
+  })).optional(),
+  staffInvolved: z.array(z.object({
+    name: z.string(),
+    title: z.string().optional(),
+    roleInIncident: z.string().optional(),
+  })).optional(),
+  witnesses: z.array(z.object({
+    name: z.string(),
+    titleOrRelationship: z.string().optional(),
+    contactInfo: z.string().optional(),
+  })).optional(),
+
+  // Injuries
+  anyInjuries: z.boolean().optional().default(false),
+  injuryDescription: z.string().optional(),
+  medicalAttentionRequired: z.boolean().optional().default(false),
+  treatmentProvided: z.string().optional(),
+  was911Called: z.boolean().optional().default(false),
+  wasTransportedToHospital: z.boolean().optional().default(false),
+  hospitalName: z.string().optional(),
+
+  // Interventions
+  interventionsUsed: z.array(z.string()).optional().default([]),
+  otherIntervention: z.string().optional(),
+  actionsDescription: z.string().optional(),
+
+  // Notifications
+  notifications: z.array(z.object({
+    personEntity: z.string(),
+    name: z.string().optional(),
+    dateTime: z.string().optional(),
+    method: z.string().optional(),
+    notifiedBy: z.string().optional(),
+  })).optional(),
+
+  // Resident Status Post-Incident
+  residentCurrentCondition: z.string().optional(),
+  residentStatement: z.string().optional(),
+  currentSupervisionLevel: z.string().optional(),
+  otherSupervisionLevel: z.string().optional(),
+
+  // Follow-Up
+  followUpRequired: z.array(z.string()).optional().default([]),
+  otherFollowUp: z.string().optional(),
+  followUpActionsTimeline: z.string().optional(),
+
+  // Signatures
+  staffSignatureName: z.string().optional(),
+  staffSignatureDate: z.string().optional(),
+  adminSignatureName: z.string().optional(),
+  adminSignatureDate: z.string().optional(),
+  bhpSignatureName: z.string().optional(),
+  bhpSignatureDate: z.string().optional(),
+});
+
+export type IncidentReportInput = z.infer<typeof incidentReportSchema>;
+export type IncidentReportDraftInput = z.infer<typeof incidentReportDraftSchema>;

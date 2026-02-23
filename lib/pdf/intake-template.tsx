@@ -62,6 +62,8 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 12,
+    maxWidth: "100%",
+    overflow: "hidden",
   },
   sectionTitle: {
     fontSize: 11,
@@ -76,6 +78,8 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     marginBottom: 4,
+    maxWidth: "100%",
+    overflow: "hidden",
   },
   label: {
     width: "35%",
@@ -85,6 +89,8 @@ const styles = StyleSheet.create({
   value: {
     width: "65%",
     fontSize: 9,
+    maxWidth: "65%",
+    overflow: "hidden",
   },
   twoColumn: {
     flexDirection: "row",
@@ -95,6 +101,7 @@ const styles = StyleSheet.create({
   },
   textBlock: {
     marginBottom: 8,
+    maxWidth: "100%",
   },
   textBlockLabel: {
     color: "#4a5568",
@@ -106,6 +113,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f7fafc",
     padding: 6,
     borderRadius: 3,
+    maxWidth: "100%",
+    overflow: "hidden",
   },
   footer: {
     position: "absolute",

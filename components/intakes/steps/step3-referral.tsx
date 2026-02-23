@@ -123,7 +123,7 @@ export function Step3Referral() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Less than 30 days">Less than 30 days</SelectItem>
+                    <SelectItem value="Exactly 30 days">Exactly 30 days</SelectItem>
                     <SelectItem value="30-90 days">30-90 days</SelectItem>
                     <SelectItem value="90-180 days">90-180 days</SelectItem>
                     <SelectItem value="180+ days">180+ days</SelectItem>
