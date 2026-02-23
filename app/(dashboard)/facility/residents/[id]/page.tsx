@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus, ClipboardList } from "lucide-react";
+import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus, ClipboardList, LogOut } from "lucide-react";
 import { ARTMeetingBadge } from "@/components/art-meetings/art-meeting-badge";
 import { formatDate } from "@/lib/utils";
 
@@ -59,6 +59,7 @@ export default async function FacilityResidentDetailPage({
         ],
         take: 3, // Show only last 3 meetings
       },
+      dischargeSummary: true,
       facility: {
         select: {
           name: true,
@@ -361,6 +362,95 @@ export default async function FacilityResidentDetailPage({
                       <Link href={`/facility/residents/${resident.id}/art-meetings/new`} className="text-primary hover:underline">
                         Create one
                       </Link>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Discharge Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <LogOut className="h-5 w-5" />
+            Discharge Summary
+            {resident.dischargeSummary && (
+              <Badge
+                variant={
+                  resident.dischargeSummary.status === "APPROVED"
+                    ? "default"
+                    : resident.dischargeSummary.status === "PENDING"
+                    ? "secondary"
+                    : "outline"
+                }
+                className="ml-2"
+              >
+                {resident.dischargeSummary.status}
+              </Badge>
+            )}
+          </CardTitle>
+          <CardDescription>
+            Discharge documentation for this resident
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Document</TableHead>
+                <TableHead>Discharge Date</TableHead>
+                <TableHead>Discharge Type</TableHead>
+                <TableHead className="w-[200px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {resident.dischargeSummary ? (
+                <TableRow>
+                  <TableCell className="font-medium">
+                    Discharge Summary
+                  </TableCell>
+                  <TableCell>
+                    {formatDate(resident.dischargeSummary.dischargeDate)}
+                  </TableCell>
+                  <TableCell>
+                    {resident.dischargeSummary.dischargeType || "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Link href={`/facility/residents/${resident.id}/discharge-summary`}>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </Link>
+                      <Link href={`/facility/residents/${resident.id}/discharge-summary?edit=true`}>
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      </Link>
+                      <Link href={`/api/discharge-summaries/${resident.dischargeSummary.id}/pdf`} target="_blank">
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-1" />
+                          PDF
+                        </Button>
+                      </Link>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    No discharge summary yet.{" "}
+                    {resident.status === "APPROVED" ? (
+                      <Link href={`/facility/residents/${resident.id}/discharge-summary`} className="text-primary hover:underline">
+                        Create one
+                      </Link>
+                    ) : (
+                      "Resident must be approved first."
                     )}
                   </TableCell>
                 </TableRow>

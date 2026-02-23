@@ -1344,3 +1344,215 @@ export const skipArtMeetingSchema = z.object({
 export type ARTMeetingInput = z.infer<typeof artMeetingSchema>;
 export type ARTMeetingDraftInput = z.infer<typeof artMeetingDraftSchema>;
 export type SkipARTMeetingInput = z.infer<typeof skipArtMeetingSchema>;
+
+// =====================================================
+// Discharge Summary Validation Schema
+// =====================================================
+
+export const DISCHARGE_TYPES = [
+  "Completed Treatment",
+  "AMA (Against Medical Advice)",
+  "Administrative Discharge",
+  "Transfer to Higher Level of Care",
+  "Transfer to Lower Level of Care",
+  "Incarceration",
+  "Hospitalization",
+  "Death",
+  "Other",
+] as const;
+
+export const ENROLLED_PROGRAMS = [
+  "Residential",
+  "IOP (Intensive Outpatient)",
+  "Outpatient",
+  "Community Day",
+  "PHP (Partial Hospitalization)",
+] as const;
+
+export const RECOMMENDED_LEVELS_OF_CARE = [
+  "No further treatment",
+  "Outpatient therapy",
+  "IOP (Intensive Outpatient)",
+  "PHP (Partial Hospitalization)",
+  "Residential treatment",
+  "Inpatient hospitalization",
+  "Medical detox",
+  "Other",
+] as const;
+
+export const COMPLETED_SERVICES = [
+  "Individual Therapy",
+  "Group Therapy",
+  "Family Therapy",
+  "Case Management",
+  "Medication Management",
+  "Skills Training",
+  "Crisis Intervention",
+  "Peer Support",
+  "Vocational Services",
+  "Educational Services",
+  "Housing Assistance",
+  "Transportation Assistance",
+  "Other",
+] as const;
+
+export const dischargeSummarySchema = z.object({
+  // Discharge Date/Time
+  dischargeDate: z.string().min(1, "Discharge date is required"),
+  dischargeStartTime: z.string().optional(),
+  dischargeEndTime: z.string().optional(),
+
+  // Program Info
+  enrolledProgram: z.string().optional(),
+  dischargeType: z.string().min(1, "Discharge type is required"),
+  recommendedLevelOfCare: z.string().optional(),
+
+  // Contact Info After Discharge
+  contactPhoneAfterDischarge: z.string().optional(),
+  contactAddressAfterDischarge: z.string().optional(),
+
+  // Clinical Content
+  presentingIssuesAtAdmission: z.string().optional(),
+  objectivesAttained: z.array(z.object({
+    objective: z.string(),
+    attained: z.enum(["Fully Attained", "Partially Attained", "Not Attained", "N/A"]),
+  })).optional(),
+  objectiveNarratives: z.object({
+    fullyAttained: z.string().optional(),
+    partiallyAttained: z.string().optional(),
+    notAttained: z.string().optional(),
+  }).optional(),
+
+  // Completed Services
+  completedServices: z.array(z.string()).default([]),
+
+  // Discharge Summary
+  actualDischargeDate: z.string().optional(),
+  dischargeSummaryNarrative: z.string().optional(),
+
+  // Discharging To
+  dischargingTo: z.string().optional(),
+
+  // Personal Items & Medications
+  personalItemsReceived: z.boolean().default(false),
+  personalItemsStoredDays: z.number().min(0).optional(),
+  itemsRemainAtFacility: z.boolean().default(false),
+
+  // Discharge Medications
+  dischargeMedications: z.array(z.object({
+    medication: z.string(),
+    dosage: z.string().optional(),
+    frequency: z.string().optional(),
+    prescriber: z.string().optional(),
+  })).optional(),
+
+  // Service Referrals
+  serviceReferrals: z.array(z.object({
+    service: z.string(),
+    provider: z.string().optional(),
+    phone: z.string().optional(),
+    address: z.string().optional(),
+    appointmentDate: z.string().optional(),
+  })).optional(),
+
+  // Clinical Recommendations
+  clinicalRecommendations: z.string().optional(),
+
+  // Cultural Preferences
+  culturalPreferencesConsidered: z.boolean().default(false),
+
+  // Suicide Prevention Education
+  suicidePreventionEducation: z.string().optional(),
+
+  // Signatures
+  clientSignature: z.string().optional(),
+  clientSignatureDate: z.string().optional(),
+  staffSignature: z.string().optional(),
+  staffCredentials: z.string().optional(),
+  staffSignatureDate: z.string().optional(),
+  reviewerSignature: z.string().optional(),
+  reviewerCredentials: z.string().optional(),
+  reviewerSignatureDate: z.string().optional(),
+});
+
+export const dischargeSummaryDraftSchema = z.object({
+  // Discharge Date/Time
+  dischargeDate: z.string().optional(),
+  dischargeStartTime: z.string().optional(),
+  dischargeEndTime: z.string().optional(),
+
+  // Program Info
+  enrolledProgram: z.string().optional(),
+  dischargeType: z.string().optional(),
+  recommendedLevelOfCare: z.string().optional(),
+
+  // Contact Info After Discharge
+  contactPhoneAfterDischarge: z.string().optional(),
+  contactAddressAfterDischarge: z.string().optional(),
+
+  // Clinical Content
+  presentingIssuesAtAdmission: z.string().optional(),
+  objectivesAttained: z.array(z.object({
+    objective: z.string(),
+    attained: z.enum(["Fully Attained", "Partially Attained", "Not Attained", "N/A"]),
+  })).optional(),
+  objectiveNarratives: z.object({
+    fullyAttained: z.string().optional(),
+    partiallyAttained: z.string().optional(),
+    notAttained: z.string().optional(),
+  }).optional(),
+
+  // Completed Services
+  completedServices: z.array(z.string()).optional().default([]),
+
+  // Discharge Summary
+  actualDischargeDate: z.string().optional(),
+  dischargeSummaryNarrative: z.string().optional(),
+
+  // Discharging To
+  dischargingTo: z.string().optional(),
+
+  // Personal Items & Medications
+  personalItemsReceived: z.boolean().optional().default(false),
+  personalItemsStoredDays: z.number().min(0).optional(),
+  itemsRemainAtFacility: z.boolean().optional().default(false),
+
+  // Discharge Medications
+  dischargeMedications: z.array(z.object({
+    medication: z.string(),
+    dosage: z.string().optional(),
+    frequency: z.string().optional(),
+    prescriber: z.string().optional(),
+  })).optional(),
+
+  // Service Referrals
+  serviceReferrals: z.array(z.object({
+    service: z.string(),
+    provider: z.string().optional(),
+    phone: z.string().optional(),
+    address: z.string().optional(),
+    appointmentDate: z.string().optional(),
+  })).optional(),
+
+  // Clinical Recommendations
+  clinicalRecommendations: z.string().optional(),
+
+  // Cultural Preferences
+  culturalPreferencesConsidered: z.boolean().optional().default(false),
+
+  // Suicide Prevention Education
+  suicidePreventionEducation: z.string().optional(),
+
+  // Signatures
+  clientSignature: z.string().optional(),
+  clientSignatureDate: z.string().optional(),
+  staffSignature: z.string().optional(),
+  staffCredentials: z.string().optional(),
+  staffSignatureDate: z.string().optional(),
+  reviewerSignature: z.string().optional(),
+  reviewerCredentials: z.string().optional(),
+  reviewerSignatureDate: z.string().optional(),
+});
+
+export type DischargeSummaryInput = z.infer<typeof dischargeSummarySchema>;
+export type DischargeSummaryDraftInput = z.infer<typeof dischargeSummaryDraftSchema>;

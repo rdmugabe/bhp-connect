@@ -122,6 +122,7 @@ model Facility {
   evacuationDrillReports EvacuationDrillReport[]
   oversightTrainingReports OversightTrainingReport[]
   artMeetings           ARTMeeting[]
+  dischargeSummaries    DischargeSummary[]
 
   @@index([bhpId])
 }
@@ -412,6 +413,7 @@ model Intake {
   asamAssessments  ASAMAssessment[]
   documents        Document[]  // Documents owned by this resident
   artMeetings      ARTMeeting[]
+  dischargeSummary DischargeSummary?
 
   @@index([facilityId])
   @@index([status])
@@ -1015,4 +1017,83 @@ model ARTMeeting {
   @@index([facilityId])
   @@index([intakeId])
   @@index([meetingMonth, meetingYear])
+}
+
+// Discharge Summary - Created when a resident is discharged from a facility
+model DischargeSummary {
+  id          String   @id @default(cuid())
+  intakeId    String   @unique
+  intake      Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  facilityId  String
+  facility    Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  // Discharge Date/Time
+  dischargeDate     DateTime
+  dischargeStartTime String?
+  dischargeEndTime   String?
+
+  // Program Info
+  enrolledProgram    String?   // Residential, IOP, Outpatient, Community Day, PHP
+  dischargeType      String?   // Completed Treatment, AMA, Administrative, etc.
+  recommendedLevelOfCare String?
+
+  // Contact Info After Discharge
+  contactPhoneAfterDischarge   String?
+  contactAddressAfterDischarge String?  @db.Text
+
+  // Clinical Content
+  presentingIssuesAtAdmission  String?  @db.Text
+  objectivesAttained           Json?    // Array of objectives with attainment status
+  objectiveNarratives          Json?    // Object with narrative for each objective
+
+  // Completed Services
+  completedServices            String[] // Array of service names
+
+  // Discharge Summary
+  actualDischargeDate          DateTime?
+  dischargeSummaryNarrative    String?  @db.Text
+
+  // Discharging To
+  dischargingTo                String?  @db.Text
+
+  // Personal Items & Medications
+  personalItemsReceived        Boolean  @default(false)
+  personalItemsStoredDays      Int?     // If items will be stored
+  itemsRemainAtFacility        Boolean  @default(false)
+
+  // Discharge Medications
+  dischargeMedications         Json?    // Array of medications with name, dose, frequency
+
+  // Service Referrals
+  serviceReferrals             Json?    // Array of referrals with details
+
+  // Clinical Recommendations
+  clinicalRecommendations      String?  @db.Text
+
+  // Cultural Preferences
+  culturalPreferencesConsidered Boolean @default(false)
+
+  // Suicide Prevention Education
+  suicidePreventionEducation   String?  @db.Text
+
+  // Signatures
+  clientSignature              String?
+  clientSignatureDate          DateTime?
+  staffSignature               String?
+  staffCredentials             String?
+  staffSignatureDate           DateTime?
+  reviewerSignature            String?
+  reviewerCredentials          String?
+  reviewerSignatureDate        DateTime?
+
+  // Workflow
+  status      IntakeStatus @default(DRAFT)
+  submittedAt DateTime?
+  submittedBy String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([facilityId])
+  @@index([intakeId])
+  @@index([dischargeDate])
 }
