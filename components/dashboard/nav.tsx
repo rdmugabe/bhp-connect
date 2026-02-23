@@ -21,7 +21,6 @@ import {
   UserPlus,
   ClipboardCheck,
   AlertTriangle,
-  Pill,
 } from "lucide-react";
 
 interface NavItem {
@@ -133,11 +132,6 @@ const bhrfNavItems: NavItem[] = [
     title: "Incident Reports",
     href: "/facility/incident-reports",
     icon: AlertTriangle,
-  },
-  {
-    title: "MAR",
-    href: "/facility/mar",
-    icon: Pill,
   },
   {
     title: "Documents",

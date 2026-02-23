@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,8 +20,36 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Download, FileText, Loader2, Users, UserPlus, ClipboardSignature } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Download, FileText, Loader2, Users, UserPlus, ClipboardSignature, Pill } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { marHeaderSchema, MARHeaderInput } from "@/lib/validations";
+
+interface Resident {
+  id: string;
+  residentName: string;
+  dateOfBirth: string;
+  admissionDate: string | null;
+  policyNumber: string | null;
+}
+
+interface Facility {
+  name: string;
+}
 
 export default function OnboardingPage() {
   // Resident state
@@ -38,7 +69,82 @@ export default function OnboardingPage() {
   const [discloseFromAddress, setDiscloseFromAddress] = useState("");
   const [isGeneratingRoi, setIsGeneratingRoi] = useState(false);
 
+  // MAR state
+  const [isGeneratingMar, setIsGeneratingMar] = useState(false);
+  const [marResidents, setMarResidents] = useState<Resident[]>([]);
+  const [marFacility, setMarFacility] = useState<Facility | null>(null);
+  const [selectedMarResident, setSelectedMarResident] = useState<Resident | null>(null);
+
+  const currentMonth = format(new Date(), "MM/yyyy");
+
+  const marForm = useForm<MARHeaderInput>({
+    resolver: zodResolver(marHeaderSchema),
+    defaultValues: {
+      facilityName: "",
+      monthYear: currentMonth,
+      residentName: "",
+      dateOfBirth: "",
+      admitDate: "",
+      allergies: "",
+      ahcccsId: "",
+      diagnosis: "",
+      emergencyContact: "",
+      prescriberName: "",
+      prescriberPhone: "",
+      pharmacyName: "",
+      pharmacyPhone: "",
+    },
+  });
+
   const { toast } = useToast();
+
+  // Fetch residents and facility info for MAR
+  useEffect(() => {
+    async function fetchMarData() {
+      try {
+        // Fetch residents
+        const residentsResponse = await fetch("/api/intakes?status=APPROVED");
+        if (residentsResponse.ok) {
+          const data = await residentsResponse.json();
+          setMarResidents(data.intakes || []);
+        }
+
+        // Fetch facility info
+        const facilityResponse = await fetch("/api/facility");
+        if (facilityResponse.ok) {
+          const data = await facilityResponse.json();
+          setMarFacility(data);
+          marForm.setValue("facilityName", data.name);
+        }
+      } catch (error) {
+        console.error("Failed to fetch MAR data:", error);
+      }
+    }
+    fetchMarData();
+  }, [marForm]);
+
+  // Handle MAR resident selection
+  const handleMarResidentSelect = (residentId: string) => {
+    if (residentId === "manual") {
+      setSelectedMarResident(null);
+      marForm.setValue("intakeId", undefined);
+      marForm.setValue("residentName", "");
+      marForm.setValue("dateOfBirth", "");
+      marForm.setValue("admitDate", "");
+      marForm.setValue("ahcccsId", "");
+      return;
+    }
+
+    const resident = marResidents.find((r) => r.id === residentId);
+    if (resident) {
+      setSelectedMarResident(resident);
+      marForm.setValue("intakeId", resident.id);
+      marForm.setValue("residentName", resident.residentName);
+      marForm.setValue("dateOfBirth", resident.dateOfBirth ? format(new Date(resident.dateOfBirth), "yyyy-MM-dd") : "");
+      marForm.setValue("admitDate", resident.admissionDate ? format(new Date(resident.admissionDate), "yyyy-MM-dd") : "");
+      marForm.setValue("ahcccsId", resident.policyNumber || "");
+    }
+  };
 
   const handleGenerateResidentPDF = async () => {
     if (!residentName.trim()) {
@@ -226,6 +332,46 @@ export default function OnboardingPage() {
     }
   };
 
+  const handleGenerateMarPDF = async (data: MARHeaderInput) => {
+    setIsGeneratingMar(true);
+    try {
+      const response = await fetch("/api/mar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to generate MAR");
+      }
+
+      // Download the PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `MAR-${data.residentName.replace(/\s+/g, "-")}-${data.monthYear.replace("/", "-")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "MAR PDF has been downloaded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate MAR",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingMar(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -236,7 +382,7 @@ export default function OnboardingPage() {
       </div>
 
       <Tabs defaultValue="resident" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
+        <TabsList className="grid w-full grid-cols-4 lg:w-[800px]">
           <TabsTrigger value="resident" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Residents
@@ -248,6 +394,10 @@ export default function OnboardingPage() {
           <TabsTrigger value="roi" className="flex items-center gap-2">
             <ClipboardSignature className="h-4 w-4" />
             Release of Info
+          </TabsTrigger>
+          <TabsTrigger value="mar" className="flex items-center gap-2">
+            <Pill className="h-4 w-4" />
+            MAR
           </TabsTrigger>
         </TabsList>
 
@@ -633,6 +783,271 @@ export default function OnboardingPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* MAR Tab */}
+        <TabsContent value="mar" className="space-y-6">
+          <Form {...marForm}>
+            <form onSubmit={marForm.handleSubmit(handleGenerateMarPDF)} className="space-y-6">
+              {/* Resident Selection */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Select Resident</CardTitle>
+                  <CardDescription>
+                    Select an existing resident to prefill information or enter manually
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Select
+                    value={selectedMarResident?.id || "manual"}
+                    onValueChange={handleMarResidentSelect}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a resident" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual">Enter manually</SelectItem>
+                      {marResidents.map((resident) => (
+                        <SelectItem key={resident.id} value={resident.id}>
+                          {resident.residentName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Facility & Month */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Facility Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={marForm.control}
+                      name="facilityName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Facility Name *</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={marForm.control}
+                      name="monthYear"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Month/Year *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="MM/YYYY" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Resident Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Resident Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={marForm.control}
+                      name="residentName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Resident Name *</FormLabel>
+                          <FormControl>
+                            <Input {...field} disabled={!!selectedMarResident} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={marForm.control}
+                        name="dateOfBirth"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Date of Birth *</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} disabled={!!selectedMarResident} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={marForm.control}
+                        name="admitDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Admit Date</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} disabled={!!selectedMarResident} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={marForm.control}
+                        name="ahcccsId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>AHCCCS ID</FormLabel>
+                            <FormControl>
+                              <Input {...field} disabled={!!selectedMarResident} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={marForm.control}
+                        name="allergies"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Allergies</FormLabel>
+                            <FormControl>
+                              <Input placeholder="NKDA if none" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={marForm.control}
+                        name="diagnosis"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Diagnosis (Dx)</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={marForm.control}
+                        name="emergencyContact"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Emergency Contact</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Name and phone" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Prescriber Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Prescriber Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={marForm.control}
+                      name="prescriberName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Prescriber Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={marForm.control}
+                      name="prescriberPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Prescriber Phone</FormLabel>
+                          <FormControl>
+                            <Input type="tel" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Pharmacy Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Pharmacy Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={marForm.control}
+                      name="pharmacyName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pharmacy Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={marForm.control}
+                      name="pharmacyPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pharmacy Phone</FormLabel>
+                          <FormControl>
+                            <Input type="tel" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isGeneratingMar} size="lg">
+                  {isGeneratingMar ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download MAR PDF
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </TabsContent>
       </Tabs>
     </div>
