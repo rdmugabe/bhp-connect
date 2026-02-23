@@ -65,7 +65,8 @@ export function IncidentReportForm({ reportId, initialData }: IncidentReportForm
   const [selectedResident, setSelectedResident] = useState<Resident | null>(null);
 
   const form = useForm<IncidentReportDraftInput>({
-    resolver: zodResolver(incidentReportDraftSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(incidentReportDraftSchema) as any,
     defaultValues: {
       intakeId: initialData?.intakeId || undefined,
       incidentDate: initialData?.incidentDate || format(new Date(), "yyyy-MM-dd"),

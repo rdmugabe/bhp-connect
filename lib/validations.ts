@@ -1726,7 +1726,7 @@ export const incidentReportDraftSchema = z.object({
   residentAhcccsId: z.string().optional(),
 
   // Incident Types
-  incidentTypes: z.array(z.string()).optional().default([]),
+  incidentTypes: z.array(z.string()).default([]),
   otherIncidentType: z.string().optional(),
 
   // Incident Description
@@ -1750,16 +1750,16 @@ export const incidentReportDraftSchema = z.object({
   })).optional(),
 
   // Injuries
-  anyInjuries: z.boolean().optional().default(false),
+  anyInjuries: z.boolean().default(false),
   injuryDescription: z.string().optional(),
-  medicalAttentionRequired: z.boolean().optional().default(false),
+  medicalAttentionRequired: z.boolean().default(false),
   treatmentProvided: z.string().optional(),
-  was911Called: z.boolean().optional().default(false),
-  wasTransportedToHospital: z.boolean().optional().default(false),
+  was911Called: z.boolean().default(false),
+  wasTransportedToHospital: z.boolean().default(false),
   hospitalName: z.string().optional(),
 
   // Interventions
-  interventionsUsed: z.array(z.string()).optional().default([]),
+  interventionsUsed: z.array(z.string()).default([]),
   otherIntervention: z.string().optional(),
   actionsDescription: z.string().optional(),
 
@@ -1779,7 +1779,7 @@ export const incidentReportDraftSchema = z.object({
   otherSupervisionLevel: z.string().optional(),
 
   // Follow-Up
-  followUpRequired: z.array(z.string()).optional().default([]),
+  followUpRequired: z.array(z.string()).default([]),
   otherFollowUp: z.string().optional(),
   followUpActionsTimeline: z.string().optional(),
 
@@ -1794,3 +1794,32 @@ export const incidentReportDraftSchema = z.object({
 
 export type IncidentReportInput = z.infer<typeof incidentReportSchema>;
 export type IncidentReportDraftInput = z.infer<typeof incidentReportDraftSchema>;
+
+// Medication Administration Record (MAR) Schema
+export const marHeaderSchema = z.object({
+  // Facility Info
+  facilityName: z.string().min(1, "Facility name is required"),
+  monthYear: z.string().min(1, "Month/Year is required"),
+
+  // Resident Info
+  residentName: z.string().min(1, "Resident name is required"),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  admitDate: z.string().optional(),
+  allergies: z.string().optional(),
+  ahcccsId: z.string().optional(),
+  diagnosis: z.string().optional(),
+  emergencyContact: z.string().optional(),
+
+  // Prescriber Info
+  prescriberName: z.string().optional(),
+  prescriberPhone: z.string().optional(),
+
+  // Pharmacy Info
+  pharmacyName: z.string().optional(),
+  pharmacyPhone: z.string().optional(),
+
+  // Optional: link to intake
+  intakeId: z.string().optional(),
+});
+
+export type MARHeaderInput = z.infer<typeof marHeaderSchema>;

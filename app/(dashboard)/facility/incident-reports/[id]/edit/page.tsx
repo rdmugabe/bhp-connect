@@ -1,27 +1,23 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { IncidentReportForm } from "@/components/incident-reports/incident-report-form";
 import { useToast } from "@/components/ui/use-toast";
 import { IncidentReportDraftInput } from "@/lib/validations";
 
-interface IncidentReportData extends IncidentReportDraftInput {
+type FormData = IncidentReportDraftInput & {
   id: string;
-  intakeId: string | null;
-  incidentDate: string;
-  residentDOB: string | null;
-  residentAdmissionDate: string | null;
   status: string;
-}
+};
 
 export default function EditIncidentReportPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
   const { toast } = useToast();
-  const [report, setReport] = useState<IncidentReportData | null>(null);
+  const [report, setReport] = useState<FormData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -33,14 +29,16 @@ export default function EditIncidentReportPage() {
         }
         const data = await response.json();
 
-        // All reports can be edited
-
-        // Transform data for the form
-        const formData: IncidentReportData = {
+        // Transform data for the form - convert nulls to undefined
+        const formData: FormData = {
           ...data,
+          intakeId: data.intakeId || undefined,
           incidentDate: data.incidentDate ? new Date(data.incidentDate).toISOString().split("T")[0] : "",
-          residentDOB: data.residentDOB ? new Date(data.residentDOB).toISOString().split("T")[0] : "",
-          residentAdmissionDate: data.residentAdmissionDate ? new Date(data.residentAdmissionDate).toISOString().split("T")[0] : "",
+          residentDOB: data.residentDOB ? new Date(data.residentDOB).toISOString().split("T")[0] : undefined,
+          residentAdmissionDate: data.residentAdmissionDate ? new Date(data.residentAdmissionDate).toISOString().split("T")[0] : undefined,
+          staffSignatureDate: data.staffSignatureDate ? new Date(data.staffSignatureDate).toISOString().split("T")[0] : undefined,
+          adminSignatureDate: data.adminSignatureDate ? new Date(data.adminSignatureDate).toISOString().split("T")[0] : undefined,
+          bhpSignatureDate: data.bhpSignatureDate ? new Date(data.bhpSignatureDate).toISOString().split("T")[0] : undefined,
         };
 
         setReport(formData);
