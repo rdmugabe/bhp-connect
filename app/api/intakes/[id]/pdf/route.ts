@@ -77,7 +77,7 @@ export async function GET(
     // Helper to safely handle long text for PDF rendering
     // react-pdf layout engine can overflow with very long strings, causing the
     // "unsupported number" error. We truncate to a safe maximum length.
-    const safeText = (text: string | null | undefined, maxLength = 5000): string | null => {
+    const safeText = (text: string | null | undefined, maxLength = 4000): string | null => {
       if (!text) return null;
       // Truncate if exceeds max length to prevent react-pdf layout overflow
       if (text.length > maxLength) {
