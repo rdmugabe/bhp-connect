@@ -8,23 +8,23 @@ import {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
+    padding: 12,
     fontFamily: "Helvetica",
-    fontSize: 8,
+    fontSize: 7,
   },
   title: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 6,
     color: "#1a365d",
   },
   headerSection: {
-    marginBottom: 10,
+    marginBottom: 6,
   },
   headerRow: {
     flexDirection: "row",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   headerCell: {
     flex: 1,
@@ -32,152 +32,166 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     fontWeight: "bold",
-    marginRight: 4,
+    marginRight: 3,
+    fontSize: 7,
   },
   headerValue: {
     flex: 1,
-    borderBottom: "1 solid #000",
-    minHeight: 12,
-    paddingBottom: 2,
+    borderBottom: "0.5 solid #000",
+    minHeight: 10,
+    fontSize: 7,
   },
   table: {
-    marginTop: 10,
+    marginTop: 4,
   },
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#e2e8f0",
-    borderTop: "1 solid #000",
-    borderLeft: "1 solid #000",
-    borderRight: "1 solid #000",
+    borderTop: "0.5 solid #000",
+    borderLeft: "0.5 solid #000",
+    borderRight: "0.5 solid #000",
   },
   tableRow: {
     flexDirection: "row",
-    borderLeft: "1 solid #000",
-    borderRight: "1 solid #000",
-    borderBottom: "1 solid #000",
-    minHeight: 20,
+    borderLeft: "0.5 solid #000",
+    borderRight: "0.5 solid #000",
+    borderBottom: "0.5 solid #000",
+    minHeight: 16,
   },
   medicationCell: {
     width: "15%",
-    borderRight: "1 solid #000",
+    borderRight: "0.5 solid #000",
     padding: 2,
-    fontSize: 7,
+    fontSize: 6,
   },
   doseCell: {
     width: "12%",
-    borderRight: "1 solid #000",
+    borderRight: "0.5 solid #000",
     padding: 2,
-    fontSize: 7,
+    fontSize: 6,
   },
   timeCell: {
     width: "5%",
-    borderRight: "1 solid #000",
+    borderRight: "0.5 solid #000",
     padding: 2,
-    fontSize: 7,
+    fontSize: 6,
     textAlign: "center",
   },
   dayCell: {
     width: "2.2%",
-    borderRight: "1 solid #000",
+    borderRight: "0.5 solid #000",
     padding: 1,
-    fontSize: 6,
+    fontSize: 5,
     textAlign: "center",
   },
   dayHeaderCell: {
     width: "2.2%",
-    borderRight: "1 solid #000",
+    borderRight: "0.5 solid #000",
     padding: 1,
-    fontSize: 6,
+    fontSize: 5,
     textAlign: "center",
     fontWeight: "bold",
   },
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: "bold",
-    marginTop: 15,
-    marginBottom: 5,
+    marginTop: 6,
+    marginBottom: 2,
     backgroundColor: "#f7fafc",
-    padding: 4,
-    borderTop: "1 solid #000",
-    borderLeft: "1 solid #000",
-    borderRight: "1 solid #000",
-  },
-  prnTable: {
-    marginTop: 5,
+    padding: 3,
+    borderTop: "0.5 solid #000",
+    borderLeft: "0.5 solid #000",
+    borderRight: "0.5 solid #000",
   },
   prnHeader: {
     flexDirection: "row",
     backgroundColor: "#e2e8f0",
-    borderTop: "1 solid #000",
-    borderLeft: "1 solid #000",
-    borderRight: "1 solid #000",
+    borderTop: "0.5 solid #000",
+    borderLeft: "0.5 solid #000",
+    borderRight: "0.5 solid #000",
+  },
+  prnRow: {
+    flexDirection: "row",
+    borderLeft: "0.5 solid #000",
+    borderRight: "0.5 solid #000",
+    borderBottom: "0.5 solid #000",
+    minHeight: 14,
   },
   prnCell: {
-    padding: 3,
-    borderRight: "1 solid #000",
-    fontSize: 7,
+    padding: 2,
+    borderRight: "0.5 solid #000",
+    fontSize: 6,
     textAlign: "center",
   },
-  codesSection: {
-    marginTop: 10,
-    padding: 5,
+  bottomRow: {
+    flexDirection: "row",
+    marginTop: 6,
+    gap: 10,
+  },
+  codesBox: {
+    flex: 1,
+    padding: 4,
     backgroundColor: "#f7fafc",
-    border: "1 solid #000",
+    border: "0.5 solid #000",
   },
   codesText: {
-    fontSize: 7,
-    marginBottom: 2,
+    fontSize: 6,
   },
-  signatureSection: {
-    marginTop: 10,
+  signatureBox: {
+    flex: 1.5,
+  },
+  signatureTitle: {
+    fontSize: 7,
+    fontWeight: "bold",
+    backgroundColor: "#f7fafc",
+    padding: 2,
+    borderTop: "0.5 solid #000",
+    borderLeft: "0.5 solid #000",
+    borderRight: "0.5 solid #000",
   },
   signatureGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    border: "1 solid #000",
+    border: "0.5 solid #000",
   },
   signatureCell: {
     width: "25%",
-    padding: 4,
-    borderRight: "1 solid #000",
-    borderBottom: "1 solid #000",
-    minHeight: 25,
+    padding: 2,
+    borderRight: "0.5 solid #000",
+    borderBottom: "0.5 solid #000",
+    minHeight: 18,
   },
   signatureLabel: {
-    fontSize: 6,
+    fontSize: 5,
     color: "#718096",
   },
-  reviewSection: {
-    marginTop: 10,
-    padding: 8,
-    border: "1 solid #000",
+  reviewBox: {
+    marginTop: 6,
+    padding: 4,
+    border: "0.5 solid #000",
     backgroundColor: "#f7fafc",
-  },
-  reviewRow: {
     flexDirection: "row",
-    marginBottom: 4,
+    justifyContent: "space-between",
+  },
+  reviewText: {
+    fontSize: 6,
   },
   importantNote: {
-    marginTop: 10,
-    padding: 5,
+    marginTop: 4,
+    padding: 3,
     backgroundColor: "#fed7d7",
-    border: "1 solid #c53030",
+    border: "0.5 solid #c53030",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   importantText: {
-    fontSize: 7,
+    fontSize: 5,
     color: "#c53030",
     fontWeight: "bold",
   },
-  footer: {
-    position: "absolute",
-    bottom: 15,
-    left: 20,
-    right: 20,
-    fontSize: 6,
+  footerText: {
+    fontSize: 5,
     color: "#718096",
-    textAlign: "center",
-    borderTop: "1 solid #e2e8f0",
-    paddingTop: 5,
   },
 });
 
@@ -211,8 +225,8 @@ function getDaysInMonth(monthYear: string): number {
 export function MARTemplate({ data }: { data: MARData }) {
   const daysInMonth = getDaysInMonth(data.monthYear);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
-  const medicationRows = Array.from({ length: 12 }, (_, i) => i);
-  const prnRows = Array.from({ length: 6 }, (_, i) => i);
+  const medicationRows = Array.from({ length: 14 }, (_, i) => i);
+  const prnRows = Array.from({ length: 5 }, (_, i) => i);
   const signatureRows = Array.from({ length: 4 }, (_, i) => i);
 
   return (
@@ -221,11 +235,11 @@ export function MARTemplate({ data }: { data: MARData }) {
         {/* Title */}
         <Text style={styles.title}>MEDICATION ADMINISTRATION RECORD (MAR)</Text>
 
-        {/* Header Information */}
+        {/* Header Information - Compact */}
         <View style={styles.headerSection}>
           {/* Row 1 */}
           <View style={styles.headerRow}>
-            <View style={[styles.headerCell, { flex: 2 }]}>
+            <View style={[styles.headerCell, { flex: 1.5 }]}>
               <Text style={styles.headerLabel}>Facility:</Text>
               <Text style={styles.headerValue}>{data.facilityName}</Text>
             </View>
@@ -233,10 +247,6 @@ export function MARTemplate({ data }: { data: MARData }) {
               <Text style={styles.headerLabel}>Month/Year:</Text>
               <Text style={styles.headerValue}>{data.monthYear}</Text>
             </View>
-          </View>
-
-          {/* Row 2 */}
-          <View style={styles.headerRow}>
             <View style={styles.headerCell}>
               <Text style={styles.headerLabel}>Resident:</Text>
               <Text style={styles.headerValue}>{data.residentName}</Text>
@@ -246,10 +256,6 @@ export function MARTemplate({ data }: { data: MARData }) {
               <Text style={styles.headerValue}>{data.dateOfBirth}</Text>
             </View>
             <View style={styles.headerCell}>
-              <Text style={styles.headerLabel}>Admit Date:</Text>
-              <Text style={styles.headerValue}>{data.admitDate || ""}</Text>
-            </View>
-            <View style={styles.headerCell}>
               <Text style={styles.headerLabel}>ALLERGIES:</Text>
               <Text style={[styles.headerValue, { color: data.allergies ? "#c53030" : "#000" }]}>
                 {data.allergies || "NKDA"}
@@ -257,46 +263,33 @@ export function MARTemplate({ data }: { data: MARData }) {
             </View>
           </View>
 
-          {/* Row 3 */}
+          {/* Row 2 */}
           <View style={styles.headerRow}>
             <View style={styles.headerCell}>
               <Text style={styles.headerLabel}>Prescriber:</Text>
               <Text style={styles.headerValue}>{data.prescriberName || ""}</Text>
             </View>
             <View style={styles.headerCell}>
+              <Text style={styles.headerLabel}>Ph:</Text>
+              <Text style={styles.headerValue}>{data.prescriberPhone || ""}</Text>
+            </View>
+            <View style={styles.headerCell}>
               <Text style={styles.headerLabel}>Pharmacy:</Text>
               <Text style={styles.headerValue}>{data.pharmacyName || ""}</Text>
             </View>
             <View style={styles.headerCell}>
-              <Text style={styles.headerLabel}>AHCCCS ID:</Text>
-              <Text style={styles.headerValue}>{data.ahcccsId || ""}</Text>
-            </View>
-            <View style={styles.headerCell}>
-              <Text style={styles.headerLabel}>Dx:</Text>
-              <Text style={styles.headerValue}>{data.diagnosis || ""}</Text>
-            </View>
-          </View>
-
-          {/* Row 4 */}
-          <View style={styles.headerRow}>
-            <View style={styles.headerCell}>
-              <Text style={styles.headerLabel}>Prescriber Ph:</Text>
-              <Text style={styles.headerValue}>{data.prescriberPhone || ""}</Text>
-            </View>
-            <View style={styles.headerCell}>
-              <Text style={styles.headerLabel}>Pharmacy Ph:</Text>
+              <Text style={styles.headerLabel}>Ph:</Text>
               <Text style={styles.headerValue}>{data.pharmacyPhone || ""}</Text>
             </View>
-            <View style={[styles.headerCell, { flex: 2 }]}>
-              <Text style={styles.headerLabel}>Emergency Contact:</Text>
-              <Text style={styles.headerValue}>{data.emergencyContact || ""}</Text>
+            <View style={styles.headerCell}>
+              <Text style={styles.headerLabel}>AHCCCS:</Text>
+              <Text style={styles.headerValue}>{data.ahcccsId || ""}</Text>
             </View>
           </View>
         </View>
 
         {/* Medication Table */}
         <View style={styles.table}>
-          {/* Header Row */}
           <View style={styles.tableHeader}>
             <View style={[styles.medicationCell, { fontWeight: "bold" }]}>
               <Text>Medication</Text>
@@ -313,8 +306,6 @@ export function MARTemplate({ data }: { data: MARData }) {
               </View>
             ))}
           </View>
-
-          {/* Medication Rows */}
           {medicationRows.map((row) => (
             <View key={row} style={styles.tableRow}>
               <View style={styles.medicationCell}>
@@ -337,95 +328,93 @@ export function MARTemplate({ data }: { data: MARData }) {
 
         {/* PRN Medications Section */}
         <Text style={styles.sectionTitle}>PRN (AS NEEDED) MEDICATIONS</Text>
-        <View style={styles.prnTable}>
+        <View>
           <View style={styles.prnHeader}>
             <View style={[styles.prnCell, { width: "12%" }]}>
               <Text style={{ fontWeight: "bold" }}>Date/Time</Text>
             </View>
-            <View style={[styles.prnCell, { width: "25%" }]}>
+            <View style={[styles.prnCell, { width: "22%" }]}>
               <Text style={{ fontWeight: "bold" }}>Medication/Dose</Text>
             </View>
-            <View style={[styles.prnCell, { width: "25%" }]}>
+            <View style={[styles.prnCell, { width: "22%" }]}>
               <Text style={{ fontWeight: "bold" }}>Reason Given</Text>
             </View>
-            <View style={[styles.prnCell, { width: "25%" }]}>
-              <Text style={{ fontWeight: "bold" }}>Effectiveness (30-60 min)</Text>
+            <View style={[styles.prnCell, { width: "22%" }]}>
+              <Text style={{ fontWeight: "bold" }}>Effectiveness</Text>
             </View>
-            <View style={[styles.prnCell, { width: "13%", borderRight: "none" }]}>
+            <View style={[styles.prnCell, { width: "22%", borderRight: "none" }]}>
               <Text style={{ fontWeight: "bold" }}>Initials</Text>
             </View>
           </View>
           {prnRows.map((row) => (
-            <View key={row} style={styles.tableRow}>
+            <View key={row} style={styles.prnRow}>
               <View style={[styles.prnCell, { width: "12%" }]}>
                 <Text> </Text>
               </View>
-              <View style={[styles.prnCell, { width: "25%" }]}>
+              <View style={[styles.prnCell, { width: "22%" }]}>
                 <Text> </Text>
               </View>
-              <View style={[styles.prnCell, { width: "25%" }]}>
+              <View style={[styles.prnCell, { width: "22%" }]}>
                 <Text> </Text>
               </View>
-              <View style={[styles.prnCell, { width: "25%" }]}>
+              <View style={[styles.prnCell, { width: "22%" }]}>
                 <Text> </Text>
               </View>
-              <View style={[styles.prnCell, { width: "13%", borderRight: "none" }]}>
+              <View style={[styles.prnCell, { width: "22%", borderRight: "none" }]}>
                 <Text> </Text>
               </View>
             </View>
           ))}
         </View>
 
-        {/* Codes Section */}
-        <View style={styles.codesSection}>
-          <Text style={styles.codesText}>
-            <Text style={{ fontWeight: "bold" }}>CODES: </Text>
-            ✓/Initials = Administered | O (circle) = Refused | H = Held | N/A = Not Available | D/C = Discontinued | LOA = Leave of Absence
+        {/* Bottom Row - Codes and Signature side by side */}
+        <View style={styles.bottomRow}>
+          {/* Codes */}
+          <View style={styles.codesBox}>
+            <Text style={[styles.codesText, { fontWeight: "bold", marginBottom: 2 }]}>CODES:</Text>
+            <Text style={styles.codesText}>✓/Initials = Administered | O = Refused | H = Held</Text>
+            <Text style={styles.codesText}>N/A = Not Available | D/C = Discontinued | LOA = Leave of Absence</Text>
+          </View>
+
+          {/* Signature Log */}
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureTitle}>STAFF SIGNATURE LOG</Text>
+            <View style={styles.signatureGrid}>
+              {signatureRows.map((row) => (
+                <View key={row} style={{ flexDirection: "row", width: "100%" }}>
+                  <View style={styles.signatureCell}>
+                    <Text style={styles.signatureLabel}>Initials</Text>
+                  </View>
+                  <View style={[styles.signatureCell, { width: "25%" }]}>
+                    <Text style={styles.signatureLabel}>Signature/Title</Text>
+                  </View>
+                  <View style={styles.signatureCell}>
+                    <Text style={styles.signatureLabel}>Initials</Text>
+                  </View>
+                  <View style={[styles.signatureCell, { width: "25%", borderRight: "none" }]}>
+                    <Text style={styles.signatureLabel}>Signature/Title</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Monthly Review - Compact single row */}
+        <View style={styles.reviewBox}>
+          <Text style={styles.reviewText}>
+            <Text style={{ fontWeight: "bold" }}>MONTHLY REVIEW: </Text>
+            Scheduled: _____ Given: _____ Missed: _____ Discrepancies: ____________
           </Text>
+          <Text style={styles.reviewText}>Supervisor: ______________________ Date: ________</Text>
         </View>
 
-        {/* Staff Signature Log */}
-        <Text style={styles.sectionTitle}>STAFF SIGNATURE LOG</Text>
-        <View style={styles.signatureGrid}>
-          {signatureRows.map((row) => (
-            <View key={row} style={{ flexDirection: "row", width: "100%" }}>
-              <View style={styles.signatureCell}>
-                <Text style={styles.signatureLabel}>Initials</Text>
-              </View>
-              <View style={[styles.signatureCell, { width: "25%" }]}>
-                <Text style={styles.signatureLabel}>Signature/Title</Text>
-              </View>
-              <View style={styles.signatureCell}>
-                <Text style={styles.signatureLabel}>Initials</Text>
-              </View>
-              <View style={[styles.signatureCell, { width: "25%", borderRight: "none" }]}>
-                <Text style={styles.signatureLabel}>Signature/Title</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        {/* Monthly Review Section */}
-        <View style={styles.reviewSection}>
-          <Text style={{ fontWeight: "bold", marginBottom: 4 }}>MONTHLY REVIEW:</Text>
-          <View style={styles.reviewRow}>
-            <Text>Doses Scheduled: ________ | Doses Given: ________ | Doses Missed/Refused: ________ | Discrepancies: ________________________________</Text>
-          </View>
-          <View style={styles.reviewRow}>
-            <Text>Nurse/Supervisor Signature: _________________________________________________ Date: ______________</Text>
-          </View>
-        </View>
-
-        {/* Important Note */}
+        {/* Important Note with Footer */}
         <View style={styles.importantNote}>
           <Text style={styles.importantText}>
-            IMPORTANT: Document in real-time. Never pre-sign or back-sign. Use black ink only. Single line through errors with initials/date. No white-out.
+            IMPORTANT: Document in real-time. Never pre-sign or back-sign. Use black ink. Single line through errors with initials/date.
           </Text>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text>Medication Administration Record - {data.residentName} - {data.monthYear}</Text>
+          <Text style={styles.footerText}>MAR - {data.residentName} - {data.monthYear}</Text>
         </View>
       </Page>
     </Document>
