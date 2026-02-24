@@ -9,7 +9,6 @@ import { IncidentReportDraftInput } from "@/lib/validations";
 
 type FormData = IncidentReportDraftInput & {
   id: string;
-  status: string;
 };
 
 export default function EditIncidentReportPage() {

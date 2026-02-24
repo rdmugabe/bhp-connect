@@ -57,7 +57,6 @@ interface IncidentReport {
   followUpRequired: string[];
   otherFollowUp: string | null;
   followUpActionsTimeline: string | null;
-  status: "DRAFT" | "PENDING" | "APPROVED";
   facility: {
     name: string;
     address: string;
@@ -70,19 +69,6 @@ interface IncidentReport {
     admissionDate: string | null;
     policyNumber: string | null;
   } | null;
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "DRAFT":
-      return <Badge variant="secondary">Draft</Badge>;
-    case "PENDING":
-      return <Badge variant="default">Pending Review</Badge>;
-    case "APPROVED":
-      return <Badge className="bg-green-500">Approved</Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
 }
 
 function getIncidentTypeLabel(code: string): string {
@@ -197,19 +183,14 @@ export default function BHPViewIncidentReportPage({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {getStatusBadge(report.status)}
-          {report.status !== "DRAFT" && (
-            <Button onClick={handleDownloadPDF} disabled={isDownloading}>
-              {isDownloading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
-              Download PDF
-            </Button>
+        <Button onClick={handleDownloadPDF} disabled={isDownloading}>
+          {isDownloading ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4 mr-2" />
           )}
-        </div>
+          Download PDF
+        </Button>
       </div>
 
       {/* Facility Information */}

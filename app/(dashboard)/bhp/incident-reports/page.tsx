@@ -26,13 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { INCIDENT_TYPES } from "@/lib/validations";
 
@@ -43,7 +36,6 @@ interface IncidentReport {
   incidentTime: string;
   incidentLocation: string;
   incidentTypes: string[];
-  status: "DRAFT" | "PENDING" | "APPROVED";
   residentName: string | null;
   intake: {
     residentName: string;
@@ -55,19 +47,6 @@ interface IncidentReport {
   createdAt: string;
 }
 
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "DRAFT":
-      return <Badge variant="secondary">Draft</Badge>;
-    case "PENDING":
-      return <Badge variant="default">Pending</Badge>;
-    case "APPROVED":
-      return <Badge className="bg-green-500">Approved</Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
-}
-
 function getIncidentTypeLabel(code: string): string {
   const type = INCIDENT_TYPES.find((t) => t.code === code);
   return type?.label.split(" ")[0] || code;
@@ -77,21 +56,16 @@ export default function BHPIncidentReportsPage() {
   const { toast } = useToast();
   const [reports, setReports] = useState<IncidentReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchReports();
-  }, [statusFilter]);
+  }, []);
 
   async function fetchReports() {
     setIsLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (statusFilter !== "all") {
-        params.set("status", statusFilter);
-      }
-      const response = await fetch(`/api/incident-reports?${params}`);
+      const response = await fetch(`/api/incident-reports`);
       if (response.ok) {
         const data = await response.json();
         setReports(data);
@@ -146,24 +120,11 @@ export default function BHPIncidentReportsPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>All Incident Reports</CardTitle>
-              <CardDescription>
-                {reports.length} total reports
-              </CardDescription>
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="DRAFT">Draft</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="APPROVED">Approved</SelectItem>
-              </SelectContent>
-            </Select>
+          <div>
+            <CardTitle>All Incident Reports</CardTitle>
+            <CardDescription>
+              {reports.length} total reports
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -188,7 +149,6 @@ export default function BHPIncidentReportsPage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Resident</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -222,7 +182,6 @@ export default function BHPIncidentReportsPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{getStatusBadge(report.status)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" size="icon" asChild>
@@ -230,20 +189,18 @@ export default function BHPIncidentReportsPage() {
                             <Eye className="h-4 w-4" />
                           </Link>
                         </Button>
-                        {report.status !== "DRAFT" && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDownloadPDF(report.id)}
-                            disabled={downloadingId === report.id}
-                          >
-                            {downloadingId === report.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Download className="h-4 w-4" />
-                            )}
-                          </Button>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDownloadPDF(report.id)}
+                          disabled={downloadingId === report.id}
+                        >
+                          {downloadingId === report.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
