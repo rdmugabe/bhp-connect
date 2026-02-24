@@ -74,7 +74,7 @@ export async function GET(
     }
 
     // Helper to truncate long text for PDF safety
-    const safeText = (text: string | null | undefined, maxLength = 10000): string | null => {
+    const safeText = (text: string | null | undefined, maxLength = 2000): string | null => {
       if (!text) return null;
       if (text.length > maxLength) {
         return text.slice(0, maxLength) + '... [Content truncated for PDF]';
