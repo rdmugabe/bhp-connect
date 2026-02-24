@@ -163,17 +163,6 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: "#4a5568",
   },
-  alertBox: {
-    backgroundColor: "#fed7d7",
-    padding: 6,
-    borderRadius: 3,
-    marginBottom: 8,
-  },
-  alertText: {
-    fontSize: 9,
-    color: "#c53030",
-    fontWeight: "bold",
-  },
 });
 
 interface IncidentReportData {
@@ -304,26 +293,11 @@ function Footer({ id }: { id: string }) {
 }
 
 export function IncidentReportPDF({ data }: { data: IncidentReportData }) {
-  const hasSeriousIncident =
-    data.incidentTypes.includes("DEATH") ||
-    data.incidentTypes.includes("SUICIDE_ATTEMPT") ||
-    data.incidentTypes.includes("ABUSE_NEGLECT") ||
-    data.was911Called ||
-    data.wasTransportedToHospital;
-
   return (
     <Document>
       <Page size="LETTER" style={styles.page} wrap>
         <Header data={data} />
         <Footer id={data.id} />
-
-        {hasSeriousIncident && (
-          <View style={styles.alertBox}>
-            <Text style={styles.alertText}>
-              SERIOUS INCIDENT - May require regulatory reporting
-            </Text>
-          </View>
-        )}
 
         {/* Facility Information */}
         <View style={styles.section}>

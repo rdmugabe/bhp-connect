@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import {
-  AlertTriangle,
   Download,
   Eye,
   FileText,
@@ -72,15 +71,6 @@ function getStatusBadge(status: string) {
 function getIncidentTypeLabel(code: string): string {
   const type = INCIDENT_TYPES.find((t) => t.code === code);
   return type?.label.split(" ")[0] || code;
-}
-
-function isSeriousIncident(types: string[]): boolean {
-  return (
-    types.includes("DEATH") ||
-    types.includes("SUICIDE_ATTEMPT") ||
-    types.includes("ABUSE_NEGLECT") ||
-    types.includes("MEDICAL_EMERGENCY")
-  );
 }
 
 export default function BHPIncidentReportsPage() {
@@ -206,12 +196,7 @@ export default function BHPIncidentReportsPage() {
                 {reports.map((report) => (
                   <TableRow key={report.id}>
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {isSeriousIncident(report.incidentTypes) && (
-                          <AlertTriangle className="h-4 w-4 text-destructive" />
-                        )}
-                        {report.reportNumber || report.id.slice(0, 8)}
-                      </div>
+                      {report.reportNumber || report.id.slice(0, 8)}
                     </TableCell>
                     <TableCell>{report.facility.name}</TableCell>
                     <TableCell>

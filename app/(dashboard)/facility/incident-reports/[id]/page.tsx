@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
-  AlertTriangle,
   ArrowLeft,
   Download,
   Edit,
@@ -104,15 +103,6 @@ function getFollowUpLabel(code: string): string {
   return type?.label || code;
 }
 
-function isSeriousIncident(types: string[]): boolean {
-  return (
-    types.includes("DEATH") ||
-    types.includes("SUICIDE_ATTEMPT") ||
-    types.includes("ABUSE_NEGLECT") ||
-    types.includes("MEDICAL_EMERGENCY")
-  );
-}
-
 export default function ViewIncidentReportPage({
   params,
 }: {
@@ -202,14 +192,9 @@ export default function ViewIncidentReportPage({
             </Link>
           </Button>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold">
-                Incident Report {report.reportNumber || `#${id.slice(0, 8)}`}
-              </h1>
-              {isSeriousIncident(report.incidentTypes) && (
-                <AlertTriangle className="h-5 w-5 text-destructive" />
-              )}
-            </div>
+            <h1 className="text-2xl font-bold">
+              Incident Report {report.reportNumber || `#${id.slice(0, 8)}`}
+            </h1>
             <p className="text-muted-foreground">
               {report.facility.name} - {format(new Date(report.incidentDate), "MMMM d, yyyy")}
             </p>
@@ -235,19 +220,6 @@ export default function ViewIncidentReportPage({
           )}
         </div>
       </div>
-
-      {isSeriousIncident(report.incidentTypes) && (
-        <Card className="border-destructive bg-destructive/5">
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              <span className="font-medium">
-                Serious Incident - May require regulatory reporting
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Facility Information */}
       <Card>
