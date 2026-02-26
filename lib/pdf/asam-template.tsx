@@ -396,10 +396,21 @@ interface ASAMData {
   dimension6Comments: string | null;
 
   // Summary
-  summaryRationale: string | null;
+  summaryRationale: {
+    dimension1Rationale?: string;
+    dimension2Rationale?: string;
+    dimension3Rationale?: string;
+    dimension4Rationale?: string;
+    dimension5Rationale?: string;
+    dimension6Rationale?: string;
+  } | string | null;
   dsm5Criteria: Record<string, boolean> | null;
   dsm5Diagnoses: string | null;
-  levelOfCareDetermination: string | null;
+  levelOfCareDetermination: {
+    withdrawalManagement?: string;
+    treatmentServices?: string;
+    otp?: boolean;
+  } | string | null;
   matInterested: boolean;
   matDetails: string | null;
 
@@ -1103,8 +1114,12 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
 
           {data.levelOfCareDetermination && (
             <View style={styles.textBlock}>
-              <Text style={styles.textBlockLabel}>Level of Care Determination Rationale:</Text>
-              <Text style={styles.textBlockValue}>{data.levelOfCareDetermination}</Text>
+              <Text style={styles.textBlockLabel}>Level of Care Determination:</Text>
+              <Text style={styles.textBlockValue}>
+                {typeof data.levelOfCareDetermination === 'string'
+                  ? data.levelOfCareDetermination
+                  : `Treatment Services: ${data.levelOfCareDetermination.treatmentServices || 'N/A'}. Withdrawal Management: ${data.levelOfCareDetermination.withdrawalManagement || 'N/A'}. OTP: ${data.levelOfCareDetermination.otp ? 'Yes' : 'No'}.`}
+              </Text>
             </View>
           )}
 
@@ -1118,7 +1133,18 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
           {data.summaryRationale && (
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>Summary Rationale:</Text>
-              <Text style={styles.textBlockValue}>{data.summaryRationale}</Text>
+              <Text style={styles.textBlockValue}>
+                {typeof data.summaryRationale === 'string'
+                  ? data.summaryRationale
+                  : [
+                      data.summaryRationale.dimension1Rationale && `Dimension 1: ${data.summaryRationale.dimension1Rationale}`,
+                      data.summaryRationale.dimension2Rationale && `Dimension 2: ${data.summaryRationale.dimension2Rationale}`,
+                      data.summaryRationale.dimension3Rationale && `Dimension 3: ${data.summaryRationale.dimension3Rationale}`,
+                      data.summaryRationale.dimension4Rationale && `Dimension 4: ${data.summaryRationale.dimension4Rationale}`,
+                      data.summaryRationale.dimension5Rationale && `Dimension 5: ${data.summaryRationale.dimension5Rationale}`,
+                      data.summaryRationale.dimension6Rationale && `Dimension 6: ${data.summaryRationale.dimension6Rationale}`,
+                    ].filter(Boolean).join(' ')}
+              </Text>
             </View>
           )}
         </View>
