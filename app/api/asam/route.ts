@@ -17,7 +17,32 @@ export async function GET(request: NextRequest) {
     const facilityId = searchParams.get("facilityId");
     const status = searchParams.get("status");
 
+    // Pagination parameters
+    const parsedPage = parseInt(searchParams.get("page") || "1", 10);
+    const parsedLimit = parseInt(searchParams.get("limit") || "20", 10);
+    const page = Math.max(1, isNaN(parsedPage) ? 1 : parsedPage);
+    const limit = Math.min(100, Math.max(1, isNaN(parsedLimit) ? 20 : parsedLimit));
+    const skip = (page - 1) * limit;
+
     let assessments;
+    let total = 0;
+
+    const includeClause = {
+      facility: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      intake: {
+        select: {
+          id: true,
+          residentName: true,
+          dateOfBirth: true,
+          status: true,
+        },
+      },
+    };
 
     if (session.user.role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
@@ -25,70 +50,70 @@ export async function GET(request: NextRequest) {
       });
 
       if (!bhpProfile) {
-        return NextResponse.json({ assessments: [] });
+        return NextResponse.json({
+          assessments: [],
+          pagination: { page, limit, total: 0, totalPages: 0 }
+        });
       }
 
-      assessments = await prisma.aSAMAssessment.findMany({
-        where: {
-          facility: {
-            bhpId: bhpProfile.id,
-            ...(facilityId && { id: facilityId }),
-          },
-          ...(status && { status: status as "DRAFT" | "PENDING" | "APPROVED" | "DENIED" | "CONDITIONAL" }),
+      const whereClause = {
+        facility: {
+          bhpId: bhpProfile.id,
+          ...(facilityId && { id: facilityId }),
         },
-        include: {
-          facility: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          intake: {
-            select: {
-              id: true,
-              residentName: true,
-              dateOfBirth: true,
-              status: true,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      });
+        ...(status && { status: status as "DRAFT" | "PENDING" | "APPROVED" | "DENIED" | "CONDITIONAL" }),
+      };
+
+      [assessments, total] = await Promise.all([
+        prisma.aSAMAssessment.findMany({
+          where: whereClause,
+          include: includeClause,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: limit,
+        }),
+        prisma.aSAMAssessment.count({ where: whereClause }),
+      ]);
     } else if (session.user.role === "BHRF") {
       const bhrfProfile = await prisma.bHRFProfile.findUnique({
         where: { userId: session.user.id },
       });
 
       if (!bhrfProfile) {
-        return NextResponse.json({ assessments: [] });
+        return NextResponse.json({
+          assessments: [],
+          pagination: { page, limit, total: 0, totalPages: 0 }
+        });
       }
 
-      assessments = await prisma.aSAMAssessment.findMany({
-        where: {
-          facilityId: bhrfProfile.facilityId,
-          ...(status && { status: status as "DRAFT" | "PENDING" | "APPROVED" | "DENIED" | "CONDITIONAL" }),
-        },
-        include: {
-          facility: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          intake: {
-            select: {
-              id: true,
-              residentName: true,
-              dateOfBirth: true,
-              status: true,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      });
+      const whereClause = {
+        facilityId: bhrfProfile.facilityId,
+        ...(status && { status: status as "DRAFT" | "PENDING" | "APPROVED" | "DENIED" | "CONDITIONAL" }),
+      };
+
+      [assessments, total] = await Promise.all([
+        prisma.aSAMAssessment.findMany({
+          where: whereClause,
+          include: includeClause,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: limit,
+        }),
+        prisma.aSAMAssessment.count({ where: whereClause }),
+      ]);
     }
 
-    return NextResponse.json({ assessments });
+    const totalPages = Math.ceil(total / limit);
+
+    return NextResponse.json({
+      assessments,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      }
+    });
   } catch (error) {
     console.error("Get ASAM assessments error:", error);
     return NextResponse.json(

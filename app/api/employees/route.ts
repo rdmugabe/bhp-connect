@@ -17,6 +17,13 @@ export async function GET(request: NextRequest) {
     const facilityId = searchParams.get("facilityId");
     const includeInactive = searchParams.get("includeInactive") === "true";
 
+    // Pagination parameters
+    const parsedPage = parseInt(searchParams.get("page") || "1", 10);
+    const parsedLimit = parseInt(searchParams.get("limit") || "20", 10);
+    const page = Math.max(1, isNaN(parsedPage) ? 1 : parsedPage);
+    const limit = Math.min(100, Math.max(1, isNaN(parsedLimit) ? 20 : parsedLimit));
+    const skip = (page - 1) * limit;
+
     let targetFacilityId: string | null = null;
     let bhpEmail: string | null = null;
 
@@ -39,7 +46,10 @@ export async function GET(request: NextRequest) {
       });
 
       if (!bhrfProfile) {
-        return NextResponse.json({ employees: [] });
+        return NextResponse.json({
+          employees: [],
+          pagination: { page, limit, total: 0, totalPages: 0 }
+        });
       }
 
       targetFacilityId = bhrfProfile.facilityId;
@@ -63,7 +73,10 @@ export async function GET(request: NextRequest) {
       });
 
       if (!bhpProfile) {
-        return NextResponse.json({ employees: [] });
+        return NextResponse.json({
+          employees: [],
+          pagination: { page, limit, total: 0, totalPages: 0 }
+        });
       }
 
       const facility = await prisma.facility.findFirst({
@@ -85,23 +98,33 @@ export async function GET(request: NextRequest) {
     }
 
     if (!targetFacilityId) {
-      return NextResponse.json({ employees: [] });
+      return NextResponse.json({
+        employees: [],
+        pagination: { page, limit, total: 0, totalPages: 0 }
+      });
     }
 
-    const employees = await prisma.employee.findMany({
-      where: {
-        facilityId: targetFacilityId,
-        ...(includeInactive ? {} : { isActive: true }),
-      },
-      include: {
-        employeeDocuments: {
-          include: {
-            documentType: true,
+    const whereClause = {
+      facilityId: targetFacilityId,
+      ...(includeInactive ? {} : { isActive: true }),
+    };
+
+    const [employees, total] = await Promise.all([
+      prisma.employee.findMany({
+        where: whereClause,
+        include: {
+          employeeDocuments: {
+            include: {
+              documentType: true,
+            },
           },
         },
-      },
-      orderBy: { lastName: "asc" },
-    });
+        orderBy: { lastName: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.employee.count({ where: whereClause }),
+    ]);
 
     // Calculate compliance status for each employee
     const employeesWithCompliance = employees.map((employee) => {
@@ -133,7 +156,18 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({ employees: employeesWithCompliance, bhpEmail });
+    const totalPages = Math.ceil(total / limit);
+
+    return NextResponse.json({
+      employees: employeesWithCompliance,
+      bhpEmail,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      }
+    });
   } catch (error) {
     console.error("Get employees error:", error);
     return NextResponse.json(
