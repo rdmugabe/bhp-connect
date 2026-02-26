@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { employeeDocumentSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 async function verifyDocumentAccess(
   userId: string,
@@ -56,7 +57,11 @@ export async function PUT(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody<{ fileUrl?: string }>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
     const { fileUrl, ...rest } = body;
     const validatedData = employeeDocumentSchema.parse(rest);
 

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { intakeSchema, intakeDraftSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -101,7 +102,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = parseResult.data as any;
     const { medications, isDraft, currentStep, ...intakeData } = body;
 
     // Use appropriate schema based on draft status

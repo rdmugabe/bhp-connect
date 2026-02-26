@@ -4,6 +4,7 @@ import speakeasy from "speakeasy";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +14,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { code } = await request.json();
+    const parseResult = await parseJsonBody<{ code?: string }>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const { code } = parseResult.data;
 
     if (!code) {
       return NextResponse.json(

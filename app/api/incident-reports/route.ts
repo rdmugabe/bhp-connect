@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { incidentReportSchema, incidentReportDraftSchema } from "@/lib/validations";
+import { parseJsonBody } from "@/lib/api-utils";
 
 // GET - List incident reports for a facility
 export async function GET(request: NextRequest) {
@@ -114,7 +115,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data as Record<string, unknown>;
     const isDraft = body.status === "DRAFT";
 
     // Validate based on whether it's a draft or submission

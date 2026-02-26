@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { sendEmployeeEmail } from "@/lib/email";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { z } from "zod";
+import { parseJsonBody } from "@/lib/api-utils";
 
 const sendEmailSchema = z.object({
   additionalRecipients: z.array(z.string().email()).optional().default([]),
@@ -30,7 +31,11 @@ export async function POST(
     }
 
     const { id } = await params;
-    const body = await request.json();
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
 
     // Validate request body
     const validatedData = sendEmailSchema.parse(body);

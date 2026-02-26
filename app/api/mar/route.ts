@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { MARTemplate } from "@/lib/pdf/mar-template";
 import { marHeaderSchema } from "@/lib/validations";
+import { parseJsonBody } from "@/lib/api-utils";
 
 // POST - Generate MAR PDF
 export async function POST(request: NextRequest) {
@@ -14,7 +15,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
 
     // Validate the input
     const validationResult = marHeaderSchema.safeParse(body);

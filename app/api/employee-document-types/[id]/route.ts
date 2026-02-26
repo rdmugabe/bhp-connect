@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { employeeDocumentTypeSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function PUT(
   request: NextRequest,
@@ -45,7 +46,11 @@ export async function PUT(
       );
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
     const validatedData = employeeDocumentTypeSchema.parse(body);
 
     // Check if name already exists for this facility (excluding current)

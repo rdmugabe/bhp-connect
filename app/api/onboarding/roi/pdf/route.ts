@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { ReleaseOfInformationDocument } from "@/lib/pdf/release-of-information-template";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,8 +31,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "BHRF profile not found" }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { patientName, dateOfBirth, phone, discloseFromName, discloseFromContact } = body;
+    const parseResult = await parseJsonBody<{ patientName?: string; dateOfBirth?: string; phone?: string; discloseFromName?: string; discloseFromContact?: string }>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const { patientName, dateOfBirth, phone, discloseFromName, discloseFromContact } = parseResult.data;
 
     if (!patientName || !dateOfBirth || !phone) {
       return NextResponse.json(

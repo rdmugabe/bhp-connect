@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { documentRequestSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -128,7 +129,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody<{
+      name?: string;
+      type?: string;
+      categoryId?: string;
+      fileUrl?: string;
+      expiresAt?: string;
+      ownerType?: string;
+      employeeId?: string;
+      intakeId?: string;
+      facilityId?: string;
+    }>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
 
     // BHRF uploading a document
     if (session.user.role === "BHRF") {
@@ -202,14 +217,14 @@ export async function POST(request: NextRequest) {
       const document = await prisma.document.create({
         data: {
           facilityId: bhrfProfile.facilityId,
-          name,
+          name: name as string,
           type: type || "Other",
           categoryId: categoryId || null,
-          fileUrl,
+          fileUrl: fileUrl as string,
           status: "UPLOADED",
           uploadedAt: new Date(),
           expiresAt: expiresAt ? new Date(expiresAt) : null,
-          ownerType: ownerType || "FACILITY",
+          ownerType: (ownerType || "FACILITY") as "FACILITY" | "EMPLOYEE" | "RESIDENT",
           employeeId: employeeId || null,
           intakeId: intakeId || null,
         },
@@ -250,7 +265,7 @@ export async function POST(request: NextRequest) {
 
       // Verify facility belongs to this BHP
       const facility = await prisma.facility.findUnique({
-        where: { id: facilityId },
+        where: { id: facilityId as string },
       });
 
       if (!facility || facility.bhpId !== bhpProfile.id) {
@@ -259,9 +274,9 @@ export async function POST(request: NextRequest) {
 
       const document = await prisma.document.create({
         data: {
-          facilityId,
-          name: validatedData.name,
-          type: validatedData.type,
+          facilityId: facilityId as string,
+          name: validatedData.name as string,
+          type: validatedData.type as string,
           categoryId: validatedData.categoryId || null,
           status: "REQUESTED",
           requestedBy: session.user.id,

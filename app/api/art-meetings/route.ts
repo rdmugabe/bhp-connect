@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { artMeetingSchema, artMeetingDraftSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -134,7 +135,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody<{ intakeId?: string; meetingMonth?: number; meetingYear?: number; isDraft?: boolean }>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
     const { intakeId, meetingMonth, meetingYear, isDraft, ...meetingData } = body;
 
     if (!intakeId) {

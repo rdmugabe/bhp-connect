@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { intakeDecisionSchema, intakeDraftSchema, intakeSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(
   request: NextRequest,
@@ -77,7 +78,12 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await request.json();
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = parseResult.data as any;
 
     // Handle BHRF draft updates or final submission
     if (session.user.role === "BHRF") {

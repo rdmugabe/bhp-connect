@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { messageSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -116,7 +117,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody<{
+      facilityId?: string;
+      content?: string;
+      linkedType?: string;
+      linkedId?: string;
+    }>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
     const { facilityId, ...validatedData } = body;
 
     messageSchema.parse(validatedData);
@@ -128,7 +138,7 @@ export async function POST(request: NextRequest) {
       });
 
       const facility = await prisma.facility.findUnique({
-        where: { id: facilityId },
+        where: { id: facilityId as string },
       });
 
       if (!facility || facility.bhpId !== bhpProfile?.id) {
@@ -146,9 +156,9 @@ export async function POST(request: NextRequest) {
 
     const message = await prisma.message.create({
       data: {
-        facilityId,
+        facilityId: facilityId as string,
         senderId: session.user.id,
-        content: validatedData.content,
+        content: validatedData.content as string,
         linkedType: validatedData.linkedType,
         linkedId: validatedData.linkedId,
       },
