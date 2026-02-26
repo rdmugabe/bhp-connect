@@ -767,6 +767,45 @@ export const documentUploadSchema = z.object({
   notes: z.string().optional(),
 });
 
+// BHRF document upload schema - comprehensive validation for BHRF uploading documents
+export const bhrfDocumentUploadSchema = z.object({
+  name: z.string().min(1, "Document name is required").max(255, "Document name must be less than 255 characters"),
+  fileUrl: z.string().min(1, "File URL is required").url("Invalid file URL format"),
+  type: z.string().max(100, "Document type must be less than 100 characters").optional(),
+  categoryId: z.string().optional(),
+  expiresAt: z.string().optional().refine(
+    (val) => !val || !isNaN(Date.parse(val)),
+    { message: "Invalid expiration date format" }
+  ),
+  ownerType: z.enum(["FACILITY", "EMPLOYEE", "RESIDENT"]).optional(),
+  employeeId: z.string().optional(),
+  intakeId: z.string().optional(),
+}).refine(
+  (data) => {
+    // If ownerType is EMPLOYEE, employeeId should be provided
+    if (data.ownerType === "EMPLOYEE" && !data.employeeId) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Employee ID is required when owner type is EMPLOYEE",
+    path: ["employeeId"],
+  }
+).refine(
+  (data) => {
+    // If ownerType is RESIDENT, intakeId should be provided
+    if (data.ownerType === "RESIDENT" && !data.intakeId) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Resident (intake) ID is required when owner type is RESIDENT",
+    path: ["intakeId"],
+  }
+);
+
 export const messageSchema = z.object({
   content: z.string().min(1, "Message cannot be empty"),
   linkedType: z.string().optional(),
@@ -834,6 +873,7 @@ export type FacilityInput = z.infer<typeof facilitySchema>;
 export type CredentialInput = z.infer<typeof credentialSchema>;
 export type DocumentRequestInput = z.infer<typeof documentRequestSchema>;
 export type DocumentUploadInput = z.infer<typeof documentUploadSchema>;
+export type BHRFDocumentUploadInput = z.infer<typeof bhrfDocumentUploadSchema>;
 export type MessageInput = z.infer<typeof messageSchema>;
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export const documentCategorySchema = z.object({

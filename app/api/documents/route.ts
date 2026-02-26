@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { documentRequestSchema } from "@/lib/validations";
+import { documentRequestSchema, bhrfDocumentUploadSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
+import { z } from "zod";
 
 export async function GET(request: NextRequest) {
   try {
@@ -128,7 +130,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data as Record<string, unknown>;
 
     // BHRF uploading a document
     if (session.user.role === "BHRF") {
@@ -143,14 +149,19 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const { name, type, categoryId, fileUrl, expiresAt, ownerType, employeeId, intakeId } = body;
-
-      if (!name || !fileUrl) {
+      // Validate input using schema
+      const validationResult = bhrfDocumentUploadSchema.safeParse(body);
+      if (!validationResult.success) {
         return NextResponse.json(
-          { error: "Name and file URL are required" },
+          {
+            error: "Invalid input data",
+            details: validationResult.error.issues
+          },
           { status: 400 }
         );
       }
+
+      const { name, type, categoryId, fileUrl, expiresAt, ownerType, employeeId, intakeId } = validationResult.data;
 
       // If categoryId provided, verify it's accessible to this facility
       if (categoryId) {
@@ -244,9 +255,17 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const { facilityId, ...validatedData } = body;
+      const { facilityId, ...restData } = body;
 
-      documentRequestSchema.parse(validatedData);
+      // Validate facilityId is a string
+      if (typeof facilityId !== "string" || !facilityId) {
+        return NextResponse.json(
+          { error: "Invalid input data", details: [{ path: ["facilityId"], message: "Facility ID is required" }] },
+          { status: 400 }
+        );
+      }
+
+      const validatedData = documentRequestSchema.parse(restData);
 
       // Verify facility belongs to this BHP
       const facility = await prisma.facility.findUnique({
@@ -262,7 +281,7 @@ export async function POST(request: NextRequest) {
           facilityId,
           name: validatedData.name,
           type: validatedData.type,
-          categoryId: validatedData.categoryId || null,
+          categoryId: (restData as Record<string, unknown>).categoryId as string || null,
           status: "REQUESTED",
           requestedBy: session.user.id,
           requestedAt: new Date(),
@@ -284,8 +303,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Document operation error:", error);
 
-    if (error instanceof Error && error.name === "ZodError") {
-      return NextResponse.json({ error: "Invalid input data" }, { status: 400 });
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Invalid input data", details: error.issues },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json(
