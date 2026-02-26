@@ -231,7 +231,7 @@ export default function FacilityEmployeesPage() {
                         ? formatDate(employee.hireDate)
                         : "-"}
                     </TableCell>
-                    <TableCell>{employee.documents.length}</TableCell>
+                    <TableCell>{employee.documents?.length || 0}</TableCell>
                     <TableCell>
                       <EmployeeComplianceBadge
                         status={employee.complianceStatus}
