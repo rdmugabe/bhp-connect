@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       const newIntake = await tx.intake.create({
         data: {
           facilityId: bhrfProfile.facilityId,
-          status: isDraft ? "DRAFT" : "APPROVED",
+          status: isDraft ? "DRAFT" : "PENDING",
           // Demographics
           residentName: validatedData.residentName || "Draft Intake",
           ssn: validatedData.ssn,

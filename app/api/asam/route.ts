@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
       data: {
         facilityId: bhrfProfile.facilityId,
         intakeId: intakeId,
-        status: isDraft ? "DRAFT" : "APPROVED",
+        status: isDraft ? "DRAFT" : "PENDING",
 
         // Demographics
         patientName: validatedData.patientName || "Draft Assessment",
