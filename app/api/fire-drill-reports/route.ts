@@ -4,6 +4,11 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fireDrillReportSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import {
+  parseMonthQueryParam,
+  parseYearQueryParam,
+  validateQueryParams,
+} from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,8 +19,20 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const year = searchParams.get("year");
-    const month = searchParams.get("month");
+    const yearParam = searchParams.get("year");
+    const monthParam = searchParams.get("month");
+
+    // Validate query parameters
+    const yearResult = parseYearQueryParam(yearParam);
+    const monthResult = parseMonthQueryParam(monthParam);
+
+    const validationError = validateQueryParams([yearResult, monthResult]);
+    if (validationError) {
+      return validationError;
+    }
+
+    const year = yearResult.success ? yearResult.value : undefined;
+    const month = monthResult.success ? monthResult.value : undefined;
 
     let facilityId: string | null = null;
 
@@ -37,8 +54,8 @@ export async function GET(request: NextRequest) {
       const reports = await prisma.fireDrillReport.findMany({
         where: {
           facilityId: { in: facilities.map((f) => f.id) },
-          ...(year && { reportYear: parseInt(year) }),
-          ...(month && { reportMonth: parseInt(month) }),
+          ...(year && { reportYear: year }),
+          ...(month && { reportMonth: month }),
         },
         include: {
           facility: {
@@ -66,8 +83,8 @@ export async function GET(request: NextRequest) {
       const reports = await prisma.fireDrillReport.findMany({
         where: {
           facilityId,
-          ...(year && { reportYear: parseInt(year) }),
-          ...(month && { reportMonth: parseInt(month) }),
+          ...(year && { reportYear: year }),
+          ...(month && { reportMonth: month }),
         },
         include: {
           facility: {

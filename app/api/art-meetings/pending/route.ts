@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  parseMonthQueryParam,
+  parseYearQueryParam,
+  validateQueryParams,
+} from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,11 +17,20 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const month = searchParams.get("month");
-    const year = searchParams.get("year");
+    const monthParam = searchParams.get("month");
+    const yearParam = searchParams.get("year");
 
-    const currentMonth = month ? parseInt(month) : new Date().getMonth() + 1;
-    const currentYear = year ? parseInt(year) : new Date().getFullYear();
+    // Validate query parameters
+    const monthResult = parseMonthQueryParam(monthParam);
+    const yearResult = parseYearQueryParam(yearParam);
+
+    const validationError = validateQueryParams([monthResult, yearResult]);
+    if (validationError) {
+      return validationError;
+    }
+
+    const currentMonth = (monthResult.success && monthResult.value) || new Date().getMonth() + 1;
+    const currentYear = (yearResult.success && yearResult.value) || new Date().getFullYear();
 
     let facilityId: string | null = null;
     let bhpId: string | null = null;

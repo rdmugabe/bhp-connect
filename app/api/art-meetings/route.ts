@@ -4,6 +4,11 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { artMeetingSchema, artMeetingDraftSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import {
+  parseMonthQueryParam,
+  parseYearQueryParam,
+  validateQueryParams,
+} from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,8 +22,20 @@ export async function GET(request: NextRequest) {
     const intakeId = searchParams.get("intakeId");
     const facilityId = searchParams.get("facilityId");
     const status = searchParams.get("status");
-    const month = searchParams.get("month");
-    const year = searchParams.get("year");
+    const monthParam = searchParams.get("month");
+    const yearParam = searchParams.get("year");
+
+    // Validate query parameters
+    const monthResult = parseMonthQueryParam(monthParam);
+    const yearResult = parseYearQueryParam(yearParam);
+
+    const validationError = validateQueryParams([monthResult, yearResult]);
+    if (validationError) {
+      return validationError;
+    }
+
+    const month = monthResult.success ? monthResult.value : undefined;
+    const year = yearResult.success ? yearResult.value : undefined;
 
     let artMeetings;
 
@@ -39,8 +56,8 @@ export async function GET(request: NextRequest) {
           },
           ...(intakeId && { intakeId }),
           ...(status && { status: status as "DRAFT" | "PENDING" | "APPROVED" }),
-          ...(month && { meetingMonth: parseInt(month) }),
-          ...(year && { meetingYear: parseInt(year) }),
+          ...(month && { meetingMonth: month }),
+          ...(year && { meetingYear: year }),
         },
         include: {
           intake: {
@@ -78,8 +95,8 @@ export async function GET(request: NextRequest) {
           facilityId: bhrfProfile.facilityId,
           ...(intakeId && { intakeId }),
           ...(status && { status: status as "DRAFT" | "PENDING" | "APPROVED" }),
-          ...(month && { meetingMonth: parseInt(month) }),
-          ...(year && { meetingYear: parseInt(year) }),
+          ...(month && { meetingMonth: month }),
+          ...(year && { meetingYear: year }),
         },
         include: {
           intake: {

@@ -6,6 +6,7 @@ import { oversightTrainingReportSchema } from "@/lib/validations";
 import { uploadToS3, generateFileKey } from "@/lib/s3";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { getBiWeekNumber, formatBiWeekLabel } from "@/lib/utils";
+import { parseYearQueryParam, validateQueryParams } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +17,16 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const year = searchParams.get("year");
+    const yearParam = searchParams.get("year");
+
+    // Validate year query parameter
+    const yearResult = parseYearQueryParam(yearParam);
+    const validationError = validateQueryParams([yearResult]);
+    if (validationError) {
+      return validationError;
+    }
+
+    const year = yearResult.success ? yearResult.value : undefined;
 
     if (session.user.role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
@@ -36,7 +46,7 @@ export async function GET(request: NextRequest) {
       const reports = await prisma.oversightTrainingReport.findMany({
         where: {
           facilityId: { in: facilities.map((f) => f.id) },
-          ...(year && { year: parseInt(year) }),
+          ...(year && { year: year }),
         },
         include: {
           facility: {
@@ -62,7 +72,7 @@ export async function GET(request: NextRequest) {
       const reports = await prisma.oversightTrainingReport.findMany({
         where: {
           facilityId: bhrfProfile.facilityId,
-          ...(year && { year: parseInt(year) }),
+          ...(year && { year: year }),
         },
         include: {
           facility: {

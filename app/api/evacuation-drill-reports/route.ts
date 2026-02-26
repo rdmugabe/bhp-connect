@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { evacuationDrillReportSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseYearQueryParam, validateQueryParams } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,8 +15,17 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const year = searchParams.get("year");
+    const yearParam = searchParams.get("year");
     const drillType = searchParams.get("drillType");
+
+    // Validate year query parameter
+    const yearResult = parseYearQueryParam(yearParam);
+    const validationError = validateQueryParams([yearResult]);
+    if (validationError) {
+      return validationError;
+    }
+
+    const year = yearResult.success ? yearResult.value : undefined;
 
     let facilityId: string | null = null;
 
@@ -36,7 +46,7 @@ export async function GET(request: NextRequest) {
       const reports = await prisma.evacuationDrillReport.findMany({
         where: {
           facilityId: { in: facilities.map((f) => f.id) },
-          ...(year && { year: parseInt(year) }),
+          ...(year && { year: year }),
           ...(drillType && { drillType: drillType as "EVACUATION" | "DISASTER" }),
         },
         include: {
@@ -65,7 +75,7 @@ export async function GET(request: NextRequest) {
       const reports = await prisma.evacuationDrillReport.findMany({
         where: {
           facilityId,
-          ...(year && { year: parseInt(year) }),
+          ...(year && { year: year }),
           ...(drillType && { drillType: drillType as "EVACUATION" | "DISASTER" }),
         },
         include: {
