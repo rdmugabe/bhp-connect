@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { artMeetingSchema, artMeetingDraftSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(
   request: NextRequest,
@@ -118,8 +119,11 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { isDraft, ...meetingData } = body;
+    const parseResult = await parseJsonBody<Record<string, unknown>>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const { isDraft, ...meetingData } = parseResult.data as { isDraft?: boolean; [key: string]: unknown };
 
     // Use appropriate schema based on draft status
     const validatedData = isDraft

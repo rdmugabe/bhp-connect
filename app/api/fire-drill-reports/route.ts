@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fireDrillReportSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -112,8 +113,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const validatedData = fireDrillReportSchema.parse(body);
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const validatedData = fireDrillReportSchema.parse(parseResult.data);
 
     // Parse the drill date to get month and year
     const drillDate = new Date(validatedData.drillDate);

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { messageSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -116,10 +117,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { facilityId, ...validatedData } = body;
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data as Record<string, unknown>;
+    const { facilityId: facilityIdRaw, ...restData } = body;
+    const facilityId = facilityIdRaw as string | undefined;
 
-    messageSchema.parse(validatedData);
+    const validatedData = messageSchema.parse(restData);
+
+    if (!facilityId) {
+      return NextResponse.json({ error: "Facility ID is required" }, { status: 400 });
+    }
 
     // Verify access to facility
     if (session.user.role === "BHP") {

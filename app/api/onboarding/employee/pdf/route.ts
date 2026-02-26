@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { EmployeeOnboardingPDF } from "@/lib/pdf/employee-onboarding-template";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,8 +36,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { employeeName, hireDate } = body;
+    const parseResult = await parseJsonBody<{ employeeName?: string; hireDate?: string }>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const { employeeName, hireDate } = parseResult.data;
 
     if (!employeeName || typeof employeeName !== "string") {
       return NextResponse.json(

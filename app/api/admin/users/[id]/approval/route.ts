@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 const approvalSchema = z
   .object({
@@ -51,8 +52,11 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
-    const validatedData = approvalSchema.parse(body);
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const validatedData = approvalSchema.parse(parseResult.data);
 
     const updatedUser = await prisma.user.update({
       where: { id: params.id },

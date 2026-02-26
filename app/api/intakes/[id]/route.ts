@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { intakeDecisionSchema, intakeDraftSchema, intakeSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(
   request: NextRequest,
@@ -77,7 +78,11 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await request.json();
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data as Record<string, unknown>;
 
     // Handle BHRF draft updates or final submission
     if (session.user.role === "BHRF") {
@@ -361,6 +366,12 @@ export async function PATCH(
         return updated;
       });
 
+      const auditDetails: Record<string, unknown> = {
+        residentName: updatedIntake.residentName,
+      };
+      if (isDraft) {
+        auditDetails.draftStep = currentStep || 1;
+      }
       await createAuditLog({
         userId: session.user.id,
         action: isDraft
@@ -368,10 +379,7 @@ export async function PATCH(
           : AuditActions.INTAKE_SUBMITTED,
         entityType: "Intake",
         entityId: id,
-        details: {
-          residentName: updatedIntake.residentName,
-          ...(isDraft && { draftStep: currentStep || 1 }),
-        },
+        details: auditDetails,
       });
 
       return NextResponse.json({ intake: updatedIntake });

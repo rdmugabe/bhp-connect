@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { skipArtMeetingSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function POST(
   request: NextRequest,
@@ -48,8 +49,11 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const body = await request.json();
-    const validatedData = skipArtMeetingSchema.parse(body);
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const validatedData = skipArtMeetingSchema.parse(parseResult.data);
 
     const artMeeting = await prisma.aRTMeeting.update({
       where: { id },

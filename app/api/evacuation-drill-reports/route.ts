@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { evacuationDrillReportSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -111,8 +112,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const validatedData = evacuationDrillReportSchema.parse(body);
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const validatedData = evacuationDrillReportSchema.parse(parseResult.data);
 
     // Check for duplicate (same facility, drill type, quarter, year, shift)
     const existing = await prisma.evacuationDrillReport.findUnique({

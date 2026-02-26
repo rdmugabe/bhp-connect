@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { documentCategorySchema } from "@/lib/validations";
 import { createAuditLog } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function PUT(
   request: NextRequest,
@@ -17,8 +18,11 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const body = await request.json();
-    const validatedData = documentCategorySchema.parse(body);
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const validatedData = documentCategorySchema.parse(parseResult.data);
 
     // Verify ownership
     const existingCategory = await prisma.documentCategory.findUnique({

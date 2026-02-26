@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(
   request: NextRequest,
@@ -116,8 +117,11 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
-    const validatedData = decisionSchema.parse(body);
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const validatedData = decisionSchema.parse(parseResult.data);
 
     // Process the decision
     if (validatedData.status === "APPROVED") {

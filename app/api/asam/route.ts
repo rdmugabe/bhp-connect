@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { asamSchema, asamDraftSchema, ASAMInput, ASAMDraftInput } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -117,8 +118,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { isDraft, currentStep, intakeId, ...assessmentData } = body;
+    const parseResult = await parseJsonBody<Record<string, unknown>>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
+    const { isDraft, currentStep, intakeId, ...assessmentData } = body as { isDraft?: boolean; currentStep?: number; intakeId?: string; [key: string]: unknown };
 
     // Validate intakeId is provided
     if (!intakeId) {

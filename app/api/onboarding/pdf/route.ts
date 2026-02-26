@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { OnboardingPDF } from "@/lib/pdf/onboarding-template";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,8 +18,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { residentName } = body;
+    const parseResult = await parseJsonBody<{ residentName?: string }>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const { residentName } = parseResult.data;
 
     if (!residentName || typeof residentName !== "string") {
       return NextResponse.json(

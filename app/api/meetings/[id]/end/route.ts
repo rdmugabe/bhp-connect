@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { z } from "zod";
+import { parseJsonBody } from "@/lib/api-utils";
 
 const endMeetingSchema = z.object({
   notes: z.string().optional(),
@@ -42,8 +43,11 @@ export async function POST(
       );
     }
 
-    const body = await request.json();
-    const validatedData = endMeetingSchema.parse(body);
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const validatedData = endMeetingSchema.parse(parseResult.data);
 
     const updatedMeeting = await prisma.meeting.update({
       where: { id: params.id },

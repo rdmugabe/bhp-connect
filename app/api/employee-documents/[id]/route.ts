@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { employeeDocumentSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 async function verifyDocumentAccess(
   userId: string,
@@ -56,8 +57,11 @@ export async function PUT(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { fileUrl, ...rest } = body;
+    const parseResult = await parseJsonBody<Record<string, unknown>>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const { fileUrl, ...rest } = parseResult.data as { fileUrl?: string; [key: string]: unknown };
     const validatedData = employeeDocumentSchema.parse(rest);
 
     const bhrfProfile = await prisma.bHRFProfile.findUnique({

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { asamSchema, asamDraftSchema, asamDecisionSchema, ASAMInput, ASAMDraftInput } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(
   request: NextRequest,
@@ -92,7 +93,11 @@ export async function PATCH(
       return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody<Record<string, unknown>>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
 
     // BHP decision or edit flow
     if (session.user.role === "BHP") {
@@ -482,15 +487,19 @@ export async function PATCH(
         },
       });
 
+      const auditDetails: Record<string, unknown> = {
+        patientName: assessment.patientName,
+      };
+      if (isDraft) {
+        auditDetails.draftStep = currentStep || 1;
+      }
+
       await createAuditLog({
         userId: session.user.id,
         action: isDraft ? AuditActions.ASAM_DRAFT_SAVED : AuditActions.ASAM_SUBMITTED,
         entityType: "ASAMAssessment",
         entityId: assessment.id,
-        details: {
-          patientName: assessment.patientName,
-          ...(isDraft && { draftStep: currentStep || 1 }),
-        },
+        details: auditDetails,
       });
 
       return NextResponse.json({ assessment });

@@ -3,10 +3,15 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
     const validatedData = registerSchema.parse(body);
 
     // Check if user already exists

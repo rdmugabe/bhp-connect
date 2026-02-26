@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { DocumentOwnerType } from "@prisma/client";
 import { documentRequestSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -128,7 +130,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody<Record<string, unknown>>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
 
     // BHRF uploading a document
     if (session.user.role === "BHRF") {
@@ -143,7 +149,16 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const { name, type, categoryId, fileUrl, expiresAt, ownerType, employeeId, intakeId } = body;
+      const { name, type, categoryId, fileUrl, expiresAt, ownerType, employeeId, intakeId } = body as {
+        name?: string;
+        type?: string;
+        categoryId?: string;
+        fileUrl?: string;
+        expiresAt?: string;
+        ownerType?: DocumentOwnerType;
+        employeeId?: string;
+        intakeId?: string;
+      };
 
       if (!name || !fileUrl) {
         return NextResponse.json(
@@ -244,9 +259,19 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const { facilityId, ...validatedData } = body;
+      const { facilityId, ...validatedData } = body as {
+        facilityId?: string;
+        name?: string;
+        type?: string;
+        categoryId?: string;
+        [key: string]: unknown;
+      };
 
       documentRequestSchema.parse(validatedData);
+
+      if (!facilityId) {
+        return NextResponse.json({ error: "Facility ID is required" }, { status: 400 });
+      }
 
       // Verify facility belongs to this BHP
       const facility = await prisma.facility.findUnique({
@@ -260,9 +285,9 @@ export async function POST(request: NextRequest) {
       const document = await prisma.document.create({
         data: {
           facilityId,
-          name: validatedData.name,
-          type: validatedData.type,
-          categoryId: validatedData.categoryId || null,
+          name: validatedData.name as string,
+          type: validatedData.type as string,
+          categoryId: (validatedData.categoryId as string | undefined) || null,
           status: "REQUESTED",
           requestedBy: session.user.id,
           requestedAt: new Date(),

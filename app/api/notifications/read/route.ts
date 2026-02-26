@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { parseJsonBody } from "@/lib/api-utils";
 
 const markReadSchema = z.object({
   notificationIds: z.array(z.string()).min(1),
@@ -25,8 +26,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const validatedData = markReadSchema.parse(body);
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const validatedData = markReadSchema.parse(parseResult.data);
 
     const userId = session.user.id;
     const { notificationIds, type } = validatedData;

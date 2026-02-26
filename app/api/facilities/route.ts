@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { facilitySchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET() {
   try {
@@ -101,8 +102,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const validatedData = facilitySchema.parse(body);
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const validatedData = facilitySchema.parse(parseResult.data);
 
     const facility = await prisma.facility.create({
       data: {

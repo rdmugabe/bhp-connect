@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { incidentReportSchema, incidentReportDraftSchema } from "@/lib/validations";
+import { parseJsonBody } from "@/lib/api-utils";
 
 // GET - Get a single incident report
 export async function GET(
@@ -120,7 +121,11 @@ export async function PATCH(
 
     // All reports can be edited by BHRF
 
-    const body = await request.json();
+    const parseResult = await parseJsonBody<Record<string, unknown>>(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data;
     const isDraft = body.status === "DRAFT";
 
     // Validate based on whether it's a draft or submission

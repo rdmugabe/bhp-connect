@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { intakeSchema, intakeDraftSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseJsonBody } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -101,8 +102,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { medications, isDraft, currentStep, ...intakeData } = body;
+    const parseResult = await parseJsonBody(request);
+    if (!parseResult.success) {
+      return parseResult.error;
+    }
+    const body = parseResult.data as Record<string, unknown>;
+    const { medications, isDraft: isDraftRaw, currentStep: currentStepRaw, ...intakeData } = body;
+    const isDraft = isDraftRaw as boolean | undefined;
+    const currentStep = currentStepRaw as number | undefined;
 
     // Use appropriate schema based on draft status
     const validatedData = isDraft
