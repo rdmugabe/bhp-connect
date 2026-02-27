@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SignaturePad } from "@/components/ui/signature-pad";
 
 export function Step12Wellness() {
   const { control } = useFormContext();
@@ -263,103 +264,169 @@ export function Step12Wellness() {
         <CardHeader>
           <CardTitle>Signatures</CardTitle>
           <CardDescription>
-            Electronic signatures for intake completion
+            Digital signatures for intake completion. Sign directly in the boxes below.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <h4 className="font-medium">Client Signature</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={control}
-                name="signatures.clientSignature"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Client/Guardian Signature (Type Name)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Type client or guardian full name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="signatures.clientSignatureDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {/* Client/Guardian Signature */}
+          <div className="space-y-4 pb-6 border-b">
+            <h4 className="font-medium">Client/Guardian Signature</h4>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2">
+                <FormField
+                  control={control}
+                  name="signatures.clientSignature"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <SignaturePad
+                          label="Sign Here"
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-4">
+                <FormField
+                  control={control}
+                  name="signatures.clientPrintedName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Printed Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Full name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="signatures.clientSignatureDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-4">
+          {/* Assessor Signature */}
+          <div className="space-y-4 pb-6 border-b">
             <h4 className="font-medium">Assessment Completed By</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={control}
-                name="signatures.assessorSignature"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assessor Signature (Type Name)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Type assessor full name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="signatures.assessorSignatureDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2">
+                <FormField
+                  control={control}
+                  name="signatures.assessorSignature"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <SignaturePad
+                          label="Assessor Signature"
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-4">
+                <FormField
+                  control={control}
+                  name="signatures.assessorPrintedName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Printed Name / Credentials</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Name and credentials" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="signatures.assessorSignatureDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
           </div>
 
+          {/* Clinical Oversight / BHP Reviewer Signature */}
           <div className="space-y-4">
             <h4 className="font-medium">Clinical Oversight / BHP Reviewer</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={control}
-                name="signatures.clinicalOversightSignature"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Clinical Oversight Signature (Type Name)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="To be completed by BHP reviewer" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="signatures.clinicalOversightSignatureDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <p className="text-sm text-muted-foreground">
+              This signature will be completed by the BHP reviewer after approval.
+            </p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2">
+                <FormField
+                  control={control}
+                  name="signatures.clinicalOversightSignature"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <SignaturePad
+                          label="BHP Reviewer Signature"
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-4">
+                <FormField
+                  control={control}
+                  name="signatures.clinicalOversightPrintedName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Printed Name / Credentials</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Name and credentials" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="signatures.clinicalOversightSignatureDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
           </div>
         </CardContent>

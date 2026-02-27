@@ -401,11 +401,14 @@ export const intakeStep17Schema = z.object({
   diagnosis: z.string().optional(),
   treatmentRecommendation: z.string().optional(),
   signatures: z.object({
-    clientSignature: z.string().optional(),
+    clientSignature: z.string().optional(), // Base64 PNG image
+    clientPrintedName: z.string().optional(),
     clientSignatureDate: z.string().optional(),
-    assessorSignature: z.string().optional(),
+    assessorSignature: z.string().optional(), // Base64 PNG image
+    assessorPrintedName: z.string().optional(),
     assessorSignatureDate: z.string().optional(),
-    clinicalOversightSignature: z.string().optional(),
+    clinicalOversightSignature: z.string().optional(), // Base64 PNG image
+    clinicalOversightPrintedName: z.string().optional(),
     clinicalOversightSignatureDate: z.string().optional(),
   }).optional(),
 });
@@ -715,11 +718,14 @@ export const intakeDraftSchema = z.object({
   diagnosis: z.string().optional(),
   treatmentRecommendation: z.string().optional(),
   signatures: z.object({
-    clientSignature: z.string().optional(),
+    clientSignature: z.string().optional(), // Base64 PNG image
+    clientPrintedName: z.string().optional(),
     clientSignatureDate: z.string().optional(),
-    assessorSignature: z.string().optional(),
+    assessorSignature: z.string().optional(), // Base64 PNG image
+    assessorPrintedName: z.string().optional(),
     assessorSignatureDate: z.string().optional(),
-    clinicalOversightSignature: z.string().optional(),
+    clinicalOversightSignature: z.string().optional(), // Base64 PNG image
+    clinicalOversightPrintedName: z.string().optional(),
     clinicalOversightSignatureDate: z.string().optional(),
   }).optional(),
 

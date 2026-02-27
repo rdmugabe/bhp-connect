@@ -4,6 +4,7 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
@@ -217,6 +218,16 @@ const styles = StyleSheet.create({
   dateLabel: {
     fontSize: 8,
     color: "#4a5568",
+  },
+  signatureImage: {
+    height: 40,
+    objectFit: "contain",
+    marginBottom: 4,
+  },
+  signedText: {
+    fontSize: 7,
+    color: "#38a169",
+    marginTop: 2,
   },
 });
 
@@ -1464,14 +1475,23 @@ export function IntakePDF({ data }: { data: IntakeData }) {
           {/* Client/Guardian Signature */}
           <View style={styles.signatureRow}>
             <View style={styles.signatureBlock}>
-              <View style={styles.signatureLine} />
+              {data.signatures?.clientSignature && data.signatures.clientSignature.startsWith("data:image") ? (
+                <View>
+                  <Image src={data.signatures.clientSignature} style={styles.signatureImage} />
+                  <Text style={styles.signedText}>Digitally signed on {formatDate(data.signatures.clientSignatureDate || "")}</Text>
+                </View>
+              ) : (
+                <View style={styles.signatureLine} />
+              )}
               <Text style={styles.signatureLabel}>Client/Guardian Signature</Text>
             </View>
             <View style={styles.signatureBlock}>
+              <Text style={styles.signatureValue}>{data.signatures?.clientPrintedName || ""}</Text>
               <View style={styles.signatureLine} />
               <Text style={styles.signatureLabel}>Printed Name</Text>
             </View>
             <View style={styles.dateBlock}>
+              <Text style={styles.signatureValue}>{formatDate(data.signatures?.clientSignatureDate || "")}</Text>
               <View style={styles.dateLine} />
               <Text style={styles.dateLabel}>Date</Text>
             </View>
@@ -1480,14 +1500,23 @@ export function IntakePDF({ data }: { data: IntakeData }) {
           {/* Assessment Completed By */}
           <View style={styles.signatureRow}>
             <View style={styles.signatureBlock}>
-              <View style={styles.signatureLine} />
+              {data.signatures?.assessorSignature && data.signatures.assessorSignature.startsWith("data:image") ? (
+                <View>
+                  <Image src={data.signatures.assessorSignature} style={styles.signatureImage} />
+                  <Text style={styles.signedText}>Digitally signed on {formatDate(data.signatures.assessorSignatureDate || "")}</Text>
+                </View>
+              ) : (
+                <View style={styles.signatureLine} />
+              )}
               <Text style={styles.signatureLabel}>Assessment Completed By (Signature)</Text>
             </View>
             <View style={styles.signatureBlock}>
+              <Text style={styles.signatureValue}>{data.signatures?.assessorPrintedName || ""}</Text>
               <View style={styles.signatureLine} />
               <Text style={styles.signatureLabel}>Printed Name / Credentials</Text>
             </View>
             <View style={styles.dateBlock}>
+              <Text style={styles.signatureValue}>{formatDate(data.signatures?.assessorSignatureDate || "")}</Text>
               <View style={styles.dateLine} />
               <Text style={styles.dateLabel}>Date</Text>
             </View>
@@ -1496,14 +1525,23 @@ export function IntakePDF({ data }: { data: IntakeData }) {
           {/* Clinical Oversight */}
           <View style={{ ...styles.signatureRow, marginBottom: 0 }}>
             <View style={styles.signatureBlock}>
-              <View style={styles.signatureLine} />
+              {data.signatures?.clinicalOversightSignature && data.signatures.clinicalOversightSignature.startsWith("data:image") ? (
+                <View>
+                  <Image src={data.signatures.clinicalOversightSignature} style={styles.signatureImage} />
+                  <Text style={styles.signedText}>Digitally signed on {formatDate(data.signatures.clinicalOversightSignatureDate || "")}</Text>
+                </View>
+              ) : (
+                <View style={styles.signatureLine} />
+              )}
               <Text style={styles.signatureLabel}>Clinical Oversight / BHP Reviewer (Signature)</Text>
             </View>
             <View style={styles.signatureBlock}>
+              <Text style={styles.signatureValue}>{data.signatures?.clinicalOversightPrintedName || ""}</Text>
               <View style={styles.signatureLine} />
               <Text style={styles.signatureLabel}>Printed Name / Credentials</Text>
             </View>
             <View style={styles.dateBlock}>
+              <Text style={styles.signatureValue}>{formatDate(data.signatures?.clinicalOversightSignatureDate || "")}</Text>
               <View style={styles.dateLine} />
               <Text style={styles.dateLabel}>Date</Text>
             </View>

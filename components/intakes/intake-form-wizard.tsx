@@ -349,10 +349,13 @@ export function IntakeFormWizard({ intakeId, initialData }: IntakeFormWizardProp
       treatmentRecommendation: "",
       signatures: {
         clientSignature: "",
+        clientPrintedName: "",
         clientSignatureDate: new Date().toISOString().split("T")[0],
         assessorSignature: "",
+        assessorPrintedName: "",
         assessorSignatureDate: new Date().toISOString().split("T")[0],
         clinicalOversightSignature: "",
+        clinicalOversightPrintedName: "",
         clinicalOversightSignatureDate: "",
       },
     },
