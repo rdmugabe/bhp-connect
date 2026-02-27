@@ -16,7 +16,6 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 15,
-    borderBottom: "2 solid #1a365d",
     paddingBottom: 10,
   },
   title: {
@@ -33,12 +32,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 8,
     paddingTop: 6,
-    borderTop: "1 solid #e2e8f0",
-    gap: 20,
+    justifyContent: "space-between",
   },
   headerInfoItem: {
     flexDirection: "row",
     fontSize: 8,
+    marginRight: 15,
   },
   headerInfoLabel: {
     color: "#4a5568",
@@ -71,7 +70,6 @@ const styles = StyleSheet.create({
     color: "#1a365d",
     marginBottom: 6,
     paddingBottom: 3,
-    borderBottom: "1 solid #e2e8f0",
     backgroundColor: "#f7fafc",
     padding: 4,
   },
@@ -121,7 +119,6 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 30,
     right: 30,
-    borderTop: "1 solid #e2e8f0",
     paddingTop: 8,
   },
   footerText: {
@@ -142,7 +139,6 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: "row",
     padding: 4,
-    borderBottom: "1 solid #e2e8f0",
     fontSize: 8,
   },
   subSectionTitle: {
@@ -181,7 +177,6 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: "#f7fafc",
     borderRadius: 3,
-    border: "1 solid #e2e8f0",
   },
   signatureRow: {
     flexDirection: "row",
@@ -193,9 +188,11 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   signatureLine: {
-    borderBottom: "1 solid #1a365d",
     marginBottom: 4,
-    height: 20,
+    height: 25,
+    borderBottomWidth: 1,
+    borderBottomColor: "#1a365d",
+    borderBottomStyle: "solid",
   },
   signatureLabel: {
     fontSize: 8,
@@ -211,9 +208,11 @@ const styles = StyleSheet.create({
     width: 100,
   },
   dateLine: {
-    borderBottom: "1 solid #1a365d",
     marginBottom: 4,
-    height: 20,
+    height: 25,
+    borderBottomWidth: 1,
+    borderBottomColor: "#1a365d",
+    borderBottomStyle: "solid",
   },
   dateLabel: {
     fontSize: 8,
@@ -433,7 +432,9 @@ interface IntakeData {
 }
 
 function formatDate(dateString: string): string {
+  if (!dateString) return "N/A";
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "N/A";
   return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -442,7 +443,24 @@ function formatDate(dateString: string): string {
   });
 }
 
-function getPHQ9Severity(score: number): string {
+// Safely format numbers to prevent react-pdf "unsupported number" errors
+function safeNumber(value: unknown): string {
+  if (value === null || value === undefined) return "N/A";
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return "N/A";
+  // Check for unreasonably large/small numbers that could cause layout issues
+  if (Math.abs(num) > 1e15) return "N/A";
+  return String(num);
+}
+
+// Safely render text values - never render empty strings which cause layout issues
+function safeText(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "N/A";
+  return String(value);
+}
+
+function getPHQ9Severity(score: number | null | undefined): string {
+  if (score === null || score === undefined || !Number.isFinite(score)) return "Unknown";
   if (score <= 4) return "Minimal depression";
   if (score <= 9) return "Mild depression";
   if (score <= 14) return "Moderate depression";
@@ -455,12 +473,12 @@ function Header({ data }: { data: IntakeData }) {
     <View style={styles.header} fixed>
       <Text style={styles.title}>Full Intake Assessment</Text>
       <Text style={styles.subtitle}>
-        {data.facility.name} | Managed by {data.bhpName}
+        {data.facility.name || "Unknown Facility"} | Managed by {data.bhpName || "Unknown BHP"}
       </Text>
       <View style={styles.headerInfo}>
         <View style={styles.headerInfoItem}>
           <Text style={styles.headerInfoLabel}>Client:</Text>
-          <Text style={styles.headerInfoValue}>{data.residentName}</Text>
+          <Text style={styles.headerInfoValue}>{data.residentName || "Unknown"}</Text>
         </View>
         <View style={styles.headerInfoItem}>
           <Text style={styles.headerInfoLabel}>DOB:</Text>
@@ -512,7 +530,7 @@ export function IntakePDF({ data }: { data: IntakeData }) {
             <View style={styles.column}>
               <View style={styles.row}>
                 <Text style={styles.label}>Full Name:</Text>
-                <Text style={styles.value}>{data.residentName}</Text>
+                <Text style={styles.value}>{data.residentName || "N/A"}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Date of Birth:</Text>
@@ -535,7 +553,7 @@ export function IntakePDF({ data }: { data: IntakeData }) {
               {data.ethnicity === "Native American" && data.nativeAmericanTribe && (
                 <View style={styles.row}>
                   <Text style={styles.label}>Tribe:</Text>
-                  <Text style={styles.value}>{data.nativeAmericanTribe}</Text>
+                  <Text style={styles.value}>{data.nativeAmericanTribe || "N/A"}</Text>
                 </View>
               )}
               <View style={styles.row}>
@@ -653,7 +671,7 @@ export function IntakePDF({ data }: { data: IntakeData }) {
               </View>
               {data.medications.map((med, idx) => (
                 <View key={idx} style={styles.tableRow}>
-                  <Text style={{ width: "30%" }}>{med.name}</Text>
+                  <Text style={{ width: "30%" }}>{med.name || "Unknown"}</Text>
                   <Text style={{ width: "20%" }}>{med.dosage || "-"}</Text>
                   <Text style={{ width: "25%" }}>{med.frequency || "-"}</Text>
                   <Text style={{ width: "25%" }}>{med.route || "-"}</Text>
@@ -718,14 +736,14 @@ export function IntakePDF({ data }: { data: IntakeData }) {
           )}
 
           {/* DTS Risk Factors */}
-          {data.dtsRiskFactors && Object.keys(data.dtsRiskFactors).length > 0 && (
+          {data.dtsRiskFactors && Object.entries(data.dtsRiskFactors).filter(([, v]) => v).length > 0 && (
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>DTS Risk Factors:</Text>
-              <View style={[styles.textBlockValue, { flexDirection: "row", flexWrap: "wrap", gap: 4 }]}>
+              <View style={[styles.textBlockValue, { flexDirection: "row", flexWrap: "wrap" }]}>
                 {Object.entries(data.dtsRiskFactors)
                   .filter(([, v]) => v)
                   .map(([key]) => (
-                    <Text key={key} style={{ fontSize: 8, backgroundColor: "#fed7d7", padding: 2, borderRadius: 2 }}>
+                    <Text key={key} style={{ fontSize: 8, backgroundColor: "#fed7d7", padding: 2, borderRadius: 2, marginRight: 4, marginBottom: 2 }}>
                       {key.replace(/([A-Z])/g, " $1").trim()}
                     </Text>
                   ))}
@@ -734,14 +752,14 @@ export function IntakePDF({ data }: { data: IntakeData }) {
           )}
 
           {/* DTS Protective Factors */}
-          {data.dtsProtectiveFactors && Object.keys(data.dtsProtectiveFactors).length > 0 && (
+          {data.dtsProtectiveFactors && Object.entries(data.dtsProtectiveFactors).filter(([, v]) => v).length > 0 && (
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>DTS Protective Factors:</Text>
-              <View style={[styles.textBlockValue, { flexDirection: "row", flexWrap: "wrap", gap: 4 }]}>
+              <View style={[styles.textBlockValue, { flexDirection: "row", flexWrap: "wrap" }]}>
                 {Object.entries(data.dtsProtectiveFactors)
                   .filter(([, v]) => v)
                   .map(([key]) => (
-                    <Text key={key} style={{ fontSize: 8, backgroundColor: "#c6f6d5", padding: 2, borderRadius: 2 }}>
+                    <Text key={key} style={{ fontSize: 8, backgroundColor: "#c6f6d5", padding: 2, borderRadius: 2, marginRight: 4, marginBottom: 2 }}>
                       {key.replace(/([A-Z])/g, " $1").trim()}
                     </Text>
                   ))}
@@ -789,14 +807,14 @@ export function IntakePDF({ data }: { data: IntakeData }) {
           )}
 
           {/* DTO Risk Factors */}
-          {data.dtoRiskFactors && Object.keys(data.dtoRiskFactors).length > 0 && (
+          {data.dtoRiskFactors && Object.entries(data.dtoRiskFactors).filter(([, v]) => v).length > 0 && (
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>DTO Risk Factors:</Text>
-              <View style={[styles.textBlockValue, { flexDirection: "row", flexWrap: "wrap", gap: 4 }]}>
+              <View style={[styles.textBlockValue, { flexDirection: "row", flexWrap: "wrap" }]}>
                 {Object.entries(data.dtoRiskFactors)
                   .filter(([, v]) => v)
                   .map(([key]) => (
-                    <Text key={key} style={{ fontSize: 8, backgroundColor: "#fed7d7", padding: 2, borderRadius: 2 }}>
+                    <Text key={key} style={{ fontSize: 8, backgroundColor: "#fed7d7", padding: 2, borderRadius: 2, marginRight: 4, marginBottom: 2 }}>
                       {key.replace(/([A-Z])/g, " $1").trim()}
                     </Text>
                   ))}
@@ -886,20 +904,24 @@ export function IntakePDF({ data }: { data: IntakeData }) {
             <View style={styles.column}>
               <Text style={{ fontSize: 9, fontWeight: "bold", marginBottom: 4 }}>Hygiene Skills:</Text>
               {data.hygieneSkills &&
-                Object.entries(data.hygieneSkills).map(([key, value]) => (
+                Object.entries(data.hygieneSkills)
+                  .filter(([, value]) => value !== null && value !== undefined && value !== "")
+                  .map(([key, value]) => (
                   <View key={key} style={styles.checklistItem}>
-                    <Text style={styles.checklistLabel}>{key}:</Text>
-                    <Text style={styles.checklistValue}>{value}</Text>
+                    <Text style={styles.checklistLabel}>{safeText(key)}:</Text>
+                    <Text style={styles.checklistValue}>{safeText(value)}</Text>
                   </View>
                 ))}
             </View>
             <View style={styles.column}>
               <Text style={{ fontSize: 9, fontWeight: "bold", marginBottom: 4 }}>Additional Skills:</Text>
               {data.skillsContinuation &&
-                Object.entries(data.skillsContinuation).map(([key, value]) => (
+                Object.entries(data.skillsContinuation)
+                  .filter(([, value]) => value !== null && value !== undefined && value !== "")
+                  .map(([key, value]) => (
                   <View key={key} style={styles.checklistItem}>
-                    <Text style={styles.checklistLabel}>{key}:</Text>
-                    <Text style={styles.checklistValue}>{value}</Text>
+                    <Text style={styles.checklistLabel}>{safeText(key)}:</Text>
+                    <Text style={styles.checklistValue}>{safeText(value)}</Text>
                   </View>
                 ))}
             </View>
@@ -915,7 +937,7 @@ export function IntakePDF({ data }: { data: IntakeData }) {
                 {PHQ9_QUESTIONS.slice(0, 5).map((q, idx) => (
                   <View key={idx} style={styles.checklistItem}>
                     <Text style={{ width: "80%", fontSize: 8 }}>{q}:</Text>
-                    <Text style={{ width: "20%", fontSize: 8 }}>{data.phq9Responses?.[idx] ?? 0}</Text>
+                    <Text style={{ width: "20%", fontSize: 8 }}>{safeNumber(data.phq9Responses?.[idx])}</Text>
                   </View>
                 ))}
               </View>
@@ -923,14 +945,14 @@ export function IntakePDF({ data }: { data: IntakeData }) {
                 {PHQ9_QUESTIONS.slice(5).map((q, idx) => (
                   <View key={idx + 5} style={styles.checklistItem}>
                     <Text style={{ width: "80%", fontSize: 8 }}>{q}:</Text>
-                    <Text style={{ width: "20%", fontSize: 8 }}>{data.phq9Responses?.[idx + 5] ?? 0}</Text>
+                    <Text style={{ width: "20%", fontSize: 8 }}>{safeNumber(data.phq9Responses?.[idx + 5])}</Text>
                   </View>
                 ))}
               </View>
             </View>
             <View style={{ marginTop: 8, padding: 6, backgroundColor: "#fff", borderRadius: 3 }}>
               <Text style={styles.phq9Score}>
-                Total Score: {data.phq9TotalScore} - {getPHQ9Severity(data.phq9TotalScore)}
+                Total Score: {safeNumber(data.phq9TotalScore)} - {getPHQ9Severity(data.phq9TotalScore)}
               </Text>
             </View>
           </View>
@@ -1161,21 +1183,23 @@ export function IntakePDF({ data }: { data: IntakeData }) {
             <View style={styles.twoColumn}>
               <View style={styles.column}>
                 {Object.entries(data.adlChecklist)
-                  .slice(0, Math.ceil(Object.keys(data.adlChecklist).length / 2))
+                  .filter(([, value]) => value !== null && value !== undefined && value !== "")
+                  .slice(0, Math.ceil(Object.entries(data.adlChecklist).filter(([, v]) => v !== null && v !== undefined && v !== "").length / 2))
                   .map(([key, value]) => (
                     <View key={key} style={styles.checklistItem}>
-                      <Text style={styles.checklistLabel}>{key}:</Text>
-                      <Text style={styles.checklistValue}>{value}</Text>
+                      <Text style={styles.checklistLabel}>{safeText(key)}:</Text>
+                      <Text style={styles.checklistValue}>{safeText(value)}</Text>
                     </View>
                   ))}
               </View>
               <View style={styles.column}>
                 {Object.entries(data.adlChecklist)
-                  .slice(Math.ceil(Object.keys(data.adlChecklist).length / 2))
+                  .filter(([, value]) => value !== null && value !== undefined && value !== "")
+                  .slice(Math.ceil(Object.entries(data.adlChecklist).filter(([, v]) => v !== null && v !== undefined && v !== "").length / 2))
                   .map(([key, value]) => (
                     <View key={key} style={styles.checklistItem}>
-                      <Text style={styles.checklistLabel}>{key}:</Text>
-                      <Text style={styles.checklistValue}>{value}</Text>
+                      <Text style={styles.checklistLabel}>{safeText(key)}:</Text>
+                      <Text style={styles.checklistValue}>{safeText(value)}</Text>
                     </View>
                   ))}
               </View>
@@ -1426,17 +1450,64 @@ export function IntakePDF({ data }: { data: IntakeData }) {
           {data.dischargePlanning && (
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>Discharge Planning:</Text>
-              <Text style={styles.textBlockValue}>{data.dischargePlanning}</Text>
+              <Text style={styles.textBlockValue}>
+                {data.dischargePlanning.replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim()}
+              </Text>
             </View>
           )}
         </View>
 
         {/* Signatures */}
-        <View style={styles.section}>
+        <View style={styles.signatureSection}>
           <Text style={styles.sectionTitle}>SIGNATURES</Text>
-          <Text style={{ fontSize: 8, marginBottom: 15 }}>Client/Guardian: _________________________________ Date: _____________</Text>
-          <Text style={{ fontSize: 8, marginBottom: 15 }}>Assessment Completed By: _________________________ Date: _____________</Text>
-          <Text style={{ fontSize: 8 }}>Clinical Oversight / BHP Reviewer: __________________ Date: _____________</Text>
+
+          {/* Client/Guardian Signature */}
+          <View style={styles.signatureRow}>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureLabel}>Client/Guardian Signature</Text>
+            </View>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureLabel}>Printed Name</Text>
+            </View>
+            <View style={styles.dateBlock}>
+              <View style={styles.dateLine} />
+              <Text style={styles.dateLabel}>Date</Text>
+            </View>
+          </View>
+
+          {/* Assessment Completed By */}
+          <View style={styles.signatureRow}>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureLabel}>Assessment Completed By (Signature)</Text>
+            </View>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureLabel}>Printed Name / Credentials</Text>
+            </View>
+            <View style={styles.dateBlock}>
+              <View style={styles.dateLine} />
+              <Text style={styles.dateLabel}>Date</Text>
+            </View>
+          </View>
+
+          {/* Clinical Oversight */}
+          <View style={{ ...styles.signatureRow, marginBottom: 0 }}>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureLabel}>Clinical Oversight / BHP Reviewer (Signature)</Text>
+            </View>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureLabel}>Printed Name / Credentials</Text>
+            </View>
+            <View style={styles.dateBlock}>
+              <View style={styles.dateLine} />
+              <Text style={styles.dateLabel}>Date</Text>
+            </View>
+          </View>
         </View>
       </Page>
     </Document>

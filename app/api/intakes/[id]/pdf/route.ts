@@ -77,13 +77,19 @@ export async function GET(
     // Helper to safely handle long text for PDF rendering
     // react-pdf layout engine can overflow with very long strings, causing the
     // "unsupported number" error. We truncate to a safe maximum length.
-    const safeText = (text: string | null | undefined, maxLength = 3000): string | null => {
+    const safeText = (text: string | null | undefined, maxLength = 2000): string | null => {
       if (!text) return null;
+      // Remove problematic characters and normalize whitespace for react-pdf
+      const cleaned = String(text)
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '') // Remove control chars
+        .replace(/[\n\r]+/g, ' ')  // Replace newlines with spaces
+        .replace(/\s+/g, ' ')      // Collapse multiple spaces
+        .trim();
       // Truncate if exceeds max length to prevent react-pdf layout overflow
-      if (text.length > maxLength) {
-        return text.slice(0, maxLength) + '... [Content truncated for PDF - see full record in system]';
+      if (cleaned.length > maxLength) {
+        return cleaned.slice(0, maxLength) + '... [truncated]';
       }
-      return text;
+      return cleaned || null;
     };
 
     // Prepare PDF data - include all fields from intake
@@ -305,6 +311,34 @@ export async function GET(
       },
       bhpName: intake.facility.bhp?.user?.name || "Unknown BHP",
     };
+
+    // Debug: Log data to identify problematic fields
+    console.log("PDF Data - dischargePlanning length:", pdfData.dischargePlanning?.length || 0);
+    console.log("PDF Data - dischargePlanning preview:", pdfData.dischargePlanning?.substring(0, 200));
+    if (pdfData.dischargePlanning) {
+      // Check for non-printable characters
+      const nonPrintable = pdfData.dischargePlanning.match(/[^\x20-\x7E\n\r\t]/g);
+      if (nonPrintable) {
+        console.log("PDF Data - dischargePlanning has non-printable chars:", nonPrintable.slice(0, 10));
+      }
+    }
+
+    // Check for any non-finite numbers in the data
+    const checkForBadNumbers = (obj: unknown, path = ""): string[] => {
+      const issues: string[] = [];
+      if (typeof obj === "number" && !Number.isFinite(obj)) {
+        issues.push(`${path}: ${obj}`);
+      } else if (Array.isArray(obj)) {
+        obj.forEach((item, i) => issues.push(...checkForBadNumbers(item, `${path}[${i}]`)));
+      } else if (obj && typeof obj === "object") {
+        Object.entries(obj).forEach(([k, v]) => issues.push(...checkForBadNumbers(v, path ? `${path}.${k}` : k)));
+      }
+      return issues;
+    };
+    const badNumbers = checkForBadNumbers(pdfData);
+    if (badNumbers.length > 0) {
+      console.error("Found bad numbers in PDF data:", badNumbers);
+    }
 
     // Generate PDF
     const pdfBuffer = await renderToBuffer(IntakePDF({ data: pdfData as unknown as Parameters<typeof IntakePDF>[0]['data'] }));
