@@ -6,6 +6,7 @@ import { DocumentOwnerType } from "@prisma/client";
 import { documentRequestSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
+import { parseOptionalDate } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -223,7 +224,7 @@ export async function POST(request: NextRequest) {
           fileUrl,
           status: "UPLOADED",
           uploadedAt: new Date(),
-          expiresAt: expiresAt ? new Date(expiresAt) : null,
+          expiresAt: parseOptionalDate(expiresAt),
           ownerType: ownerType || "FACILITY",
           employeeId: employeeId || null,
           intakeId: intakeId || null,

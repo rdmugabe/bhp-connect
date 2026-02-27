@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { asamSchema, asamDraftSchema, ASAMInput, ASAMDraftInput } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
+import { parseOptionalDateOfBirth, parseOptionalPastDate, parseOptionalSignatureDate } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -163,8 +164,8 @@ export async function POST(request: NextRequest) {
 
         // Demographics
         patientName: validatedData.patientName || "Draft Assessment",
-        dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : new Date(),
-        admissionDate: validatedData.admissionDate ? new Date(validatedData.admissionDate) : null,
+        dateOfBirth: parseOptionalDateOfBirth(validatedData.dateOfBirth) || new Date(),
+        admissionDate: parseOptionalPastDate(validatedData.admissionDate),
         phoneNumber: validatedData.phoneNumber,
         okayToLeaveVoicemail: validatedData.okayToLeaveVoicemail,
         patientAddress: validatedData.patientAddress,
@@ -302,9 +303,9 @@ export async function POST(request: NextRequest) {
 
         // Signatures
         counselorName: validatedData.counselorName,
-        counselorSignatureDate: validatedData.counselorSignatureDate ? new Date(validatedData.counselorSignatureDate) : null,
+        counselorSignatureDate: parseOptionalSignatureDate(validatedData.counselorSignatureDate),
         bhpLphaName: validatedData.bhpLphaName,
-        bhpLphaSignatureDate: validatedData.bhpLphaSignatureDate ? new Date(validatedData.bhpLphaSignatureDate) : null,
+        bhpLphaSignatureDate: parseOptionalSignatureDate(validatedData.bhpLphaSignatureDate),
 
         // Workflow
         submittedBy: session.user.id,

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { employeeSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
+import { parseOptionalPastDate } from "@/lib/date-utils";
 
 async function verifyAccess(
   userId: string,
@@ -132,9 +133,7 @@ export async function PUT(
       data: {
         ...validatedData,
         email: validatedData.email || null,
-        hireDate: validatedData.hireDate
-          ? new Date(validatedData.hireDate)
-          : null,
+        hireDate: parseOptionalPastDate(validatedData.hireDate),
       },
     });
 

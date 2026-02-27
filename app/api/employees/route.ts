@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { employeeSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
+import { parseOptionalPastDate } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -173,9 +174,7 @@ export async function POST(request: NextRequest) {
       data: {
         ...validatedData,
         email: validatedData.email || null,
-        hireDate: validatedData.hireDate
-          ? new Date(validatedData.hireDate)
-          : null,
+        hireDate: parseOptionalPastDate(validatedData.hireDate),
         facilityId: bhrfProfile.facilityId,
       },
     });

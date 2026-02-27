@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { artMeetingSchema, artMeetingDraftSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
+import { parseOptionalDate } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -194,7 +195,7 @@ export async function POST(request: NextRequest) {
         facilityId: bhrfProfile.facilityId,
         meetingMonth: month,
         meetingYear: year,
-        meetingDate: validatedData.meetingDate ? new Date(validatedData.meetingDate) : null,
+        meetingDate: parseOptionalDate(validatedData.meetingDate),
         dxCodes: validatedData.dxCodes,
         presentDuringMeeting: validatedData.presentDuringMeeting || [],
         absentDuringMeeting: validatedData.absentDuringMeeting || [],

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { asamSchema, asamDraftSchema, asamDecisionSchema, ASAMInput, ASAMDraftInput } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
+import { parseOptionalDateOfBirth, parseOptionalPastDate, parseOptionalSignatureDate } from "@/lib/date-utils";
 
 export async function GET(
   request: NextRequest,
@@ -123,8 +124,8 @@ export async function PATCH(
           data: {
             status: isDraft ? "DRAFT" : existingAssessment.status,
             patientName: validatedData.patientName || existingAssessment.patientName,
-            dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : existingAssessment.dateOfBirth,
-            admissionDate: validatedData.admissionDate ? new Date(validatedData.admissionDate) : existingAssessment.admissionDate,
+            dateOfBirth: parseOptionalDateOfBirth(validatedData.dateOfBirth) || existingAssessment.dateOfBirth,
+            admissionDate: parseOptionalPastDate(validatedData.admissionDate) ?? existingAssessment.admissionDate,
             phoneNumber: validatedData.phoneNumber,
             okayToLeaveVoicemail: validatedData.okayToLeaveVoicemail,
             patientAddress: validatedData.patientAddress,
@@ -244,9 +245,9 @@ export async function PATCH(
             designatedTreatmentLocation: validatedData.designatedTreatmentLocation,
             designatedProviderName: validatedData.designatedProviderName,
             counselorName: validatedData.counselorName,
-            counselorSignatureDate: validatedData.counselorSignatureDate ? new Date(validatedData.counselorSignatureDate) : null,
+            counselorSignatureDate: parseOptionalSignatureDate(validatedData.counselorSignatureDate),
             bhpLphaName: validatedData.bhpLphaName,
-            bhpLphaSignatureDate: validatedData.bhpLphaSignatureDate ? new Date(validatedData.bhpLphaSignatureDate) : null,
+            bhpLphaSignatureDate: parseOptionalSignatureDate(validatedData.bhpLphaSignatureDate),
             draftStep: isDraft ? (currentStep || 1) : null,
           },
         });
@@ -339,8 +340,8 @@ export async function PATCH(
 
           // Demographics
           patientName: validatedData.patientName || existingAssessment.patientName,
-          dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : existingAssessment.dateOfBirth,
-          admissionDate: validatedData.admissionDate ? new Date(validatedData.admissionDate) : existingAssessment.admissionDate,
+          dateOfBirth: parseOptionalDateOfBirth(validatedData.dateOfBirth) || existingAssessment.dateOfBirth,
+          admissionDate: parseOptionalPastDate(validatedData.admissionDate) ?? existingAssessment.admissionDate,
           phoneNumber: validatedData.phoneNumber,
           okayToLeaveVoicemail: validatedData.okayToLeaveVoicemail,
           patientAddress: validatedData.patientAddress,
@@ -478,9 +479,9 @@ export async function PATCH(
 
           // Signatures
           counselorName: validatedData.counselorName,
-          counselorSignatureDate: validatedData.counselorSignatureDate ? new Date(validatedData.counselorSignatureDate) : null,
+          counselorSignatureDate: parseOptionalSignatureDate(validatedData.counselorSignatureDate),
           bhpLphaName: validatedData.bhpLphaName,
-          bhpLphaSignatureDate: validatedData.bhpLphaSignatureDate ? new Date(validatedData.bhpLphaSignatureDate) : null,
+          bhpLphaSignatureDate: parseOptionalSignatureDate(validatedData.bhpLphaSignatureDate),
 
           // Workflow
           draftStep: isDraft ? (currentStep || 1) : null,

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadToS3, generateFileKey } from "@/lib/s3";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { parseOptionalDate } from "@/lib/date-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
             type: data.type,
             name: data.name,
             fileUrl,
-            expiresAt: expiresAt ? new Date(expiresAt) : null,
+            expiresAt: parseOptionalDate(expiresAt),
             isPublic: data.isPublic ?? true,
           },
         });
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
             status: "UPLOADED",
             uploadedBy: session.user.id,
             uploadedAt: new Date(),
-            expiresAt: expiresAt ? new Date(expiresAt) : null,
+            expiresAt: parseOptionalDate(expiresAt),
           },
         }),
       ]);

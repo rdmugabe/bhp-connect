@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { intakeDecisionSchema, intakeDraftSchema, intakeSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
+import { parseOptionalDateOfBirth, parseOptionalPastDate, parseOptionalDate } from "@/lib/date-utils";
 
 export async function GET(
   request: NextRequest,
@@ -116,12 +117,8 @@ export async function PATCH(
             // Demographics
             residentName: validatedData.residentName || intake.residentName,
             ssn: validatedData.ssn,
-            dateOfBirth: validatedData.dateOfBirth
-              ? new Date(validatedData.dateOfBirth)
-              : intake.dateOfBirth,
-            admissionDate: validatedData.admissionDate
-              ? new Date(validatedData.admissionDate)
-              : intake.admissionDate,
+            dateOfBirth: parseOptionalDateOfBirth(validatedData.dateOfBirth) || intake.dateOfBirth,
+            admissionDate: parseOptionalPastDate(validatedData.admissionDate) ?? intake.admissionDate,
             sex: validatedData.sex,
             ethnicity: validatedData.ethnicity,
             nativeAmericanTribe: validatedData.nativeAmericanTribe,
@@ -356,7 +353,7 @@ export async function PATCH(
                   route: med.route,
                   prescriber: med.prescriber,
                   purpose: med.purpose,
-                  startDate: med.startDate ? new Date(med.startDate) : null,
+                  startDate: parseOptionalDate(med.startDate),
                 })
               ),
             });
@@ -423,8 +420,8 @@ export async function PATCH(
             // Demographics
             residentName: validatedData.residentName || intake.residentName,
             ssn: validatedData.ssn,
-            dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : intake.dateOfBirth,
-            admissionDate: validatedData.admissionDate ? new Date(validatedData.admissionDate) : intake.admissionDate,
+            dateOfBirth: parseOptionalDateOfBirth(validatedData.dateOfBirth) || intake.dateOfBirth,
+            admissionDate: parseOptionalPastDate(validatedData.admissionDate) ?? intake.admissionDate,
             sex: validatedData.sex,
             ethnicity: validatedData.ethnicity,
             nativeAmericanTribe: validatedData.nativeAmericanTribe,
@@ -569,7 +566,7 @@ export async function PATCH(
                   route: med.route,
                   prescriber: med.prescriber,
                   purpose: med.purpose,
-                  startDate: med.startDate ? new Date(med.startDate) : null,
+                  startDate: parseOptionalDate(med.startDate),
                 })
               ),
             });

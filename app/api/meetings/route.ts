@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { meetingSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
+import { parseRequiredDate } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
         facilityId: validatedData.facilityId,
         title: validatedData.title,
         description: validatedData.description,
-        scheduledAt: new Date(validatedData.scheduledAt),
+        scheduledAt: parseRequiredDate(validatedData.scheduledAt, "Scheduled time"),
         duration: validatedData.duration,
         meetingUrl: validatedData.meetingUrl || null,
         createdBy: session.user.id,

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { incidentReportSchema, incidentReportDraftSchema } from "@/lib/validations";
 import { parseJsonBody } from "@/lib/api-utils";
+import { parseOptionalPastDate, parseOptionalDateOfBirth, parseOptionalSignatureDate } from "@/lib/date-utils";
 
 // GET - List incident reports for a facility
 export async function GET(request: NextRequest) {
@@ -161,14 +162,14 @@ export async function POST(request: NextRequest) {
         facilityId: bhrfProfile.facilityId,
         intakeId: data.intakeId || null,
         reportNumber,
-        incidentDate: data.incidentDate ? new Date(data.incidentDate) : new Date(),
+        incidentDate: parseOptionalPastDate(data.incidentDate) || new Date(),
         incidentTime: data.incidentTime || "",
         incidentLocation: data.incidentLocation || "",
         reportCompletedBy: data.reportCompletedBy || session.user.name || "",
         reporterTitle: data.reporterTitle,
         residentName: data.residentName,
-        residentDOB: data.residentDOB ? new Date(data.residentDOB) : null,
-        residentAdmissionDate: data.residentAdmissionDate ? new Date(data.residentAdmissionDate) : null,
+        residentDOB: parseOptionalDateOfBirth(data.residentDOB),
+        residentAdmissionDate: parseOptionalPastDate(data.residentAdmissionDate),
         residentAhcccsId: data.residentAhcccsId,
         incidentTypes: data.incidentTypes || [],
         otherIncidentType: data.otherIncidentType,
@@ -196,11 +197,11 @@ export async function POST(request: NextRequest) {
         followUpActionsTimeline: data.followUpActionsTimeline,
         // Signatures
         staffSignatureName: data.staffSignatureName,
-        staffSignatureDate: data.staffSignatureDate ? new Date(data.staffSignatureDate) : null,
+        staffSignatureDate: parseOptionalSignatureDate(data.staffSignatureDate),
         adminSignatureName: data.adminSignatureName,
-        adminSignatureDate: data.adminSignatureDate ? new Date(data.adminSignatureDate) : null,
+        adminSignatureDate: parseOptionalSignatureDate(data.adminSignatureDate),
         bhpSignatureName: data.bhpSignatureName,
-        bhpSignatureDate: data.bhpSignatureDate ? new Date(data.bhpSignatureDate) : null,
+        bhpSignatureDate: parseOptionalSignatureDate(data.bhpSignatureDate),
         status: isDraft ? "DRAFT" : "PENDING",
         submittedAt: isDraft ? null : new Date(),
         submittedBy: isDraft ? null : session.user.id,

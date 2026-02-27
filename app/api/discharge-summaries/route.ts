@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { dischargeSummarySchema, dischargeSummaryDraftSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
+import { parseOptionalPastDate, parseOptionalSignatureDate } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest) {
       data: {
         intakeId,
         facilityId: bhrfProfile.facilityId,
-        dischargeDate: validatedData.dischargeDate ? new Date(validatedData.dischargeDate) : new Date(),
+        dischargeDate: parseOptionalPastDate(validatedData.dischargeDate) || new Date(),
         dischargeStartTime: validatedData.dischargeStartTime,
         dischargeEndTime: validatedData.dischargeEndTime,
         enrolledProgram: validatedData.enrolledProgram,
@@ -182,7 +183,7 @@ export async function POST(request: NextRequest) {
         objectivesAttained: validatedData.objectivesAttained || [],
         objectiveNarratives: validatedData.objectiveNarratives || {},
         completedServices: validatedData.completedServices || [],
-        actualDischargeDate: validatedData.actualDischargeDate ? new Date(validatedData.actualDischargeDate) : null,
+        actualDischargeDate: parseOptionalPastDate(validatedData.actualDischargeDate),
         dischargeSummaryNarrative: validatedData.dischargeSummaryNarrative,
         dischargingTo: validatedData.dischargingTo,
         personalItemsReceived: validatedData.personalItemsReceived || false,
@@ -194,13 +195,13 @@ export async function POST(request: NextRequest) {
         culturalPreferencesConsidered: validatedData.culturalPreferencesConsidered || false,
         suicidePreventionEducation: validatedData.suicidePreventionEducation,
         clientSignature: validatedData.clientSignature,
-        clientSignatureDate: validatedData.clientSignatureDate ? new Date(validatedData.clientSignatureDate) : null,
+        clientSignatureDate: parseOptionalSignatureDate(validatedData.clientSignatureDate),
         staffSignature: validatedData.staffSignature,
         staffCredentials: validatedData.staffCredentials,
-        staffSignatureDate: validatedData.staffSignatureDate ? new Date(validatedData.staffSignatureDate) : null,
+        staffSignatureDate: parseOptionalSignatureDate(validatedData.staffSignatureDate),
         reviewerSignature: validatedData.reviewerSignature,
         reviewerCredentials: validatedData.reviewerCredentials,
-        reviewerSignatureDate: validatedData.reviewerSignatureDate ? new Date(validatedData.reviewerSignatureDate) : null,
+        reviewerSignatureDate: parseOptionalSignatureDate(validatedData.reviewerSignatureDate),
         status: isDraft ? "DRAFT" : "PENDING",
         submittedBy: session.user.id,
         submittedAt: isDraft ? null : new Date(),
