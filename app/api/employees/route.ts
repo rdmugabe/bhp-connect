@@ -90,6 +90,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ employees: [] });
     }
 
+    // Get required certification types (system defaults with isRequired = true)
+    const requiredCertTypes = await prisma.employeeDocumentType.findMany({
+      where: {
+        isRequired: true,
+        isActive: true,
+        facilityId: null, // System defaults only
+      },
+    });
+
     const employees = await prisma.employee.findMany({
       where: {
         facilityId: targetFacilityId,
@@ -99,6 +108,15 @@ export async function GET(request: NextRequest) {
         employeeDocuments: {
           include: {
             documentType: true,
+          },
+        },
+        // Also include general documents assigned to this employee
+        documents: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            expiresAt: true,
           },
         },
       },
@@ -113,25 +131,50 @@ export async function GET(request: NextRequest) {
 
       let hasExpired = false;
       let hasExpiringSoon = false;
+      const missingCertifications: string[] = [];
+      const expiredCertifications: string[] = [];
+      const expiringSoonCertifications: string[] = [];
 
+      // Check for missing required certifications
+      requiredCertTypes.forEach((certType) => {
+        const hasDoc = employee.employeeDocuments.some(
+          (doc) => doc.documentTypeId === certType.id
+        );
+        if (!hasDoc) {
+          missingCertifications.push(certType.name);
+        }
+      });
+
+      // Check for expired/expiring documents
       employee.employeeDocuments.forEach((doc) => {
         if (doc.noExpiration) return;
         if (doc.expiresAt) {
           if (doc.expiresAt < now) {
             hasExpired = true;
+            expiredCertifications.push(doc.documentType.name);
           } else if (doc.expiresAt <= thirtyDaysFromNow) {
             hasExpiringSoon = true;
+            expiringSoonCertifications.push(doc.documentType.name);
           }
         }
       });
 
+      const hasMissing = missingCertifications.length > 0;
+
       return {
         ...employee,
-        complianceStatus: hasExpired
-          ? "EXPIRED"
+        complianceStatus: hasExpired || hasMissing
+          ? "NON_COMPLIANT"
           : hasExpiringSoon
           ? "EXPIRING_SOON"
-          : "VALID",
+          : "COMPLIANT",
+        missingCertifications,
+        expiredCertifications,
+        expiringSoonCertifications,
+        totalRequired: requiredCertTypes.length,
+        totalCompleted: requiredCertTypes.length - missingCertifications.length,
+        // Combined document count (certifications + general docs)
+        totalDocuments: employee.employeeDocuments.length + employee.documents.length,
       };
     });
 

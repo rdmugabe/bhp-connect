@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { employeeDocumentSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
-import { parseOptionalDate, parseOptionalExpirationDate } from "@/lib/date-utils";
+import { parseOptionalDate } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         issuedAt: parseOptionalDate(validatedData.issuedAt) || new Date(),
         expiresAt: validatedData.noExpiration
           ? null
-          : parseOptionalExpirationDate(validatedData.expiresAt),
+          : parseOptionalDate(validatedData.expiresAt),
         noExpiration: validatedData.noExpiration,
         status,
         uploadedBy: session.user.id,

@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     let meetings = 0;
     let adminTasks = 0;
     let artMeetings = 0;
+    let certificationIssues = 0;
 
     if (role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
@@ -205,6 +206,51 @@ export async function GET(request: NextRequest) {
           // Needs meeting if no meeting exists, or meeting is DRAFT
           return !meeting || (meeting.status === "DRAFT" && !meeting.isSkipped);
         }).length;
+
+        // Count employee certification issues (missing, expired, expiring soon)
+        const requiredCertTypes = await prisma.employeeDocumentType.findMany({
+          where: {
+            isRequired: true,
+            isActive: true,
+            facilityId: null,
+          },
+        });
+
+        const employees = await prisma.employee.findMany({
+          where: {
+            facilityId: bhrfProfile.facilityId,
+            isActive: true,
+          },
+          include: {
+            employeeDocuments: true,
+          },
+        });
+
+        const thirtyDaysFromNow = new Date();
+        thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+        employees.forEach((employee) => {
+          // Check for missing required certifications
+          requiredCertTypes.forEach((certType) => {
+            const hasDoc = employee.employeeDocuments.some(
+              (doc) => doc.documentTypeId === certType.id
+            );
+            if (!hasDoc) {
+              certificationIssues++;
+            }
+          });
+
+          // Check for expired or expiring documents
+          employee.employeeDocuments.forEach((doc) => {
+            if (doc.noExpiration || !doc.expiresAt) return;
+            const expiresAt = new Date(doc.expiresAt);
+            if (expiresAt < now) {
+              certificationIssues++; // Expired
+            } else if (expiresAt <= thirtyDaysFromNow) {
+              certificationIssues++; // Expiring soon
+            }
+          });
+        });
       }
     } else if (role === "ADMIN") {
       // Count pending BHP registrations
@@ -224,6 +270,7 @@ export async function GET(request: NextRequest) {
       meetings,
       adminTasks,
       artMeetings,
+      certificationIssues,
     });
   } catch (error) {
     console.error("Get notification counts error:", error);

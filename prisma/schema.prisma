@@ -565,8 +565,11 @@ model EmployeeDocumentType {
   facilityId         String?   // null = system default
   facility           Facility? @relation(fields: [facilityId], references: [id], onDelete: Cascade)
   name               String    // e.g., "Clearance Card", "CPR & First Aid"
+  description        String?   @db.Text // Description of what this document is
   expirationRequired Boolean   @default(true)
-  isDefault          Boolean   @default(false)
+  expirationMonths   Int?      // Default expiration period in months (e.g., 24 for CPR)
+  isDefault          Boolean   @default(false) // System-level default types
+  isRequired         Boolean   @default(false) // Required for all employees
   isActive           Boolean   @default(true)
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -576,6 +579,7 @@ model EmployeeDocumentType {
   @@unique([facilityId, name])
   @@index([facilityId])
   @@index([isDefault])
+  @@index([isRequired])
 }
 
 // Employees belonging to a facility

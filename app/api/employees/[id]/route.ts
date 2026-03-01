@@ -72,6 +72,16 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    // Get required certification types
+    const requiredCertTypes = await prisma.employeeDocumentType.findMany({
+      where: {
+        isRequired: true,
+        isActive: true,
+        facilityId: null,
+      },
+      orderBy: { name: "asc" },
+    });
+
     const employee = await prisma.employee.findUnique({
       where: { id },
       include: {
@@ -90,7 +100,59 @@ export async function GET(
       },
     });
 
-    return NextResponse.json({ employee });
+    if (!employee) {
+      return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+    }
+
+    // Calculate certification status for each required cert
+    const now = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    const requiredCertifications = requiredCertTypes.map((certType) => {
+      const doc = employee.employeeDocuments.find(
+        (d) => d.documentTypeId === certType.id
+      );
+
+      let status: "missing" | "valid" | "expiring_soon" | "expired" = "missing";
+      let expiresAt: Date | null = null;
+      let daysUntilExpiration: number | null = null;
+
+      if (doc) {
+        if (doc.noExpiration) {
+          status = "valid";
+        } else if (doc.expiresAt) {
+          expiresAt = new Date(doc.expiresAt);
+          daysUntilExpiration = Math.ceil(
+            (expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+          );
+
+          if (expiresAt < now) {
+            status = "expired";
+          } else if (expiresAt <= thirtyDaysFromNow) {
+            status = "expiring_soon";
+          } else {
+            status = "valid";
+          }
+        }
+      }
+
+      return {
+        id: certType.id,
+        name: certType.name,
+        description: certType.description,
+        status,
+        documentId: doc?.id || null,
+        expiresAt: doc?.expiresAt || null,
+        daysUntilExpiration,
+        expirationMonths: certType.expirationMonths,
+      };
+    });
+
+    return NextResponse.json({
+      employee,
+      requiredCertifications,
+    });
   } catch (error) {
     console.error("Get employee error:", error);
     return NextResponse.json(

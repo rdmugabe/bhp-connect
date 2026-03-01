@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -22,12 +23,36 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Pencil, Trash2, Upload, Mail, Phone, Calendar, Briefcase } from "lucide-react";
+import {
+  ArrowLeft,
+  Pencil,
+  Trash2,
+  Upload,
+  Mail,
+  Phone,
+  Calendar,
+  Briefcase,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  FileWarning,
+} from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { EmployeeDocumentsTable } from "@/components/employees/employee-documents-table";
 import { EmployeeDocumentForm } from "@/components/employees/employee-document-form";
 import { EmployeeComplianceBadge } from "@/components/employees/employee-compliance-badge";
+
+interface RequiredCertification {
+  id: string;
+  name: string;
+  description: string | null;
+  status: "missing" | "valid" | "expiring_soon" | "expired";
+  documentId: string | null;
+  expiresAt: string | null;
+  daysUntilExpiration: number | null;
+  expirationMonths: number | null;
+}
 
 interface Employee {
   id: string;
@@ -42,7 +67,7 @@ interface Employee {
     id: string;
     name: string;
   };
-  documents: {
+  employeeDocuments: {
     id: string;
     documentType: {
       id: string;
@@ -67,8 +92,9 @@ export default function EmployeeDetailPage() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDocumentForm, setShowDocumentForm] = useState(false);
-  const [editingDocument, setEditingDocument] = useState<Employee["documents"][0] | null>(null);
+  const [editingDocument, setEditingDocument] = useState<Employee["employeeDocuments"][0] | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [requiredCertifications, setRequiredCertifications] = useState<RequiredCertification[]>([]);
 
   useEffect(() => {
     fetchEmployee();
@@ -80,6 +106,7 @@ export default function EmployeeDetailPage() {
       if (response.ok) {
         const data = await response.json();
         setEmployee(data.employee);
+        setRequiredCertifications(data.requiredCertifications || []);
       } else if (response.status === 404) {
         router.push("/facility/employees");
       }
@@ -122,29 +149,17 @@ export default function EmployeeDetailPage() {
     }
   }
 
-  function getComplianceStatus(): "VALID" | "EXPIRING_SOON" | "EXPIRED" {
+  function getComplianceStatus(): "VALID" | "EXPIRING_SOON" | "EXPIRED" | "NON_COMPLIANT" {
     if (!employee) return "VALID";
 
-    const now = new Date();
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+    // Check for missing required certifications
+    const hasMissing = requiredCertifications.some(cert => cert.status === "missing");
+    const hasExpired = requiredCertifications.some(cert => cert.status === "expired");
+    const hasExpiringSoon = requiredCertifications.some(cert => cert.status === "expiring_soon");
 
-    let hasExpired = false;
-    let hasExpiringSoon = false;
-
-    employee.documents.forEach((doc) => {
-      if (doc.noExpiration) return;
-      if (doc.expiresAt) {
-        const expiresAt = new Date(doc.expiresAt);
-        if (expiresAt < now) {
-          hasExpired = true;
-        } else if (expiresAt <= thirtyDaysFromNow) {
-          hasExpiringSoon = true;
-        }
-      }
-    });
-
-    return hasExpired ? "EXPIRED" : hasExpiringSoon ? "EXPIRING_SOON" : "VALID";
+    if (hasMissing || hasExpired) return "NON_COMPLIANT";
+    if (hasExpiringSoon) return "EXPIRING_SOON";
+    return "VALID";
   }
 
   if (isLoading) {
@@ -173,7 +188,14 @@ export default function EmployeeDetailPage() {
           </h1>
           <p className="text-muted-foreground">{employee.position}</p>
         </div>
-        <EmployeeComplianceBadge status={getComplianceStatus()} />
+        <EmployeeComplianceBadge
+          status={getComplianceStatus()}
+          missingCertifications={requiredCertifications.filter(c => c.status === "missing").map(c => c.name)}
+          expiredCertifications={requiredCertifications.filter(c => c.status === "expired").map(c => c.name)}
+          expiringSoonCertifications={requiredCertifications.filter(c => c.status === "expiring_soon").map(c => c.name)}
+          totalRequired={requiredCertifications.length}
+          totalCompleted={requiredCertifications.filter(c => c.status === "valid").length}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -256,7 +278,7 @@ export default function EmployeeDetailPage() {
           </CardHeader>
           <CardContent className="p-0">
             <EmployeeDocumentsTable
-              documents={employee.documents}
+              documents={employee.employeeDocuments}
               onEdit={(doc) => {
                 setEditingDocument(doc);
                 setShowDocumentForm(true);
@@ -266,6 +288,98 @@ export default function EmployeeDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Required Certifications Section */}
+      {requiredCertifications.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Required Certifications</CardTitle>
+            <CardDescription>
+              These certifications are required for all employees. Click &quot;Upload Document&quot; above to add missing certifications.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {requiredCertifications.map((cert) => (
+                <div
+                  key={cert.id}
+                  className={`p-4 rounded-lg border ${
+                    cert.status === "valid"
+                      ? "border-green-200 bg-green-50"
+                      : cert.status === "expiring_soon"
+                      ? "border-yellow-200 bg-yellow-50"
+                      : cert.status === "expired"
+                      ? "border-red-200 bg-red-50"
+                      : "border-gray-200 bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{cert.name}</h4>
+                      {cert.description && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {cert.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="ml-2">
+                      {cert.status === "valid" && (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      )}
+                      {cert.status === "expiring_soon" && (
+                        <AlertCircle className="h-5 w-5 text-yellow-600" />
+                      )}
+                      {cert.status === "expired" && (
+                        <XCircle className="h-5 w-5 text-red-600" />
+                      )}
+                      {cert.status === "missing" && (
+                        <FileWarning className="h-5 w-5 text-gray-400" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    {cert.status === "valid" && cert.expiresAt && (
+                      <p className="text-xs text-green-700">
+                        Expires: {formatDate(cert.expiresAt)}
+                        {cert.daysUntilExpiration !== null && (
+                          <span className="ml-1">
+                            ({cert.daysUntilExpiration} days)
+                          </span>
+                        )}
+                      </p>
+                    )}
+                    {cert.status === "expiring_soon" && cert.expiresAt && (
+                      <p className="text-xs text-yellow-700 font-medium">
+                        Expires: {formatDate(cert.expiresAt)}
+                        {cert.daysUntilExpiration !== null && (
+                          <span className="ml-1">
+                            ({cert.daysUntilExpiration} days remaining)
+                          </span>
+                        )}
+                      </p>
+                    )}
+                    {cert.status === "expired" && cert.expiresAt && (
+                      <p className="text-xs text-red-700 font-medium">
+                        Expired: {formatDate(cert.expiresAt)}
+                      </p>
+                    )}
+                    {cert.status === "missing" && (
+                      <p className="text-xs text-gray-500 font-medium">
+                        Not uploaded
+                        {cert.expirationMonths && (
+                          <span className="ml-1">
+                            (Valid for {cert.expirationMonths} months)
+                          </span>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <EmployeeFormDialog
         open={showEditDialog}

@@ -47,7 +47,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Upload, ExternalLink, FileText, Settings, Plus, FolderOpen, Building2, User, Users, Trash2, Download } from "lucide-react";
+import { Upload, ExternalLink, FileText, Settings, Plus, FolderOpen, Building2, User, Users, Trash2, Download, Pencil } from "lucide-react";
 import { formatDate, getExpirationStatus } from "@/lib/utils";
 
 interface DocumentCategory {
@@ -110,6 +110,11 @@ export default function FacilityDocumentsPage() {
   const [filterResidentId, setFilterResidentId] = useState<string>("ALL");
   const [deletingDoc, setDeletingDoc] = useState<Document | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<Document | null>(null);
+  const [editOwnerType, setEditOwnerType] = useState<"FACILITY" | "EMPLOYEE" | "RESIDENT">("FACILITY");
+  const [editEmployeeId, setEditEmployeeId] = useState("");
+  const [editIntakeId, setEditIntakeId] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     fetchDocuments();
@@ -330,6 +335,66 @@ export default function FacilityDocumentsPage() {
       });
     } finally {
       setIsDeleting(false);
+    }
+  }
+
+  function openEditDialog(doc: Document) {
+    setEditingDoc(doc);
+    setEditOwnerType(doc.ownerType);
+    setEditEmployeeId(doc.employee?.id || "");
+    setEditIntakeId(doc.intake?.id || "");
+  }
+
+  async function handleUpdateAssignment() {
+    if (!editingDoc) return;
+
+    if (editOwnerType === "EMPLOYEE" && !editEmployeeId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select an employee",
+      });
+      return;
+    }
+
+    if (editOwnerType === "RESIDENT" && !editIntakeId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select a resident",
+      });
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`/api/documents/${editingDoc.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ownerType: editOwnerType,
+          employeeId: editOwnerType === "EMPLOYEE" ? editEmployeeId : null,
+          intakeId: editOwnerType === "RESIDENT" ? editIntakeId : null,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update document");
+
+      toast({
+        title: "Success",
+        description: "Document assignment updated successfully",
+      });
+
+      setEditingDoc(null);
+      fetchDocuments();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update document assignment",
+      });
+    } finally {
+      setIsUpdating(false);
     }
   }
 
@@ -693,6 +758,14 @@ export default function FacilityDocumentsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => openEditDialog(doc)}
+                        title="Edit Assignment"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setDeletingDoc(doc)}
                         title="Delete"
                         className="text-destructive hover:text-destructive"
@@ -899,6 +972,117 @@ export default function FacilityDocumentsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Assignment Dialog */}
+      <Dialog open={!!editingDoc} onOpenChange={(open) => !open && setEditingDoc(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Document Assignment</DialogTitle>
+            <DialogDescription>
+              Change the owner assignment for &quot;{editingDoc?.name}&quot;
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Current Assignment</Label>
+              <div className="mt-1 p-2 bg-muted rounded text-sm">
+                {editingDoc?.ownerType === "FACILITY" && "Facility"}
+                {editingDoc?.ownerType === "EMPLOYEE" && (
+                  <>Employee: {editingDoc.employee?.firstName} {editingDoc.employee?.lastName}</>
+                )}
+                {editingDoc?.ownerType === "RESIDENT" && (
+                  <>Resident: {editingDoc.intake?.residentName}</>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label>New Owner Type *</Label>
+              <Select
+                value={editOwnerType}
+                onValueChange={(value: "FACILITY" | "EMPLOYEE" | "RESIDENT") => {
+                  setEditOwnerType(value);
+                  setEditEmployeeId("");
+                  setEditIntakeId("");
+                }}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FACILITY">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Facility
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="EMPLOYEE">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Employee
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="RESIDENT">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Resident
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {editOwnerType === "EMPLOYEE" && (
+              <div>
+                <Label>Select Employee *</Label>
+                <Select value={editEmployeeId} onValueChange={setEditEmployeeId}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Choose an employee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employees.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.firstName} {emp.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {editOwnerType === "RESIDENT" && (
+              <div>
+                <Label>Select Resident *</Label>
+                <Select value={editIntakeId} onValueChange={setEditIntakeId}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Choose a resident" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {residents.map((res) => (
+                      <SelectItem key={res.id} value={res.id}>
+                        {res.residentName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setEditingDoc(null)}
+                disabled={isUpdating}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateAssignment} disabled={isUpdating}>
+                {isUpdating ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
