@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     borderLeft: "0.5 solid #000",
     borderRight: "0.5 solid #000",
     borderBottom: "0.5 solid #000",
-    minHeight: 16,
+    minHeight: 19,
   },
   medicationCell: {
     width: "15%",
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     borderLeft: "0.5 solid #000",
     borderRight: "0.5 solid #000",
     borderBottom: "0.5 solid #000",
-    minHeight: 14,
+    minHeight: 15,
   },
   prnCell: {
     padding: 2,
@@ -155,11 +155,11 @@ const styles = StyleSheet.create({
     border: "0.5 solid #000",
   },
   signatureCell: {
-    width: "25%",
+    width: "16.66%",
     padding: 2,
     borderRight: "0.5 solid #000",
     borderBottom: "0.5 solid #000",
-    minHeight: 18,
+    minHeight: 22,
   },
   signatureLabel: {
     fontSize: 5,
@@ -226,8 +226,8 @@ export function MARTemplate({ data }: { data: MARData }) {
   const daysInMonth = getDaysInMonth(data.monthYear);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const medicationRows = Array.from({ length: 14 }, (_, i) => i);
-  const prnRows = Array.from({ length: 5 }, (_, i) => i);
-  const signatureRows = Array.from({ length: 4 }, (_, i) => i);
+  const prnRows = Array.from({ length: 28 }, (_, i) => i);
+  const signatureRows = Array.from({ length: 2 }, (_, i) => i);
 
   return (
     <Document>
@@ -326,47 +326,6 @@ export function MARTemplate({ data }: { data: MARData }) {
           ))}
         </View>
 
-        {/* PRN Medications Section */}
-        <Text style={styles.sectionTitle}>PRN (AS NEEDED) MEDICATIONS</Text>
-        <View>
-          <View style={styles.prnHeader}>
-            <View style={[styles.prnCell, { width: "12%" }]}>
-              <Text style={{ fontWeight: "bold" }}>Date/Time</Text>
-            </View>
-            <View style={[styles.prnCell, { width: "22%" }]}>
-              <Text style={{ fontWeight: "bold" }}>Medication/Dose</Text>
-            </View>
-            <View style={[styles.prnCell, { width: "22%" }]}>
-              <Text style={{ fontWeight: "bold" }}>Reason Given</Text>
-            </View>
-            <View style={[styles.prnCell, { width: "22%" }]}>
-              <Text style={{ fontWeight: "bold" }}>Effectiveness</Text>
-            </View>
-            <View style={[styles.prnCell, { width: "22%", borderRight: "none" }]}>
-              <Text style={{ fontWeight: "bold" }}>Initials</Text>
-            </View>
-          </View>
-          {prnRows.map((row) => (
-            <View key={row} style={styles.prnRow}>
-              <View style={[styles.prnCell, { width: "12%" }]}>
-                <Text> </Text>
-              </View>
-              <View style={[styles.prnCell, { width: "22%" }]}>
-                <Text> </Text>
-              </View>
-              <View style={[styles.prnCell, { width: "22%" }]}>
-                <Text> </Text>
-              </View>
-              <View style={[styles.prnCell, { width: "22%" }]}>
-                <Text> </Text>
-              </View>
-              <View style={[styles.prnCell, { width: "22%", borderRight: "none" }]}>
-                <Text> </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
         {/* Bottom Row - Codes and Signature side by side */}
         <View style={styles.bottomRow}>
           {/* Codes */}
@@ -382,16 +341,22 @@ export function MARTemplate({ data }: { data: MARData }) {
             <View style={styles.signatureGrid}>
               {signatureRows.map((row) => (
                 <View key={row} style={{ flexDirection: "row", width: "100%" }}>
-                  <View style={styles.signatureCell}>
+                  <View style={[styles.signatureCell, { width: "10%" }]}>
                     <Text style={styles.signatureLabel}>Initials</Text>
                   </View>
                   <View style={[styles.signatureCell, { width: "25%" }]}>
+                    <Text style={styles.signatureLabel}>Full Name</Text>
+                  </View>
+                  <View style={[styles.signatureCell, { width: "15%" }]}>
                     <Text style={styles.signatureLabel}>Signature/Title</Text>
                   </View>
-                  <View style={styles.signatureCell}>
+                  <View style={[styles.signatureCell, { width: "10%" }]}>
                     <Text style={styles.signatureLabel}>Initials</Text>
                   </View>
-                  <View style={[styles.signatureCell, { width: "25%", borderRight: "none" }]}>
+                  <View style={[styles.signatureCell, { width: "25%" }]}>
+                    <Text style={styles.signatureLabel}>Full Name</Text>
+                  </View>
+                  <View style={[styles.signatureCell, { width: "15%", borderRight: "none" }]}>
                     <Text style={styles.signatureLabel}>Signature/Title</Text>
                   </View>
                 </View>
@@ -415,6 +380,134 @@ export function MARTemplate({ data }: { data: MARData }) {
             IMPORTANT: Document in real-time. Never pre-sign or back-sign. Use black ink. Single line through errors with initials/date.
           </Text>
           <Text style={styles.footerText}>MAR - {data.residentName} - {data.monthYear}</Text>
+        </View>
+      </Page>
+
+      {/* PRN Medications Page */}
+      <Page size="LETTER" orientation="landscape" style={styles.page}>
+        {/* Title */}
+        <Text style={styles.title}>PRN (AS NEEDED) MEDICATIONS</Text>
+
+        {/* Header Information - Compact */}
+        <View style={styles.headerSection}>
+          <View style={styles.headerRow}>
+            <View style={[styles.headerCell, { flex: 1.5 }]}>
+              <Text style={styles.headerLabel}>Facility:</Text>
+              <Text style={styles.headerValue}>{data.facilityName}</Text>
+            </View>
+            <View style={styles.headerCell}>
+              <Text style={styles.headerLabel}>Month/Year:</Text>
+              <Text style={styles.headerValue}>{data.monthYear}</Text>
+            </View>
+            <View style={styles.headerCell}>
+              <Text style={styles.headerLabel}>Resident:</Text>
+              <Text style={styles.headerValue}>{data.residentName}</Text>
+            </View>
+            <View style={styles.headerCell}>
+              <Text style={styles.headerLabel}>DOB:</Text>
+              <Text style={styles.headerValue}>{data.dateOfBirth}</Text>
+            </View>
+            <View style={styles.headerCell}>
+              <Text style={styles.headerLabel}>ALLERGIES:</Text>
+              <Text style={[styles.headerValue, { color: data.allergies ? "#c53030" : "#000" }]}>
+                {data.allergies || "NKDA"}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* PRN Medications Table */}
+        <View style={styles.table}>
+          <View style={styles.prnHeader}>
+            <View style={[styles.prnCell, { width: "10%" }]}>
+              <Text style={{ fontWeight: "bold" }}>Date</Text>
+            </View>
+            <View style={[styles.prnCell, { width: "8%" }]}>
+              <Text style={{ fontWeight: "bold" }}>Time</Text>
+            </View>
+            <View style={[styles.prnCell, { width: "20%" }]}>
+              <Text style={{ fontWeight: "bold" }}>Medication/Dose</Text>
+            </View>
+            <View style={[styles.prnCell, { width: "22%" }]}>
+              <Text style={{ fontWeight: "bold" }}>Reason Given</Text>
+            </View>
+            <View style={[styles.prnCell, { width: "22%" }]}>
+              <Text style={{ fontWeight: "bold" }}>Effectiveness/Follow-up</Text>
+            </View>
+            <View style={[styles.prnCell, { width: "18%", borderRight: "none" }]}>
+              <Text style={{ fontWeight: "bold" }}>Staff Initials</Text>
+            </View>
+          </View>
+          {prnRows.map((row) => (
+            <View key={row} style={styles.prnRow}>
+              <View style={[styles.prnCell, { width: "10%" }]}>
+                <Text> </Text>
+              </View>
+              <View style={[styles.prnCell, { width: "8%" }]}>
+                <Text> </Text>
+              </View>
+              <View style={[styles.prnCell, { width: "20%" }]}>
+                <Text> </Text>
+              </View>
+              <View style={[styles.prnCell, { width: "22%" }]}>
+                <Text> </Text>
+              </View>
+              <View style={[styles.prnCell, { width: "22%" }]}>
+                <Text> </Text>
+              </View>
+              <View style={[styles.prnCell, { width: "18%", borderRight: "none" }]}>
+                <Text> </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Bottom Row - Codes and Signature side by side */}
+        <View style={[styles.bottomRow, { marginTop: 10 }]}>
+          {/* Codes */}
+          <View style={styles.codesBox}>
+            <Text style={[styles.codesText, { fontWeight: "bold", marginBottom: 2 }]}>PRN MEDICATION GUIDELINES:</Text>
+            <Text style={styles.codesText}>• Document reason for administration and patient response</Text>
+            <Text style={styles.codesText}>• Follow-up within 30-60 minutes to assess effectiveness</Text>
+            <Text style={styles.codesText}>• Report any adverse reactions immediately to prescriber</Text>
+          </View>
+
+          {/* Signature Log */}
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureTitle}>STAFF SIGNATURE LOG</Text>
+            <View style={styles.signatureGrid}>
+              {signatureRows.map((row) => (
+                <View key={row} style={{ flexDirection: "row", width: "100%" }}>
+                  <View style={[styles.signatureCell, { width: "10%" }]}>
+                    <Text style={styles.signatureLabel}>Initials</Text>
+                  </View>
+                  <View style={[styles.signatureCell, { width: "25%" }]}>
+                    <Text style={styles.signatureLabel}>Full Name</Text>
+                  </View>
+                  <View style={[styles.signatureCell, { width: "15%" }]}>
+                    <Text style={styles.signatureLabel}>Signature/Title</Text>
+                  </View>
+                  <View style={[styles.signatureCell, { width: "10%" }]}>
+                    <Text style={styles.signatureLabel}>Initials</Text>
+                  </View>
+                  <View style={[styles.signatureCell, { width: "25%" }]}>
+                    <Text style={styles.signatureLabel}>Full Name</Text>
+                  </View>
+                  <View style={[styles.signatureCell, { width: "15%", borderRight: "none" }]}>
+                    <Text style={styles.signatureLabel}>Signature/Title</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={[styles.importantNote, { marginTop: 6 }]}>
+          <Text style={styles.importantText}>
+            IMPORTANT: Document in real-time. Never pre-sign or back-sign. Use black ink. Single line through errors with initials/date.
+          </Text>
+          <Text style={styles.footerText}>MAR PRN - {data.residentName} - {data.monthYear}</Text>
         </View>
       </Page>
     </Document>
