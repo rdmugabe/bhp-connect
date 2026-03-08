@@ -65,6 +65,17 @@ const requiredCertifications = [
     isRequired: true,
     isActive: true,
   },
+  {
+    id: "sys_medication_training",
+    name: "Medication Training",
+    description:
+      "Medication administration training documentation including proper handling, storage, and dispensing of medications",
+    expirationRequired: true,
+    expirationMonths: 12,
+    isDefault: true,
+    isRequired: true,
+    isActive: true,
+  },
 ];
 
 async function main() {
