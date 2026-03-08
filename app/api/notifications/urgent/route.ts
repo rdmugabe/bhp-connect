@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
           });
         }
 
-        // Check for expiring documents
+        // Check for expiring documents (exclude discharged patients)
         const sevenDaysFromNow = new Date();
         sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
 
@@ -120,6 +120,11 @@ export async function GET(request: NextRequest) {
               lte: sevenDaysFromNow,
             },
             status: { not: "REQUESTED" },
+            // Exclude documents belonging to discharged patients
+            OR: [
+              { intakeId: null }, // Facility or employee documents
+              { intake: { dischargedAt: null } }, // Active patient documents
+            ],
           },
         });
 
