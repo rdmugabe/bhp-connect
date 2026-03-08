@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Upload, ExternalLink, FileText, Settings, Plus, FolderOpen, Building2, User, Users, Trash2, Download, Pencil } from "lucide-react";
+import { Upload, ExternalLink, FileText, Settings, Plus, FolderOpen, Building2, User, Users, Trash2, Download, Pencil, Archive, ArchiveRestore, ChevronDown, ChevronRight, Calendar } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate, getExpirationStatus } from "@/lib/utils";
 
 interface DocumentCategory {
@@ -81,17 +82,40 @@ interface Document {
   categoryId: string | null;
   category: DocumentCategory | null;
   employee: Employee | null;
-  intake: Resident | null;
+  intake: (Resident & {
+    admissionDate?: string | null;
+    dischargedAt?: string | null;
+    createdAt?: string;
+  }) | null;
   fileUrl: string | null;
   expiresAt: string | null;
   status: string;
   uploadedAt: string | null;
   requestedAt: string | null;
+  archivedAt: string | null;
+}
+
+interface GroupedArchivedDocs {
+  intakeId: string;
+  residentName: string;
+  admissionDate: string | null;
+  dischargedAt: string | null;
+  documents: Document[];
+}
+
+interface GroupedActiveDocs {
+  id: string;
+  type: "FACILITY" | "EMPLOYEE" | "RESIDENT";
+  name: string;
+  subtitle?: string;
+  documents: Document[];
 }
 
 export default function FacilityDocumentsPage() {
   const { toast } = useToast();
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [archivedDocuments, setArchivedDocuments] = useState<Document[]>([]);
+  const [archivedCount, setArchivedCount] = useState(0);
   const [categories, setCategories] = useState<DocumentCategory[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [residents, setResidents] = useState<Resident[]>([]);
@@ -105,9 +129,6 @@ export default function FacilityDocumentsPage() {
   const [newDocOwnerType, setNewDocOwnerType] = useState<"FACILITY" | "EMPLOYEE" | "RESIDENT">("FACILITY");
   const [newDocEmployeeId, setNewDocEmployeeId] = useState("");
   const [newDocIntakeId, setNewDocIntakeId] = useState("");
-  const [filterOwnerType, setFilterOwnerType] = useState<string>("ALL");
-  const [filterEmployeeId, setFilterEmployeeId] = useState<string>("ALL");
-  const [filterResidentId, setFilterResidentId] = useState<string>("ALL");
   const [deletingDoc, setDeletingDoc] = useState<Document | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingDoc, setEditingDoc] = useState<Document | null>(null);
@@ -115,9 +136,153 @@ export default function FacilityDocumentsPage() {
   const [editEmployeeId, setEditEmployeeId] = useState("");
   const [editIntakeId, setEditIntakeId] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [activeTab, setActiveTab] = useState<"active" | "archived">("active");
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["facility"])); // Facility expanded by default
+  const [expandedAdmissions, setExpandedAdmissions] = useState<Set<string>>(new Set());
+
+  // Separate requested and uploaded documents
+  const requestedDocs = documents.filter((d) => d.status === "REQUESTED");
+  const uploadedDocs = documents.filter((d) => d.status !== "REQUESTED");
+
+  // Group active documents by owner type
+  const groupedActiveDocs = useMemo(() => {
+    const groups: GroupedActiveDocs[] = [];
+    const facilityDocs: Document[] = [];
+    const employeeGroups: Map<string, { name: string; documents: Document[] }> = new Map();
+    const residentGroups: Map<string, { name: string; admissionDate: string | null; documents: Document[] }> = new Map();
+
+    uploadedDocs.forEach((doc) => {
+      if (doc.ownerType === "FACILITY") {
+        facilityDocs.push(doc);
+      } else if (doc.ownerType === "EMPLOYEE" && doc.employee) {
+        const key = doc.employee.id;
+        if (!employeeGroups.has(key)) {
+          employeeGroups.set(key, {
+            name: `${doc.employee.firstName} ${doc.employee.lastName}`,
+            documents: [],
+          });
+        }
+        employeeGroups.get(key)!.documents.push(doc);
+      } else if (doc.ownerType === "RESIDENT" && doc.intake) {
+        const key = doc.intake.id;
+        if (!residentGroups.has(key)) {
+          residentGroups.set(key, {
+            name: doc.intake.residentName,
+            admissionDate: doc.intake.admissionDate || doc.intake.createdAt || null,
+            documents: [],
+          });
+        }
+        residentGroups.get(key)!.documents.push(doc);
+      }
+    });
+
+    // Add facility group first
+    if (facilityDocs.length > 0) {
+      groups.push({
+        id: "facility",
+        type: "FACILITY",
+        name: "Facility Documents",
+        documents: facilityDocs,
+      });
+    }
+
+    // Add employee groups
+    employeeGroups.forEach((value, key) => {
+      groups.push({
+        id: `employee-${key}`,
+        type: "EMPLOYEE",
+        name: value.name,
+        subtitle: "Employee",
+        documents: value.documents,
+      });
+    });
+
+    // Add resident groups
+    residentGroups.forEach((value, key) => {
+      groups.push({
+        id: `resident-${key}`,
+        type: "RESIDENT",
+        name: value.name,
+        subtitle: value.admissionDate ? `Admitted: ${formatDate(value.admissionDate)}` : "Resident",
+        documents: value.documents,
+      });
+    });
+
+    return groups;
+  }, [uploadedDocs]);
+
+  const toggleGroupExpanded = (groupId: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
+      } else {
+        newSet.add(groupId);
+      }
+      return newSet;
+    });
+  };
+
+  // Group archived documents by admission period
+  const groupedArchivedDocs = useMemo(() => {
+    const groups: GroupedArchivedDocs[] = [];
+    const facilityDocs: Document[] = [];
+
+    archivedDocuments.forEach((doc) => {
+      if (doc.ownerType === "RESIDENT" && doc.intake) {
+        let group = groups.find((g) => g.intakeId === doc.intake!.id);
+        if (!group) {
+          group = {
+            intakeId: doc.intake.id,
+            residentName: doc.intake.residentName,
+            admissionDate: doc.intake.admissionDate || doc.intake.createdAt || null,
+            dischargedAt: doc.intake.dischargedAt || null,
+            documents: [],
+          };
+          groups.push(group);
+        }
+        group.documents.push(doc);
+      } else {
+        facilityDocs.push(doc);
+      }
+    });
+
+    // Sort groups by discharge date (most recent first)
+    groups.sort((a, b) => {
+      if (!a.dischargedAt) return 1;
+      if (!b.dischargedAt) return -1;
+      return new Date(b.dischargedAt).getTime() - new Date(a.dischargedAt).getTime();
+    });
+
+    // Add facility docs as a separate group if any
+    if (facilityDocs.length > 0) {
+      groups.push({
+        intakeId: "facility",
+        residentName: "Facility Documents",
+        admissionDate: null,
+        dischargedAt: null,
+        documents: facilityDocs,
+      });
+    }
+
+    return groups;
+  }, [archivedDocuments]);
+
+  const toggleAdmissionExpanded = (intakeId: string) => {
+    setExpandedAdmissions((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(intakeId)) {
+        newSet.delete(intakeId);
+      } else {
+        newSet.add(intakeId);
+      }
+      return newSet;
+    });
+  };
 
   useEffect(() => {
     fetchDocuments();
+    fetchArchivedDocuments();
     fetchCategories();
     fetchEmployees();
     fetchResidents();
@@ -129,9 +294,22 @@ export default function FacilityDocumentsPage() {
       if (response.ok) {
         const data = await response.json();
         setDocuments(data.documents || []);
+        setArchivedCount(data.archivedCount || 0);
       }
     } catch (error) {
       console.error("Failed to fetch documents:", error);
+    }
+  }
+
+  async function fetchArchivedDocuments() {
+    try {
+      const response = await fetch("/api/documents?archived=true");
+      if (response.ok) {
+        const data = await response.json();
+        setArchivedDocuments(data.documents || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch archived documents:", error);
     }
   }
 
@@ -439,34 +617,6 @@ export default function FacilityDocumentsPage() {
     }
   };
 
-  const requestedDocs = documents.filter((d) => d.status === "REQUESTED");
-  const uploadedDocs = documents.filter((d) => d.status !== "REQUESTED");
-
-  // Apply owner type filter and specific employee/resident filter
-  const filteredDocs = uploadedDocs.filter(d => {
-    // First filter by owner type
-    if (filterOwnerType !== "ALL" && d.ownerType !== filterOwnerType) {
-      return false;
-    }
-    // Then filter by specific employee if selected
-    if (filterOwnerType === "EMPLOYEE" && filterEmployeeId !== "ALL") {
-      return d.employee?.id === filterEmployeeId;
-    }
-    // Then filter by specific resident if selected
-    if (filterOwnerType === "RESIDENT" && filterResidentId !== "ALL") {
-      return d.intake?.id === filterResidentId;
-    }
-    return true;
-  });
-
-  // Get employees and residents that have documents
-  const employeesWithDocs = employees.filter(emp =>
-    uploadedDocs.some(d => d.ownerType === "EMPLOYEE" && d.employee?.id === emp.id)
-  );
-  const residentsWithDocs = residents.filter(res =>
-    uploadedDocs.some(d => d.ownerType === "RESIDENT" && d.intake?.id === res.id)
-  );
-
   // Group by category for required categories
   const bhpCategories = categories.filter((c) => c.bhpId !== null);
   const requiredCategories = bhpCategories.filter((c) => c.isRequired);
@@ -636,160 +786,324 @@ export default function FacilityDocumentsPage() {
         </Card>
       )}
 
-      {/* Uploaded Documents */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Uploaded Documents</CardTitle>
+      {/* Uploaded Documents with Tabs */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "active" | "archived")} className="w-full">
+        <TabsList>
+          <TabsTrigger value="active" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Active Documents
+            <Badge variant="secondary" className="ml-1">
+              {uploadedDocs.length}
+            </Badge>
+          </TabsTrigger>
+          <TabsTrigger value="archived" className="flex items-center gap-2">
+            <Archive className="h-4 w-4" />
+            Archived
+            <Badge variant="outline" className="ml-1">
+              {archivedCount}
+            </Badge>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="active">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Uploaded Documents
+              </CardTitle>
               <CardDescription>
-                Documents you have uploaded for your facility
+                Documents organized by facility, employees, and residents
               </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Select
-                value={filterOwnerType}
-                onValueChange={(value) => {
-                  setFilterOwnerType(value);
-                  setFilterEmployeeId("ALL");
-                  setFilterResidentId("ALL");
-                }}
-              >
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Filter by owner" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All Owners</SelectItem>
-                  <SelectItem value="FACILITY">Facility</SelectItem>
-                  <SelectItem value="EMPLOYEE">Employees</SelectItem>
-                  <SelectItem value="RESIDENT">Residents</SelectItem>
-                </SelectContent>
-              </Select>
+            </CardHeader>
+            <CardContent>
+              {groupedActiveDocs.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No documents uploaded yet
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {groupedActiveDocs.map((group) => {
+                    const isExpanded = expandedGroups.has(group.id);
+                    const getGroupIcon = () => {
+                      switch (group.type) {
+                        case "FACILITY":
+                          return <Building2 className="h-4 w-4" />;
+                        case "EMPLOYEE":
+                          return <User className="h-4 w-4" />;
+                        case "RESIDENT":
+                          return <Users className="h-4 w-4" />;
+                      }
+                    };
 
-              {filterOwnerType === "EMPLOYEE" && employeesWithDocs.length > 0 && (
-                <Select value={filterEmployeeId} onValueChange={setFilterEmployeeId}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="All employees" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Employees</SelectItem>
-                    {employeesWithDocs.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.firstName} {emp.lastName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+                    return (
+                      <div
+                        key={group.id}
+                        className="border rounded-lg overflow-hidden"
+                      >
+                        {/* Group Header */}
+                        <button
+                          onClick={() => toggleGroupExpanded(group.id)}
+                          className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-muted transition-colors text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            {isExpanded ? (
+                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                            ) : (
+                              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            )}
+                            <div>
+                              <div className="flex items-center gap-2">
+                                {getGroupIcon()}
+                                <span className="font-medium">{group.name}</span>
+                                <Badge variant="secondary" className="text-xs">
+                                  {group.documents.length} document{group.documents.length !== 1 ? "s" : ""}
+                                </Badge>
+                              </div>
+                              {group.subtitle && (
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                  <span>{group.subtitle}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </button>
 
-              {filterOwnerType === "RESIDENT" && residentsWithDocs.length > 0 && (
-                <Select value={filterResidentId} onValueChange={setFilterResidentId}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="All residents" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Residents</SelectItem>
-                    {residentsWithDocs.map((res) => (
-                      <SelectItem key={res.id} value={res.id}>
-                        {res.residentName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Uploaded</TableHead>
-                <TableHead>Expires</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[120px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredDocs.map((doc) => (
-                <TableRow key={doc.id}>
-                  <TableCell className="font-medium">{doc.name}</TableCell>
-                  <TableCell>{getOwnerBadge(doc)}</TableCell>
-                  <TableCell>
-                    {doc.category ? (
-                      <div className="flex items-center gap-1">
-                        <FolderOpen className="h-3 w-3 text-muted-foreground" />
-                        <span>{doc.category.name}</span>
-                        {doc.category.isRequired && (
-                          <Badge variant="outline" className="ml-1 text-xs">
-                            Required
-                          </Badge>
+                        {/* Documents List */}
+                        {isExpanded && (
+                          <div className="border-t">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Document</TableHead>
+                                  <TableHead>Category</TableHead>
+                                  <TableHead>Uploaded</TableHead>
+                                  <TableHead>Expires</TableHead>
+                                  <TableHead>Status</TableHead>
+                                  <TableHead className="w-[120px]">Actions</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {group.documents.map((doc) => (
+                                  <TableRow key={doc.id}>
+                                    <TableCell className="font-medium">
+                                      {doc.name}
+                                    </TableCell>
+                                    <TableCell>
+                                      {doc.category ? (
+                                        <div className="flex items-center gap-1">
+                                          <FolderOpen className="h-3 w-3 text-muted-foreground" />
+                                          <span>{doc.category.name}</span>
+                                          {doc.category.isRequired && (
+                                            <Badge variant="outline" className="ml-1 text-xs">
+                                              Required
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <span className="text-muted-foreground">
+                                          {doc.type}
+                                        </span>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      {doc.uploadedAt ? formatDate(doc.uploadedAt) : "N/A"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {doc.expiresAt ? formatDate(doc.expiresAt) : "N/A"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {getStatusBadge(doc.status, doc.expiresAt)}
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-1">
+                                        {doc.fileUrl && (
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            asChild
+                                            title="Download"
+                                          >
+                                            <a
+                                              href={`/api/documents/download?key=${encodeURIComponent(doc.fileUrl)}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              <Download className="h-4 w-4" />
+                                            </a>
+                                          </Button>
+                                        )}
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => openEditDialog(doc)}
+                                          title="Edit Assignment"
+                                        >
+                                          <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => setDeletingDoc(doc)}
+                                          title="Delete"
+                                          className="text-destructive hover:text-destructive"
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
                         )}
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground">{doc.type}</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {doc.uploadedAt ? formatDate(doc.uploadedAt) : "N/A"}
-                  </TableCell>
-                  <TableCell>
-                    {doc.expiresAt ? formatDate(doc.expiresAt) : "N/A"}
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(doc.status, doc.expiresAt)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      {doc.fileUrl && (
-                        <Button variant="ghost" size="icon" asChild title="Download">
-                          <a
-                            href={`/api/documents/download?key=${encodeURIComponent(doc.fileUrl)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Download className="h-4 w-4" />
-                          </a>
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditDialog(doc)}
-                        title="Edit Assignment"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeletingDoc(doc)}
-                        title="Delete"
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredDocs.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="text-center text-muted-foreground py-8"
-                  >
-                    No documents found
-                  </TableCell>
-                </TableRow>
+                    );
+                  })}
+                </div>
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="archived">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Archive className="h-5 w-5" />
+                Archived Documents
+              </CardTitle>
+              <CardDescription>
+                Documents from discharged patients, grouped by admission period
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {groupedArchivedDocs.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No archived documents
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {groupedArchivedDocs.map((group) => {
+                    const isExpanded = expandedAdmissions.has(group.intakeId);
+                    const isFacilityGroup = group.intakeId === "facility";
+
+                    return (
+                      <div
+                        key={group.intakeId}
+                        className="border rounded-lg overflow-hidden"
+                      >
+                        {/* Admission Header */}
+                        <button
+                          onClick={() => toggleAdmissionExpanded(group.intakeId)}
+                          className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-muted transition-colors text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            {isExpanded ? (
+                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                            ) : (
+                              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            )}
+                            <div>
+                              <div className="flex items-center gap-2">
+                                {isFacilityGroup ? (
+                                  <Building2 className="h-4 w-4" />
+                                ) : (
+                                  <Users className="h-4 w-4" />
+                                )}
+                                <span className="font-medium">{group.residentName}</span>
+                                <Badge variant="secondary" className="text-xs">
+                                  {group.documents.length} document{group.documents.length !== 1 ? "s" : ""}
+                                </Badge>
+                              </div>
+                              {!isFacilityGroup && (
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    Admitted: {group.admissionDate ? formatDate(group.admissionDate) : "N/A"}
+                                  </span>
+                                  {group.dischargedAt && (
+                                    <span>
+                                      Discharged: {formatDate(group.dischargedAt)}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* Documents List */}
+                        {isExpanded && (
+                          <div className="border-t">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Document</TableHead>
+                                  <TableHead>Category</TableHead>
+                                  <TableHead>Uploaded</TableHead>
+                                  <TableHead>Archived</TableHead>
+                                  <TableHead className="w-[80px]">Actions</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {group.documents.map((doc) => (
+                                  <TableRow key={doc.id}>
+                                    <TableCell className="font-medium">
+                                      {doc.name}
+                                    </TableCell>
+                                    <TableCell>
+                                      {doc.category ? (
+                                        <div className="flex items-center gap-1">
+                                          <FolderOpen className="h-3 w-3 text-muted-foreground" />
+                                          <span>{doc.category.name}</span>
+                                        </div>
+                                      ) : (
+                                        <span className="text-muted-foreground">
+                                          {doc.type}
+                                        </span>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      {doc.uploadedAt ? formatDate(doc.uploadedAt) : "N/A"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {doc.archivedAt ? formatDate(doc.archivedAt) : "N/A"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {doc.fileUrl && (
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          asChild
+                                          title="Download"
+                                        >
+                                          <a
+                                            href={`/api/documents/download?key=${encodeURIComponent(doc.fileUrl)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                          >
+                                            <Download className="h-4 w-4" />
+                                          </a>
+                                        </Button>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* New Document Upload Dialog */}
       <Dialog open={showNewDocDialog} onOpenChange={setShowNewDocDialog}>

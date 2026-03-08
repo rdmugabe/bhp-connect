@@ -19,8 +19,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Plus, Edit, FileText } from "lucide-react";
+import { Eye, Plus, Edit, FileText, Archive } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { IntakeDraftsTable } from "@/components/intakes/intake-drafts-table";
 
 export default async function FacilityIntakesPage() {
   const session = await getServerSession(authOptions);
@@ -37,12 +38,14 @@ export default async function FacilityIntakesPage() {
     redirect("/login");
   }
 
-  // Fetch drafts and submitted intakes separately
-  const [drafts, submittedIntakes] = await Promise.all([
+  // Fetch drafts, submitted intakes, and archived count
+  const [drafts, submittedIntakes, archivedCount] = await Promise.all([
     prisma.intake.findMany({
       where: {
         facilityId: bhrfProfile.facilityId,
         status: "DRAFT",
+        archivedAt: null,
+        dischargedAt: null, // Exclude discharged patients
       },
       orderBy: { updatedAt: "desc" },
     }),
@@ -50,8 +53,16 @@ export default async function FacilityIntakesPage() {
       where: {
         facilityId: bhrfProfile.facilityId,
         status: { not: "DRAFT" },
+        archivedAt: null,
+        dischargedAt: null, // Exclude discharged patients
       },
       orderBy: { createdAt: "desc" },
+    }),
+    prisma.intake.count({
+      where: {
+        facilityId: bhrfProfile.facilityId,
+        archivedAt: { not: null },
+      },
     }),
   ]);
 
@@ -64,12 +75,22 @@ export default async function FacilityIntakesPage() {
             Manage intake assessments for your facility
           </p>
         </div>
-        <Link href="/facility/intakes/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            New Intake
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          {archivedCount > 0 && (
+            <Link href="/facility/intakes/archived">
+              <Button variant="outline">
+                <Archive className="h-4 w-4 mr-2" />
+                Archived ({archivedCount})
+              </Button>
+            </Link>
+          )}
+          <Link href="/facility/intakes/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Intake
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Draft Intakes Section */}
@@ -85,41 +106,7 @@ export default async function FacilityIntakesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Resident</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Last Updated</TableHead>
-                  <TableHead className="w-[120px]">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {drafts.map((intake) => (
-                  <TableRow key={intake.id}>
-                    <TableCell className="font-medium">
-                      {intake.residentName === "Draft Intake"
-                        ? "New Draft"
-                        : intake.residentName}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        Step {intake.draftStep || 1} of 17
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatDate(intake.updatedAt)}</TableCell>
-                    <TableCell>
-                      <Link href={`/facility/intakes/${intake.id}/edit`}>
-                        <Button variant="default" size="sm">
-                          <Edit className="h-4 w-4 mr-1" />
-                          Continue
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <IntakeDraftsTable drafts={drafts} />
           </CardContent>
         </Card>
       )}

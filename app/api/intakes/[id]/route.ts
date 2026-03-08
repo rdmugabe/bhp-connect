@@ -644,3 +644,75 @@ export async function PATCH(
     );
   }
 }
+
+// DELETE - Only BHRF can archive DRAFT intakes
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Only BHRF role can archive drafts
+    if (session.user.role !== "BHRF") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    // Verify facility ownership
+    const bhrfProfile = await prisma.bHRFProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    const intake = await prisma.intake.findUnique({
+      where: { id },
+    });
+
+    if (!intake) {
+      return NextResponse.json({ error: "Intake not found" }, { status: 404 });
+    }
+
+    if (intake.facilityId !== bhrfProfile?.facilityId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Only allow archiving of DRAFT intakes
+    if (intake.status !== "DRAFT") {
+      return NextResponse.json(
+        { error: "Only draft intakes can be archived" },
+        { status: 400 }
+      );
+    }
+
+    // Archive the intake by setting archivedAt
+    await prisma.intake.update({
+      where: { id },
+      data: {
+        archivedAt: new Date(),
+      },
+    });
+
+    await createAuditLog({
+      userId: session.user.id,
+      action: AuditActions.INTAKE_DRAFT_ARCHIVED,
+      entityType: "Intake",
+      entityId: id,
+      details: {
+        residentName: intake.residentName,
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Archive intake error:", error);
+    return NextResponse.json(
+      { error: "Failed to archive intake" },
+      { status: 500 }
+    );
+  }
+}

@@ -408,6 +408,13 @@ model Intake {
   submittedBy    String
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  archivedAt     DateTime?    // Soft delete - when set, intake is archived
+  dischargedAt   DateTime?    // When resident was discharged
+
+  // Re-admission tracking
+  previousIntakeId  String?   // Reference to previous intake if re-admitted
+  previousIntake    Intake?   @relation("IntakeHistory", fields: [previousIntakeId], references: [id])
+  subsequentIntakes Intake[]  @relation("IntakeHistory")
 
   // Relations
   medications      IntakeMedication[]
@@ -420,6 +427,7 @@ model Intake {
   @@index([facilityId])
   @@index([status])
   @@index([createdAt])
+  @@index([dischargedAt])
 }
 
 model IntakeMedication {
@@ -481,6 +489,7 @@ model Document {
   requestedAt DateTime?
   uploadedBy  String?
   uploadedAt  DateTime?
+  archivedAt  DateTime?         // Set when document is archived (e.g., patient discharged)
   versions    DocumentVersion[]
   oversightTrainingReport OversightTrainingReport?
 
@@ -491,6 +500,7 @@ model Document {
   @@index([ownerType])
   @@index([employeeId])
   @@index([intakeId])
+  @@index([archivedAt])
 }
 
 // Document categories for facility documents
@@ -931,6 +941,7 @@ model ASAMAssessment {
   submittedBy           String
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
+  archivedAt            DateTime?    // Soft delete - when set, assessment is archived
 
   @@index([facilityId])
   @@index([status])

@@ -166,7 +166,7 @@ export async function PATCH(
         reviewerSignature: validatedData.reviewerSignature,
         reviewerCredentials: validatedData.reviewerCredentials,
         reviewerSignatureDate: parseOptionalSignatureDate(validatedData.reviewerSignatureDate),
-        status: isDraft ? "DRAFT" : "PENDING",
+        status: isDraft ? "DRAFT" : "APPROVED",
         submittedAt: isDraft ? existingSummary.submittedAt : new Date(),
       },
       include: {

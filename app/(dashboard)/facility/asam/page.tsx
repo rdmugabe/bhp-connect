@@ -19,8 +19,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Plus, Edit, FileText } from "lucide-react";
+import { Eye, Plus, Edit, FileText, Archive } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { ASAMDraftsTable } from "@/components/asam/asam-drafts-table";
 
 export default async function FacilityASAMPage() {
   const session = await getServerSession(authOptions);
@@ -37,12 +38,16 @@ export default async function FacilityASAMPage() {
     redirect("/login");
   }
 
-  // Fetch drafts and submitted assessments separately
-  const [drafts, submittedAssessments] = await Promise.all([
+  // Fetch drafts, submitted assessments, and archived count
+  const [drafts, submittedAssessments, archivedCount] = await Promise.all([
     prisma.aSAMAssessment.findMany({
       where: {
         facilityId: bhrfProfile.facilityId,
         status: "DRAFT",
+        archivedAt: null,
+        intake: {
+          dischargedAt: null, // Exclude discharged patients
+        },
       },
       include: {
         intake: {
@@ -58,6 +63,10 @@ export default async function FacilityASAMPage() {
       where: {
         facilityId: bhrfProfile.facilityId,
         status: { not: "DRAFT" },
+        archivedAt: null,
+        intake: {
+          dischargedAt: null, // Exclude discharged patients
+        },
       },
       include: {
         intake: {
@@ -68,6 +77,12 @@ export default async function FacilityASAMPage() {
         },
       },
       orderBy: { createdAt: "desc" },
+    }),
+    prisma.aSAMAssessment.count({
+      where: {
+        facilityId: bhrfProfile.facilityId,
+        archivedAt: { not: null },
+      },
     }),
   ]);
 
@@ -80,12 +95,22 @@ export default async function FacilityASAMPage() {
             Manage ASAM substance abuse assessments for your facility
           </p>
         </div>
-        <Link href="/facility/asam/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            New ASAM Assessment
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          {archivedCount > 0 && (
+            <Link href="/facility/asam/archived">
+              <Button variant="outline">
+                <Archive className="h-4 w-4 mr-2" />
+                Archived ({archivedCount})
+              </Button>
+            </Link>
+          )}
+          <Link href="/facility/asam/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New ASAM Assessment
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Draft Assessments Section */}
@@ -101,50 +126,7 @@ export default async function FacilityASAMPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Patient</TableHead>
-                  <TableHead>Linked Intake</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Last Updated</TableHead>
-                  <TableHead className="w-[120px]">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {drafts.map((assessment) => (
-                  <TableRow key={assessment.id}>
-                    <TableCell className="font-medium">
-                      {assessment.patientName === "Draft Assessment"
-                        ? "New Draft"
-                        : assessment.patientName}
-                    </TableCell>
-                    <TableCell>
-                      <Link
-                        href={`/facility/intakes/${assessment.intake.id}`}
-                        className="text-primary hover:underline text-sm"
-                      >
-                        View Intake
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        Step {assessment.draftStep || 1} of 8
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatDate(assessment.updatedAt)}</TableCell>
-                    <TableCell>
-                      <Link href={`/facility/asam/${assessment.id}/edit`}>
-                        <Button variant="default" size="sm">
-                          <Edit className="h-4 w-4 mr-1" />
-                          Continue
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <ASAMDraftsTable drafts={drafts} />
           </CardContent>
         </Card>
       )}

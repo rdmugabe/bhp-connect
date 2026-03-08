@@ -48,9 +48,14 @@ export default async function FacilityARTMeetingsPage() {
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
 
-  // Get all ART meetings for the facility
+  // Get all ART meetings for the facility (exclude discharged patients)
   const artMeetings = await prisma.aRTMeeting.findMany({
-    where: { facilityId: bhrfProfile.facilityId },
+    where: {
+      facilityId: bhrfProfile.facilityId,
+      intake: {
+        dischargedAt: null,
+      },
+    },
     include: {
       intake: {
         select: {
@@ -66,11 +71,12 @@ export default async function FacilityARTMeetingsPage() {
     ],
   });
 
-  // Get residents needing meetings this month
+  // Get residents needing meetings this month (exclude discharged patients)
   const residents = await prisma.intake.findMany({
     where: {
       facilityId: bhrfProfile.facilityId,
       status: "APPROVED",
+      dischargedAt: null,
     },
     select: {
       id: true,

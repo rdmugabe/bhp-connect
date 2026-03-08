@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
         reviewerSignature: validatedData.reviewerSignature,
         reviewerCredentials: validatedData.reviewerCredentials,
         reviewerSignatureDate: parseOptionalSignatureDate(validatedData.reviewerSignatureDate),
-        status: isDraft ? "DRAFT" : "PENDING",
+        status: isDraft ? "DRAFT" : "APPROVED",
         submittedBy: session.user.id,
         submittedAt: isDraft ? null : new Date(),
       },

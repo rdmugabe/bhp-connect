@@ -520,3 +520,75 @@ export async function PATCH(
     );
   }
 }
+
+// DELETE - Only BHRF can archive DRAFT ASAM assessments
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Only BHRF role can archive drafts
+    if (session.user.role !== "BHRF") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    // Verify facility ownership
+    const bhrfProfile = await prisma.bHRFProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    const assessment = await prisma.aSAMAssessment.findUnique({
+      where: { id },
+    });
+
+    if (!assessment) {
+      return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
+    }
+
+    if (assessment.facilityId !== bhrfProfile?.facilityId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Only allow archiving of DRAFT assessments
+    if (assessment.status !== "DRAFT") {
+      return NextResponse.json(
+        { error: "Only draft assessments can be archived" },
+        { status: 400 }
+      );
+    }
+
+    // Archive the assessment by setting archivedAt
+    await prisma.aSAMAssessment.update({
+      where: { id },
+      data: {
+        archivedAt: new Date(),
+      },
+    });
+
+    await createAuditLog({
+      userId: session.user.id,
+      action: AuditActions.ASAM_DRAFT_ARCHIVED,
+      entityType: "ASAMAssessment",
+      entityId: id,
+      details: {
+        patientName: assessment.patientName,
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Archive ASAM assessment error:", error);
+    return NextResponse.json(
+      { error: "Failed to archive ASAM assessment" },
+      { status: 500 }
+    );
+  }
+}

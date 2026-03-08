@@ -20,8 +20,20 @@ export async function GET(request: NextRequest) {
     const facilityId = searchParams.get("facilityId");
     const status = searchParams.get("status");
     const ownerType = searchParams.get("ownerType");
+    const archived = searchParams.get("archived"); // "true" for archived, "false" or null for active
 
     let documents;
+
+    // Build archived filter - only filter if explicitly requested
+    // Default (no param or archived=false): show non-archived documents
+    // archived=true: show only archived documents
+    // archived=all: show all documents (no filter)
+    let archivedFilter: { archivedAt?: { not: null } | null } = {};
+    if (archived === "true") {
+      archivedFilter = { archivedAt: { not: null } };
+    } else if (archived !== "all") {
+      archivedFilter = { archivedAt: null };
+    }
 
     if (session.user.role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
@@ -40,6 +52,7 @@ export async function GET(request: NextRequest) {
           },
           ...(status && { status: status as any }),
           ...(ownerType && { ownerType: ownerType as any }),
+          ...archivedFilter,
         },
         include: {
           facility: {
@@ -82,6 +95,7 @@ export async function GET(request: NextRequest) {
           facilityId: bhrfProfile.facilityId,
           ...(status && { status: status as any }),
           ...(ownerType && { ownerType: ownerType as any }),
+          ...archivedFilter,
         },
         include: {
           facility: {
@@ -102,6 +116,9 @@ export async function GET(request: NextRequest) {
             select: {
               id: true,
               residentName: true,
+              admissionDate: true,
+              dischargedAt: true,
+              createdAt: true,
             },
           },
           versions: {
@@ -112,7 +129,35 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ documents });
+    // Also get count of archived documents for the toggle badge
+    let archivedCount = 0;
+    if (session.user.role === "BHP") {
+      const bhpProfile = await prisma.bHPProfile.findUnique({
+        where: { userId: session.user.id },
+      });
+      if (bhpProfile) {
+        archivedCount = await prisma.document.count({
+          where: {
+            facility: { bhpId: bhpProfile.id },
+            archivedAt: { not: null },
+          },
+        });
+      }
+    } else if (session.user.role === "BHRF") {
+      const bhrfProfile = await prisma.bHRFProfile.findUnique({
+        where: { userId: session.user.id },
+      });
+      if (bhrfProfile) {
+        archivedCount = await prisma.document.count({
+          where: {
+            facilityId: bhrfProfile.facilityId,
+            archivedAt: { not: null },
+          },
+        });
+      }
+    }
+
+    return NextResponse.json({ documents, archivedCount });
   } catch (error) {
     console.error("Get documents error:", error);
     return NextResponse.json(

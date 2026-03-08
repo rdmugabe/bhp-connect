@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
           });
         }
 
-        // Check for pending ART meetings this month
+        // Check for pending ART meetings this month (exclude discharged)
         const currentMonth = new Date().getMonth() + 1;
         const currentYear = new Date().getFullYear();
 
@@ -160,6 +160,7 @@ export async function GET(request: NextRequest) {
           where: {
             facilityId: bhrfProfile.facilityId,
             status: "APPROVED",
+            dischargedAt: null,
           },
           select: {
             id: true,

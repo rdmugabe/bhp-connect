@@ -178,11 +178,12 @@ export async function GET(request: NextRequest) {
 
         adminTasks = missingFireDrills + missingEvacuationShifts + missingDisasterShifts + missingOversightTraining;
 
-        // Count residents needing ART meetings this month
+        // Count residents needing ART meetings this month (exclude discharged)
         const residents = await prisma.intake.findMany({
           where: {
             facilityId: bhrfProfile.facilityId,
             status: "APPROVED",
+            dischargedAt: null,
           },
           select: {
             id: true,

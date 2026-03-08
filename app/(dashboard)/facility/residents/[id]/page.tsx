@@ -23,6 +23,8 @@ import {
 import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus, ClipboardList, LogOut } from "lucide-react";
 import { ARTMeetingBadge } from "@/components/art-meetings/art-meeting-badge";
 import { formatDate } from "@/lib/utils";
+import { ResidentActions } from "@/components/residents/resident-actions";
+import { AdmissionHistory } from "@/components/residents/admission-history";
 
 export default async function FacilityResidentDetailPage({
   params,
@@ -65,6 +67,25 @@ export default async function FacilityResidentDetailPage({
           name: true,
         },
       },
+      previousIntake: {
+        select: {
+          id: true,
+          admissionDate: true,
+          dischargedAt: true,
+          status: true,
+          createdAt: true,
+        },
+      },
+      subsequentIntakes: {
+        select: {
+          id: true,
+          admissionDate: true,
+          dischargedAt: true,
+          status: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 
@@ -82,6 +103,29 @@ export default async function FacilityResidentDetailPage({
   // Check if there's already an ASAM assessment for this intake
   const hasAsam = resident.asamAssessments.length > 0;
 
+  // Check if discharge is ready (discharge summary exists and is approved)
+  const isDischargeReady =
+    resident.status === "APPROVED" &&
+    !resident.dischargedAt &&
+    resident.dischargeSummary?.status === "APPROVED";
+
+  // Check if already discharged
+  const isAlreadyDischarged = !!resident.dischargedAt;
+
+  // Get all previous intakes for admission history
+  const previousIntakes: Array<{
+    id: string;
+    admissionDate: Date | null;
+    dischargedAt: Date | null;
+    status: string;
+    createdAt: Date;
+  }> = [];
+
+  // Walk back through the chain of previous intakes
+  if (resident.previousIntake) {
+    previousIntakes.push(resident.previousIntake);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -92,22 +136,40 @@ export default async function FacilityResidentDetailPage({
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {resident.residentName}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">
+                {resident.residentName}
+              </h1>
+              {isAlreadyDischarged && (
+                <Badge variant="secondary" className="text-sm">
+                  Discharged
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground">
-              DOB: {formatDate(resident.dateOfBirth)} | Admitted: {formatDate(resident.createdAt)}
+              DOB: {formatDate(resident.dateOfBirth)} | Admitted: {formatDate(resident.admissionDate || resident.createdAt)}
+              {isAlreadyDischarged && resident.dischargedAt && (
+                <> | Discharged: {formatDate(resident.dischargedAt)}</>
+              )}
             </p>
           </div>
         </div>
-        {!hasAsam && (
-          <Link href={`/facility/asam/new?intakeId=${resident.id}`}>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New ASAM Assessment
-            </Button>
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          <ResidentActions
+            residentId={resident.id}
+            residentName={resident.residentName}
+            isDischargedReady={isDischargeReady}
+            isAlreadyDischarged={isAlreadyDischarged}
+          />
+          {!hasAsam && !isAlreadyDischarged && (
+            <Link href={`/facility/asam/new?intakeId=${resident.id}`}>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New ASAM Assessment
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Resident Summary Card */}
@@ -445,13 +507,13 @@ export default async function FacilityResidentDetailPage({
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground">
                     No discharge summary yet.{" "}
-                    {resident.status === "APPROVED" ? (
+                    {resident.status === "APPROVED" && !isAlreadyDischarged ? (
                       <Link href={`/facility/residents/${resident.id}/discharge-summary`} className="text-primary hover:underline">
                         Create one
                       </Link>
-                    ) : (
+                    ) : !isAlreadyDischarged ? (
                       "Resident must be approved first."
-                    )}
+                    ) : null}
                   </TableCell>
                 </TableRow>
               )}
@@ -459,6 +521,15 @@ export default async function FacilityResidentDetailPage({
           </Table>
         </CardContent>
       </Card>
+
+      {/* Admission History */}
+      {(previousIntakes.length > 0 || resident.subsequentIntakes.length > 0) && (
+        <AdmissionHistory
+          currentIntakeId={resident.id}
+          previousIntakes={previousIntakes}
+          subsequentIntakes={resident.subsequentIntakes}
+        />
+      )}
     </div>
   );
 }
