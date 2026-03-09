@@ -469,19 +469,19 @@ export async function PATCH(
           matInterested: validatedData.matInterested,
           matDetails: validatedData.matDetails,
 
-          // Placement Summary
-          recommendedLevelOfCare: validatedData.recommendedLevelOfCare,
-          levelOfCareProvided: validatedData.levelOfCareProvided,
-          discrepancyReason: validatedData.discrepancyReason,
-          discrepancyExplanation: validatedData.discrepancyExplanation,
-          designatedTreatmentLocation: validatedData.designatedTreatmentLocation,
-          designatedProviderName: validatedData.designatedProviderName,
+          // Placement Summary - preserve existing values if form sends empty
+          recommendedLevelOfCare: validatedData.recommendedLevelOfCare || existingAssessment.recommendedLevelOfCare,
+          levelOfCareProvided: validatedData.levelOfCareProvided || existingAssessment.levelOfCareProvided,
+          discrepancyReason: validatedData.discrepancyReason || existingAssessment.discrepancyReason,
+          discrepancyExplanation: validatedData.discrepancyExplanation || existingAssessment.discrepancyExplanation,
+          designatedTreatmentLocation: validatedData.designatedTreatmentLocation || existingAssessment.designatedTreatmentLocation,
+          designatedProviderName: validatedData.designatedProviderName || existingAssessment.designatedProviderName,
 
-          // Signatures
-          counselorName: validatedData.counselorName,
-          counselorSignatureDate: parseOptionalSignatureDate(validatedData.counselorSignatureDate),
-          bhpLphaName: validatedData.bhpLphaName,
-          bhpLphaSignatureDate: parseOptionalSignatureDate(validatedData.bhpLphaSignatureDate),
+          // Signatures - preserve existing values if form sends empty
+          counselorName: validatedData.counselorName || existingAssessment.counselorName,
+          counselorSignatureDate: parseOptionalSignatureDate(validatedData.counselorSignatureDate) || existingAssessment.counselorSignatureDate,
+          bhpLphaName: validatedData.bhpLphaName || existingAssessment.bhpLphaName,
+          bhpLphaSignatureDate: parseOptionalSignatureDate(validatedData.bhpLphaSignatureDate) || existingAssessment.bhpLphaSignatureDate,
 
           // Workflow
           draftStep: isDraft ? (currentStep || 1) : null,

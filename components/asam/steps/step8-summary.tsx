@@ -211,7 +211,11 @@ export function Step8Summary() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Recommended Level of Care</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || ""}
+                    key={`recommended-${field.value || 'empty'}`}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level of care" />
@@ -235,7 +239,11 @@ export function Step8Summary() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Level of Care Provided</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || ""}
+                    key={`provided-${field.value || 'empty'}`}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select level of care" />
@@ -261,7 +269,11 @@ export function Step8Summary() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Reason for Discrepancy (if different from recommended)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || ""}
+                  key={`discrepancy-${field.value || 'empty'}`}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select reason" />

@@ -203,9 +203,9 @@ export function ASAMFormWizard({ assessmentId, initialData }: ASAMFormWizardProp
       levelOfCareDetermination: {},
       matInterested: false,
       matDetails: "",
-      recommendedLevelOfCare: "",
-      levelOfCareProvided: "",
-      discrepancyReason: "",
+      recommendedLevelOfCare: undefined,
+      levelOfCareProvided: undefined,
+      discrepancyReason: undefined,
       discrepancyExplanation: "",
       designatedTreatmentLocation: "",
       designatedProviderName: "",
@@ -359,6 +359,7 @@ export function ASAMFormWizard({ assessmentId, initialData }: ASAMFormWizardProp
   };
 
   const handleSubmit = async (data: FormData) => {
+    console.log("handleSubmit called with data:", Object.keys(data));
     setIsSubmitting(true);
     try {
       const url = assessmentId ? `/api/asam/${assessmentId}` : "/api/asam";
@@ -421,9 +422,19 @@ export function ASAMFormWizard({ assessmentId, initialData }: ASAMFormWizardProp
     }
   };
 
+  const onError = (errors: Record<string, unknown>) => {
+    console.error("Form validation errors:", errors);
+    const errorFields = Object.keys(errors);
+    toast({
+      variant: "destructive",
+      title: "Validation Error",
+      description: `Please fix errors in: ${errorFields.slice(0, 5).join(", ")}${errorFields.length > 5 ? ` and ${errorFields.length - 5} more` : ""}`,
+    });
+  };
+
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={methods.handleSubmit(handleSubmit, onError)} className="space-y-6">
         <Card>
           <CardContent className="pt-6">
             <ASAMProgress
