@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus, ClipboardList, LogOut } from "lucide-react";
+import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus, ClipboardList, LogOut, Sparkles } from "lucide-react";
 import { ARTMeetingBadge } from "@/components/art-meetings/art-meeting-badge";
 import { formatDate } from "@/lib/utils";
 import { ResidentActions } from "@/components/residents/resident-actions";
@@ -60,6 +60,11 @@ export default async function FacilityResidentDetailPage({
           { meetingMonth: "desc" },
         ],
         take: 3, // Show only last 3 meetings
+      },
+      progressNotes: {
+        where: { archivedAt: null },
+        orderBy: { noteDate: "desc" },
+        take: 3, // Show only last 3 notes
       },
       dischargeSummary: true,
       facility: {
@@ -422,6 +427,99 @@ export default async function FacilityResidentDetailPage({
                     No ART meetings yet.{" "}
                     {resident.status === "APPROVED" && (
                       <Link href={`/facility/residents/${resident.id}/art-meetings/new`} className="text-primary hover:underline">
+                        Create one
+                      </Link>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Progress Notes */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Progress Notes
+                {resident.progressNotes.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {resident.progressNotes.length}+
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                AI-powered daily progress notes
+              </CardDescription>
+            </div>
+            <Link href={`/facility/residents/${resident.id}/progress-notes`}>
+              <Button variant="outline" size="sm">
+                View All
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Shift</TableHead>
+                <TableHead>Author</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[150px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {resident.progressNotes.map((note) => (
+                <TableRow key={note.id}>
+                  <TableCell className="font-medium">
+                    {formatDate(note.noteDate)}
+                  </TableCell>
+                  <TableCell>
+                    {note.shift || "—"}
+                  </TableCell>
+                  <TableCell>
+                    {note.authorName}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={note.status === "FINAL" ? "default" : "secondary"}>
+                      {note.status === "FINAL" ? "Final" : "Draft"}
+                    </Badge>
+                    {note.riskFlagsDetected && note.riskFlagsDetected.length > 0 && (
+                      <Badge variant="destructive" className="ml-2">
+                        Risk
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Link href={`/facility/residents/${resident.id}/progress-notes/${note.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </Link>
+                      <Link href={`/api/progress-notes/${note.id}/pdf`} target="_blank">
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-1" />
+                          PDF
+                        </Button>
+                      </Link>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {resident.progressNotes.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    No progress notes yet.{" "}
+                    {resident.status === "APPROVED" && !isAlreadyDischarged && (
+                      <Link href={`/facility/residents/${resident.id}/progress-notes/new`} className="text-primary hover:underline">
                         Create one
                       </Link>
                     )}

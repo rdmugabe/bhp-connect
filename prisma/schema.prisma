@@ -194,6 +194,7 @@ model Facility {
   incidentReports       IncidentReport[]
   medicationOrders      MedicationOrder[]
   medicationAlerts      MedicationAlert[]
+  progressNotes         ProgressNote[]
 
   @@index([bhpId])
 }
@@ -495,6 +496,7 @@ model Intake {
   incidentReports  IncidentReport[]
   medicationOrders MedicationOrder[]
   medicationAlerts MedicationAlert[]
+  progressNotes    ProgressNote[]
 
   @@index([facilityId])
   @@index([status])
@@ -1445,4 +1447,59 @@ model MedicationAlert {
   @@index([facilityId])
   @@index([intakeId])
   @@index([isActive])
+}
+
+// Progress Note - Daily Progress Notes for Residents
+model ProgressNote {
+  id              String   @id @default(cuid())
+  intakeId        String
+  intake          Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  facilityId      String
+  facility        Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  // Note Metadata
+  noteDate        DateTime @db.Date
+  shift           String?  // "AM", "PM", "NOC"
+  authorName      String
+  authorTitle     String?
+
+  // Staff Input Fields (raw observations)
+  residentStatus       String?  @db.Text
+  observedBehaviors    String?  @db.Text
+  moodAffect           String?  @db.Text
+  activityParticipation String? @db.Text
+  staffInteractions    String?  @db.Text
+  peerInteractions     String?  @db.Text
+  medicationCompliance String?  @db.Text
+  hygieneAdl           String?  @db.Text
+  mealsAppetite        String?  @db.Text
+  sleepPattern         String?  @db.Text
+  staffInterventions   String?  @db.Text
+  residentResponse     String?  @db.Text
+  notableEvents        String?  @db.Text
+  additionalNotes      String?  @db.Text
+
+  // AI-Generated Output
+  generatedNote    String?  @db.Text
+  riskFlagsDetected String[] @default([])
+
+  // BHT Signature (required for finalization)
+  bhtSignature       String?
+  bhtCredentials     String?
+  bhtSignatureDate   DateTime?
+
+  // Workflow
+  status          String   @default("DRAFT") // DRAFT, FINAL
+  submittedBy     String
+  submittedAt     DateTime?
+
+  // Audit
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  archivedAt      DateTime?
+
+  @@index([intakeId])
+  @@index([facilityId])
+  @@index([noteDate])
+  @@index([status])
 }

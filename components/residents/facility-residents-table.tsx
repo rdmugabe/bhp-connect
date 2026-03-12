@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, FileText, Activity, Mail } from "lucide-react";
+import { Eye, FileText, Activity, Mail, Plus, AlertTriangle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { EnrollmentEmailDialog } from "./enrollment-email-dialog";
 
@@ -23,6 +23,11 @@ interface Resident {
   createdAt: Date;
   asamAssessments: {
     id: string;
+    status: string;
+  }[];
+  progressNotes: {
+    id: string;
+    shift: string | null;
     status: string;
   }[];
 }
@@ -52,13 +57,19 @@ export function FacilityResidentsTable({ residents, bhpEmail }: FacilityResident
             <TableHead>Name</TableHead>
             <TableHead>Date of Birth</TableHead>
             <TableHead>Admission Date</TableHead>
-            <TableHead>Documents</TableHead>
-            <TableHead className="w-[150px]">Actions</TableHead>
+            <TableHead>Today&apos;s Progress Notes</TableHead>
+            <TableHead className="w-[250px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {residents.map((resident) => {
             const asamCount = resident.asamAssessments.length;
+            const todayNotes = resident.progressNotes || [];
+            const hasAM = todayNotes.some((n) => n.shift === "AM");
+            const hasPM = todayNotes.some((n) => n.shift === "PM");
+            const missingShifts: string[] = [];
+            if (!hasAM) missingShifts.push("AM");
+            if (!hasPM) missingShifts.push("PM");
 
             return (
               <TableRow key={resident.id}>
@@ -68,30 +79,52 @@ export function FacilityResidentsTable({ residents, bhpEmail }: FacilityResident
                 <TableCell>{formatDate(resident.dateOfBirth)}</TableCell>
                 <TableCell>{formatDate(resident.createdAt)}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="flex items-center gap-1">
-                      <FileText className="h-3 w-3" />
-                      1 Intake
-                    </Badge>
-                    {asamCount > 0 && (
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <Activity className="h-3 w-3" />
-                        {asamCount} ASAM
-                      </Badge>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      {hasAM ? (
+                        <Badge variant="default" className="bg-green-500">
+                          AM
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          AM
+                        </Badge>
+                      )}
+                      {hasPM ? (
+                        <Badge variant="default" className="bg-green-500">
+                          PM
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          PM
+                        </Badge>
+                      )}
+                    </div>
+                    {missingShifts.length > 0 && (
+                      <div className="flex items-center gap-1 text-amber-600 text-xs">
+                        <AlertTriangle className="h-3 w-3" />
+                        Missing: {missingShifts.join(", ")}
+                      </div>
                     )}
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
+                    <Link href={`/facility/residents/${resident.id}/progress-notes/new`}>
+                      <Button size="sm" variant="default">
+                        <Plus className="h-4 w-4 mr-1" />
+                        Progress Note
+                      </Button>
+                    </Link>
                     <Link href={`/facility/residents/${resident.id}`}>
-                      <Button size="sm">
+                      <Button size="sm" variant="outline">
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
                     </Link>
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="ghost"
                       onClick={() =>
                         handleOpenEmailDialog(resident.id, resident.residentName)
                       }

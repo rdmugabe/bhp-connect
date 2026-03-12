@@ -14,6 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, UserX } from "lucide-react";
 import { FacilityResidentsTable } from "@/components/residents/facility-residents-table";
 import { DischargedResidentsTable } from "@/components/residents/discharged-residents-table";
+import { startOfDay, endOfDay } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 export default async function FacilityResidentsPage() {
   const session = await getServerSession(authOptions);
@@ -47,7 +49,13 @@ export default async function FacilityResidentsPage() {
 
   const bhpEmail = bhrfProfile.facility.bhp.user.email;
 
-  // Fetch active residents (not discharged, not drafts)
+  // Get today's date range in Arizona timezone
+  const arizonaTimezone = "America/Phoenix";
+  const nowInArizona = toZonedTime(new Date(), arizonaTimezone);
+  const todayStart = startOfDay(nowInArizona);
+  const todayEnd = endOfDay(nowInArizona);
+
+  // Fetch active residents (not discharged, not drafts) with today's progress notes
   const activeResidents = await prisma.intake.findMany({
     where: {
       facilityId: bhrfProfile.facilityId,
@@ -59,6 +67,20 @@ export default async function FacilityResidentsPage() {
       asamAssessments: {
         select: {
           id: true,
+          status: true,
+        },
+      },
+      progressNotes: {
+        where: {
+          noteDate: {
+            gte: todayStart,
+            lte: todayEnd,
+          },
+          archivedAt: null,
+        },
+        select: {
+          id: true,
+          shift: true,
           status: true,
         },
       },

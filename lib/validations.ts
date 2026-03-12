@@ -2089,3 +2089,110 @@ export type ScheduleGenerationInput = z.infer<typeof scheduleGenerationSchema>;
 export type AlertAcknowledgmentInput = z.infer<typeof alertAcknowledgmentSchema>;
 export type EmarDashboardQueryInput = z.infer<typeof emarDashboardQuerySchema>;
 export type MARReportQueryInput = z.infer<typeof marReportQuerySchema>;
+
+// =====================================================
+// Progress Note Validation Schema
+// =====================================================
+
+export const PROGRESS_NOTE_SHIFTS = ["AM", "PM", "NOC"] as const;
+
+export const PROGRESS_NOTE_STATUSES = ["DRAFT", "FINAL"] as const;
+
+export const RISK_FLAGS = [
+  "SELF_HARM",
+  "SUICIDAL_IDEATION",
+  "HOMICIDAL_IDEATION",
+  "AGGRESSION",
+  "MEDICAL_DISTRESS",
+  "ELOPEMENT_RISK",
+  "SUBSTANCE_USE",
+] as const;
+
+export const progressNoteSchema = z.object({
+  // Required fields
+  noteDate: z.string().min(1, "Note date is required"),
+  authorName: z.string().min(1, "Author name is required"),
+
+  // Optional fields
+  shift: z.enum(PROGRESS_NOTE_SHIFTS).optional(),
+  authorTitle: z.string().optional(),
+
+  // Staff Input Fields (all optional)
+  residentStatus: z.string().optional(),
+  observedBehaviors: z.string().optional(),
+  moodAffect: z.string().optional(),
+  activityParticipation: z.string().optional(),
+  staffInteractions: z.string().optional(),
+  peerInteractions: z.string().optional(),
+  medicationCompliance: z.string().optional(),
+  hygieneAdl: z.string().optional(),
+  mealsAppetite: z.string().optional(),
+  sleepPattern: z.string().optional(),
+  staffInterventions: z.string().optional(),
+  residentResponse: z.string().optional(),
+  notableEvents: z.string().optional(),
+  additionalNotes: z.string().optional(),
+
+  // BHT Signature (required for finalization)
+  bhtSignature: z.string().min(1, "BHT signature is required"),
+  bhtCredentials: z.string().optional(),
+  bhtSignatureDate: z.string().min(1, "Signature date is required"),
+});
+
+export const progressNoteDraftSchema = z.object({
+  // All fields optional for drafts
+  noteDate: z.string().optional(),
+  authorName: z.string().optional(),
+  shift: z.enum(PROGRESS_NOTE_SHIFTS).optional(),
+  authorTitle: z.string().optional(),
+  residentStatus: z.string().optional(),
+  observedBehaviors: z.string().optional(),
+  moodAffect: z.string().optional(),
+  activityParticipation: z.string().optional(),
+  staffInteractions: z.string().optional(),
+  peerInteractions: z.string().optional(),
+  medicationCompliance: z.string().optional(),
+  hygieneAdl: z.string().optional(),
+  mealsAppetite: z.string().optional(),
+  sleepPattern: z.string().optional(),
+  staffInterventions: z.string().optional(),
+  residentResponse: z.string().optional(),
+  notableEvents: z.string().optional(),
+  additionalNotes: z.string().optional(),
+  // BHT Signature (optional for drafts)
+  bhtSignature: z.string().optional(),
+  bhtCredentials: z.string().optional(),
+  bhtSignatureDate: z.string().optional(),
+});
+
+export const progressNoteUpdateSchema = z.object({
+  noteDate: z.string().optional(),
+  shift: z.enum(PROGRESS_NOTE_SHIFTS).optional(),
+  authorName: z.string().optional(),
+  authorTitle: z.string().optional(),
+  residentStatus: z.string().optional(),
+  observedBehaviors: z.string().optional(),
+  moodAffect: z.string().optional(),
+  activityParticipation: z.string().optional(),
+  staffInteractions: z.string().optional(),
+  peerInteractions: z.string().optional(),
+  medicationCompliance: z.string().optional(),
+  hygieneAdl: z.string().optional(),
+  mealsAppetite: z.string().optional(),
+  sleepPattern: z.string().optional(),
+  staffInterventions: z.string().optional(),
+  residentResponse: z.string().optional(),
+  notableEvents: z.string().optional(),
+  additionalNotes: z.string().optional(),
+  generatedNote: z.string().optional(),
+  riskFlagsDetected: z.array(z.string()).optional(),
+  status: z.enum(PROGRESS_NOTE_STATUSES).optional(),
+  // BHT Signature fields
+  bhtSignature: z.string().optional(),
+  bhtCredentials: z.string().optional(),
+  bhtSignatureDate: z.string().optional(),
+});
+
+export type ProgressNoteInput = z.infer<typeof progressNoteSchema>;
+export type ProgressNoteDraftInput = z.infer<typeof progressNoteDraftSchema>;
+export type ProgressNoteUpdateInput = z.infer<typeof progressNoteUpdateSchema>;
