@@ -2013,11 +2013,21 @@ export const medicationAdministrationSchema = z.object({
 
   notes: z.string().optional(),
 
-  // 6 Rights verification
-  sixRightsVerified: z.boolean().refine(val => val === true, {
-    message: "All 6 Rights must be verified before administration",
-  }),
+  // 6 Rights verification (only required when actually giving medication)
+  sixRightsVerified: z.boolean().optional(),
 }).refine(
+  (data) => {
+    // 6 Rights verification is only required when status is GIVEN
+    if (data.status === "GIVEN" && !data.sixRightsVerified) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "All 6 Rights must be verified before administration",
+    path: ["sixRightsVerified"],
+  }
+).refine(
   (data) => {
     // If status is REFUSED, refusedReason must be provided
     if (data.status === "REFUSED" && !data.refusedReason) {

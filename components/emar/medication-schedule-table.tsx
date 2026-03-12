@@ -100,7 +100,9 @@ export function MedicationScheduleTable({
   };
 
   const canAdminister = (schedule: Schedule) => {
-    return ["SCHEDULED", "DUE"].includes(schedule.status) && !readOnly;
+    // Allow administration for SCHEDULED, DUE, and MISSED statuses
+    // BHTs can still administer medication after it's been marked as missed
+    return ["SCHEDULED", "DUE", "MISSED"].includes(schedule.status) && !readOnly;
   };
 
   if (schedules.length === 0) {

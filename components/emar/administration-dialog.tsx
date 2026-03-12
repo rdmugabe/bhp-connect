@@ -75,6 +75,9 @@ export function AdministrationDialog({
   const [witnessId, setWitnessId] = useState("");
   const [witnessName, setWitnessName] = useState("");
 
+  // Custom administration time (for missed medications)
+  const [customTime, setCustomTime] = useState("");
+
   // Vitals
   const [vitalsBP, setVitalsBP] = useState("");
   const [vitalsPulse, setVitalsPulse] = useState("");
@@ -97,6 +100,7 @@ export function AdministrationDialog({
     setNotes("");
     setWitnessId("");
     setWitnessName("");
+    setCustomTime("");
     setVitalsBP("");
     setVitalsPulse("");
     setVitalsTemp("");
@@ -146,13 +150,18 @@ export function AdministrationDialog({
     setLoading(true);
 
     try {
+      // Use custom time if provided, otherwise use current time
+      const administeredAt = customTime
+        ? new Date(customTime).toISOString()
+        : new Date().toISOString();
+
       const response = await fetch("/api/emar/administer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           scheduleId: schedule.id,
           medicationOrderId: schedule.medicationOrder.id,
-          administeredAt: new Date().toISOString(),
+          administeredAt,
           doseGiven: schedule.medicationOrder.dose,
           route: schedule.medicationOrder.route,
           status,
@@ -271,6 +280,35 @@ export function AdministrationDialog({
             ))}
           </div>
         </div>
+
+        {/* Custom Administration Time (for missed medications or late entries) */}
+        {schedule.status === "MISSED" && (
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-amber-600" />
+              <Label className="text-amber-800 font-medium">
+                Time of Administration
+              </Label>
+            </div>
+            <p className="text-sm text-amber-700">
+              This medication was marked as missed. If it was administered earlier,
+              please enter the actual time of administration below.
+            </p>
+            <div>
+              <Label className="text-xs text-amber-700">Administration Time</Label>
+              <Input
+                type="datetime-local"
+                value={customTime}
+                onChange={(e) => setCustomTime(e.target.value)}
+                className="bg-white"
+                max={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Leave empty to use current time
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Status-specific content */}
         {status === "GIVEN" && (
