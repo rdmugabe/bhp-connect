@@ -254,8 +254,14 @@ const styles = StyleSheet.create({
     minHeight: 20,
   },
   signatureLineText: {
+    fontSize: 18,
+    color: "#1a365d",
+    fontFamily: "Times-BoldItalic",
+  },
+  signatureCredentials: {
     fontSize: 10,
-    color: "#2d3748",
+    color: "#4a5568",
+    fontFamily: "Helvetica",
   },
   signatureLabel: {
     fontSize: 8,
@@ -267,6 +273,7 @@ interface ProgressNoteData {
   // Resident Info
   residentName: string;
   dateOfBirth: string;
+  ahcccsId?: string;
 
   // Facility Info
   facilityName: string;
@@ -384,9 +391,6 @@ function PageFooter({ facilityName }: { facilityName: string }) {
       <Text style={styles.footerText}>
         {facilityName} | Daily Progress Note | Confidential
       </Text>
-      <Text style={styles.footerText}>
-        Generated: {new Date().toLocaleString()}
-      </Text>
     </View>
   );
 }
@@ -410,8 +414,12 @@ function SignatureSection({ data }: { data: ProgressNoteData }) {
           <View style={styles.signatureLine}>
             <Text style={styles.signatureLineText}>
               {data.bhtSignature || ""}
-              {data.bhtCredentials ? `, ${data.bhtCredentials}` : ""}
             </Text>
+            {data.bhtCredentials && (
+              <Text style={styles.signatureCredentials}>
+                {data.bhtCredentials}
+              </Text>
+            )}
           </View>
           <Text style={styles.signatureLabel}>
             Behavioral Health Technician Signature / Credentials
@@ -419,7 +427,7 @@ function SignatureSection({ data }: { data: ProgressNoteData }) {
         </View>
         <View style={styles.signatureBlock}>
           <View style={styles.signatureLine}>
-            <Text style={styles.signatureLineText}>
+            <Text style={styles.signatureCredentials}>
               {formatDate(data.bhtSignatureDate)}
             </Text>
           </View>
@@ -471,32 +479,6 @@ export function ProgressNotePDF({ data }: { data: ProgressNoteData }) {
           </View>
         )}
 
-        {/* Status and Meta Info */}
-        <View style={styles.metaInfo}>
-          <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Status</Text>
-            <Text style={styles.metaValue}>
-              {data.status === "FINAL" ? "Finalized" : "Draft"}
-            </Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Author</Text>
-            <Text style={styles.metaValue}>
-              {data.authorName}{data.authorTitle ? `, ${data.authorTitle}` : ""}
-            </Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Created</Text>
-            <Text style={styles.metaValue}>{formatDateTime(data.createdAt)}</Text>
-          </View>
-          {data.submittedAt && (
-            <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Submitted</Text>
-              <Text style={styles.metaValue}>{formatDateTime(data.submittedAt)}</Text>
-            </View>
-          )}
-        </View>
-
         {/* Resident Information */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Resident Information</Text>
@@ -505,6 +487,10 @@ export function ProgressNotePDF({ data }: { data: ProgressNoteData }) {
               <View style={styles.row}>
                 <Text style={styles.label}>Resident Name:</Text>
                 <Text style={styles.value}>{data.residentName}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>AHCCCS ID:</Text>
+                <Text style={styles.value}>{data.ahcccsId || "N/A"}</Text>
               </View>
             </View>
             <View style={styles.column}>

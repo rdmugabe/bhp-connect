@@ -41,6 +41,7 @@ export async function GET(
           select: {
             residentName: true,
             dateOfBirth: true,
+            policyNumber: true,
           },
         },
       },
@@ -77,6 +78,7 @@ export async function GET(
       // Resident Info
       residentName: progressNote.intake.residentName,
       dateOfBirth: progressNote.intake.dateOfBirth?.toISOString() || "",
+      ahcccsId: progressNote.intake.policyNumber || undefined,
 
       // Facility Info
       facilityName: progressNote.facility.name,
