@@ -6,6 +6,7 @@ import { intakeDecisionSchema, intakeDraftSchema, intakeSchema } from "@/lib/val
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
 import { parseOptionalDateOfBirth, parseOptionalPastDate, parseOptionalDate } from "@/lib/date-utils";
+import { syncIntakeMedicationsToEmar } from "@/lib/emar/medication-sync";
 
 export async function GET(
   request: NextRequest,
@@ -362,6 +363,29 @@ export async function PATCH(
 
         return updated;
       });
+
+      // Sync medications to eMAR when a draft is being finalized (submitted)
+      // Only sync if: not a draft, the intake WAS a draft, and has medications
+      if (!isDraft && intake.status === "DRAFT") {
+        try {
+          // Fetch the medications that were just saved
+          const intakeMeds = await prisma.intakeMedication.findMany({
+            where: { intakeId: id },
+          });
+
+          if (intakeMeds.length > 0) {
+            await syncIntakeMedicationsToEmar(
+              id,
+              bhrfProfile.facilityId,
+              intakeMeds,
+              session.user.name || session.user.email || "System"
+            );
+          }
+        } catch (syncError) {
+          console.error("Failed to sync medications to eMAR:", syncError);
+          // Don't fail the intake update, just log the error
+        }
+      }
 
       const auditDetails: Record<string, unknown> = {
         residentName: updatedIntake.residentName,

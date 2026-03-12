@@ -32,13 +32,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate PDF
+    // Generate PDF (use Arizona timezone for timestamp display)
     const pdfData = {
       residentName: residentName.trim(),
       date: new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
+        timeZone: "America/Phoenix",
       }),
     };
 

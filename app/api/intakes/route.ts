@@ -6,6 +6,7 @@ import { intakeSchema, intakeDraftSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
 import { parseOptionalDateOfBirth, parseOptionalPastDate, parseOptionalDate } from "@/lib/date-utils";
+import { syncIntakeMedicationsToEmar } from "@/lib/emar/medication-sync";
 
 export async function GET(request: NextRequest) {
   try {
@@ -356,6 +357,31 @@ export async function POST(request: NextRequest) {
 
       return newIntake;
     });
+
+    // Sync medications to eMAR if not a draft and medications were provided
+    if (!isDraft && medications && Array.isArray(medications) && medications.length > 0) {
+      try {
+        const intakeMeds = medications.map((med: { name: string; dosage?: string; frequency?: string; route?: string; prescriber?: string; purpose?: string; startDate?: string }) => ({
+          name: med.name,
+          dosage: med.dosage || null,
+          frequency: med.frequency || null,
+          route: med.route || null,
+          prescriber: med.prescriber || null,
+          purpose: med.purpose || null,
+          startDate: parseOptionalDate(med.startDate) || null,
+        }));
+
+        await syncIntakeMedicationsToEmar(
+          intake.id,
+          bhrfProfile.facilityId,
+          intakeMeds,
+          session.user.name || session.user.email || "System"
+        );
+      } catch (syncError) {
+        console.error("Failed to sync medications to eMAR:", syncError);
+        // Don't fail the intake creation, just log the error
+      }
+    }
 
     await createAuditLog({
       userId: session.user.id,

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { fireDrillReportSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
+import { getMonthName } from "@/lib/date-utils";
 
 export async function GET(
   request: NextRequest,
@@ -120,10 +121,10 @@ export async function PUT(
     }
     const validatedData = fireDrillReportSchema.parse(parseResult.data);
 
-    // Parse the drill date to get month and year
+    // Parse the drill date to get month and year (use UTC since date-only fields are stored at UTC midnight)
     const drillDate = new Date(validatedData.drillDate);
-    const reportMonth = drillDate.getMonth() + 1;
-    const reportYear = drillDate.getFullYear();
+    const reportMonth = drillDate.getUTCMonth() + 1;
+    const reportYear = drillDate.getUTCFullYear();
 
     // Check for duplicate if month/year/shift changed
     if (
@@ -144,7 +145,7 @@ export async function PUT(
       if (duplicate) {
         return NextResponse.json(
           {
-            error: `A ${validatedData.shift} shift fire drill report already exists for ${drillDate.toLocaleString("default", { month: "long" })} ${reportYear}`,
+            error: `A ${validatedData.shift} shift fire drill report already exists for ${getMonthName(reportMonth)} ${reportYear}`,
           },
           { status: 400 }
         );

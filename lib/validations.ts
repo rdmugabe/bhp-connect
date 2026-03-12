@@ -1834,3 +1834,258 @@ export const marHeaderSchema = z.object({
 });
 
 export type MARHeaderInput = z.infer<typeof marHeaderSchema>;
+
+// =====================================================
+// eMAR (Electronic Medication Administration Record) Schemas
+// =====================================================
+
+// Medication Route enum values
+export const MEDICATION_ROUTES = [
+  "PO", "SL", "IM", "IV", "SC", "TOPICAL", "INHALED",
+  "OPHTHALMIC", "OTIC", "NASAL", "RECTAL", "TRANSDERMAL", "OTHER"
+] as const;
+
+// Medication Frequency enum values
+export const MEDICATION_FREQUENCIES = [
+  "ONCE", "DAILY", "BID", "TID", "QID", "Q4H", "Q6H", "Q8H",
+  "Q12H", "QHS", "QAM", "PRN", "WEEKLY", "CUSTOM"
+] as const;
+
+// Administration Status enum values
+export const ADMINISTRATION_STATUSES = [
+  "SCHEDULED", "DUE", "GIVEN", "REFUSED", "HELD",
+  "MISSED", "NOT_AVAILABLE", "LOA", "DISCONTINUED"
+] as const;
+
+// Medication Order Schema
+export const medicationOrderSchema = z.object({
+  intakeId: z.string().min(1, "Patient is required"),
+
+  // Medication Details
+  medicationName: z.string().min(1, "Medication name is required"),
+  genericName: z.string().optional(),
+  strength: z.string().min(1, "Strength is required"),
+  dosageForm: z.string().optional(),
+
+  // Dosing
+  dose: z.string().min(1, "Dose is required"),
+  route: z.enum(MEDICATION_ROUTES),
+  frequency: z.enum(MEDICATION_FREQUENCIES),
+  customFrequency: z.string().optional(),
+  scheduleTimes: z.array(z.string()).default([]),
+
+  // PRN
+  isPRN: z.boolean().default(false),
+  prnReason: z.string().optional(),
+  prnMinIntervalHours: z.number().min(0).optional(),
+  prnMaxDailyDoses: z.number().min(1).optional(),
+
+  // Prescriber
+  prescriberName: z.string().min(1, "Prescriber name is required"),
+  prescriberNPI: z.string().optional(),
+  prescriberPhone: z.string().optional(),
+
+  // Dates
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().optional(),
+
+  // Instructions
+  instructions: z.string().optional(),
+  administrationNotes: z.string().optional(),
+
+  // Pharmacy
+  pharmacyName: z.string().optional(),
+  pharmacyPhone: z.string().optional(),
+  rxNumber: z.string().optional(),
+
+  // Control
+  isControlled: z.boolean().default(false),
+  controlSchedule: z.string().optional(),
+}).refine(
+  (data) => {
+    // If frequency is CUSTOM, scheduleTimes must be provided
+    if (data.frequency === "CUSTOM" && (!data.scheduleTimes || data.scheduleTimes.length === 0)) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Schedule times are required for custom frequency",
+    path: ["scheduleTimes"],
+  }
+).refine(
+  (data) => {
+    // If isPRN, prnReason should be provided
+    if (data.isPRN && !data.prnReason) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "PRN reason is required for PRN medications",
+    path: ["prnReason"],
+  }
+).refine(
+  (data) => {
+    // If isControlled, controlSchedule should be provided
+    if (data.isControlled && !data.controlSchedule) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Control schedule is required for controlled substances",
+    path: ["controlSchedule"],
+  }
+);
+
+// Medication Order Update Schema
+export const medicationOrderUpdateSchema = z.object({
+  dose: z.string().optional(),
+  instructions: z.string().optional(),
+  administrationNotes: z.string().optional(),
+  scheduleTimes: z.array(z.string()).optional(),
+  endDate: z.string().optional(),
+  status: z.enum(["ACTIVE", "ON_HOLD"]).optional(),
+});
+
+// Discontinue Medication Schema
+export const discontinueMedicationSchema = z.object({
+  discontinueReason: z.string().min(5, "Reason must be at least 5 characters"),
+});
+
+// Administration Schema (for recording medication administration)
+export const medicationAdministrationSchema = z.object({
+  scheduleId: z.string().optional(), // Optional for PRN
+  medicationOrderId: z.string().min(1, "Medication order is required"),
+
+  administeredAt: z.string().min(1, "Administration time is required"),
+  doseGiven: z.string().min(1, "Dose given is required"),
+  route: z.enum(MEDICATION_ROUTES),
+  status: z.enum(["GIVEN", "REFUSED", "HELD", "NOT_AVAILABLE", "LOA"]),
+
+  // Reason fields
+  refusedReason: z.string().optional(),
+  heldReason: z.string().optional(),
+  notGivenReason: z.string().optional(),
+
+  // PRN specific
+  prnReasonGiven: z.string().optional(),
+
+  // Vitals (optional)
+  vitalsBP: z.string().optional(),
+  vitalsPulse: z.number().optional(),
+  vitalsTemp: z.string().optional(),
+  vitalsResp: z.number().optional(),
+  vitalsPain: z.number().min(0).max(10).optional(),
+
+  // Witness for controlled substances
+  witnessId: z.string().optional(),
+  witnessName: z.string().optional(),
+
+  notes: z.string().optional(),
+
+  // 6 Rights verification
+  sixRightsVerified: z.boolean().refine(val => val === true, {
+    message: "All 6 Rights must be verified before administration",
+  }),
+}).refine(
+  (data) => {
+    // If status is REFUSED, refusedReason must be provided
+    if (data.status === "REFUSED" && !data.refusedReason) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Reason is required when medication is refused",
+    path: ["refusedReason"],
+  }
+).refine(
+  (data) => {
+    // If status is HELD, heldReason must be provided
+    if (data.status === "HELD" && !data.heldReason) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Reason is required when medication is held",
+    path: ["heldReason"],
+  }
+);
+
+// PRN Administration Schema (for PRN medications - requires prnReasonGiven)
+export const prnAdministrationSchema = z.object({
+  scheduleId: z.string().optional(),
+  medicationOrderId: z.string().min(1, "Medication order is required"),
+  administeredAt: z.string().min(1, "Administration time is required"),
+  doseGiven: z.string().min(1, "Dose given is required"),
+  route: z.enum(MEDICATION_ROUTES),
+  status: z.enum(["GIVEN", "REFUSED", "HELD", "NOT_AVAILABLE", "LOA"]),
+  refusedReason: z.string().optional(),
+  heldReason: z.string().optional(),
+  notGivenReason: z.string().optional(),
+  prnReasonGiven: z.string().min(1, "PRN reason is required"),
+  prnFollowupMinutes: z.number().min(15).max(120).default(60),
+  vitalsBP: z.string().optional(),
+  vitalsPulse: z.number().optional(),
+  vitalsTemp: z.string().optional(),
+  vitalsResp: z.number().optional(),
+  vitalsPain: z.number().min(0).max(10).optional(),
+  witnessId: z.string().optional(),
+  witnessName: z.string().optional(),
+  notes: z.string().optional(),
+  sixRightsVerified: z.boolean().refine(val => val === true, {
+    message: "All 6 Rights must be verified before administration",
+  }),
+});
+
+// PRN Follow-up Schema
+export const prnFollowupSchema = z.object({
+  administrationId: z.string().min(1, "Administration ID is required"),
+  prnEffectiveness: z.string().min(1, "Effectiveness assessment is required"),
+  prnFollowupNotes: z.string().optional(),
+});
+
+// Schedule Generation Schema
+export const scheduleGenerationSchema = z.object({
+  medicationOrderId: z.string().min(1, "Medication order is required"),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().optional(),
+  daysToGenerate: z.number().min(1).max(30).default(7),
+});
+
+// Alert Acknowledgment Schema
+export const alertAcknowledgmentSchema = z.object({
+  alertId: z.string().min(1, "Alert ID is required"),
+});
+
+// Dashboard Query Schema
+export const emarDashboardQuerySchema = z.object({
+  date: z.string().optional(), // Default to today
+  shift: z.enum(["DAY", "NIGHT", "ALL"]).optional(),
+  intakeId: z.string().optional(),
+  includeUpcoming: z.boolean().optional(),
+  hoursAhead: z.number().min(1).max(12).optional(),
+});
+
+// MAR Report Query Schema
+export const marReportQuerySchema = z.object({
+  intakeId: z.string().min(1, "Patient is required"),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
+  includeDiscontinued: z.boolean().optional(),
+});
+
+// Type exports
+export type MedicationOrderInput = z.infer<typeof medicationOrderSchema>;
+export type MedicationOrderUpdateInput = z.infer<typeof medicationOrderUpdateSchema>;
+export type DiscontinueMedicationInput = z.infer<typeof discontinueMedicationSchema>;
+export type MedicationAdministrationInput = z.infer<typeof medicationAdministrationSchema>;
+export type PRNAdministrationInput = z.infer<typeof prnAdministrationSchema>;
+export type PRNFollowupInput = z.infer<typeof prnFollowupSchema>;
+export type ScheduleGenerationInput = z.infer<typeof scheduleGenerationSchema>;
+export type AlertAcknowledgmentInput = z.infer<typeof alertAcknowledgmentSchema>;
+export type EmarDashboardQueryInput = z.infer<typeof emarDashboardQuerySchema>;
+export type MARReportQueryInput = z.infer<typeof marReportQuerySchema>;

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { artMeetingSchema, artMeetingDraftSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
-import { parseOptionalDate } from "@/lib/date-utils";
+import { parseOptionalDate, getCurrentArizonaMonthAndYear } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -162,9 +162,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Determine month/year for the meeting
-    const month = meetingMonth || new Date().getMonth() + 1;
-    const year = meetingYear || new Date().getFullYear();
+    // Determine month/year for the meeting (use Arizona timezone for defaults)
+    const arizonaDate = getCurrentArizonaMonthAndYear();
+    const month = meetingMonth || arizonaDate.month;
+    const year = meetingYear || arizonaDate.year;
 
     // Check if a meeting already exists for this intake/month/year
     const existingMeeting = await prisma.aRTMeeting.findUnique({

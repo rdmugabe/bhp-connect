@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { fireDrillReportSchema } from "@/lib/validations";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
-import { parseRequiredDate } from "@/lib/date-utils";
+import { parseRequiredDate, getMonthName } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -120,10 +120,10 @@ export async function POST(request: NextRequest) {
     }
     const validatedData = fireDrillReportSchema.parse(parseResult.data);
 
-    // Parse the drill date to get month and year
+    // Parse the drill date to get month and year (use UTC since date-only fields are stored at UTC midnight)
     const drillDate = parseRequiredDate(validatedData.drillDate, "Drill date");
-    const reportMonth = drillDate.getMonth() + 1; // JavaScript months are 0-indexed
-    const reportYear = drillDate.getFullYear();
+    const reportMonth = drillDate.getUTCMonth() + 1; // Use UTC to avoid timezone shift
+    const reportYear = drillDate.getUTCFullYear();
 
     // Check for duplicate (same facility, month, year, shift)
     const existing = await prisma.fireDrillReport.findUnique({
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
     if (existing) {
       return NextResponse.json(
         {
-          error: `A ${validatedData.shift} shift fire drill report already exists for ${drillDate.toLocaleString("default", { month: "long" })} ${reportYear}`,
+          error: `A ${validatedData.shift} shift fire drill report already exists for ${getMonthName(reportMonth)} ${reportYear}`,
         },
         { status: 400 }
       );

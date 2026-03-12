@@ -688,6 +688,50 @@ export function getNowArizona(): Date {
   return new Date();
 }
 
+/**
+ * Get month and year in Arizona timezone from a Date object
+ * Use for: determining which month/year a date falls into for reports
+ */
+export function getArizonaMonthAndYear(date: Date): { month: number; year: number } {
+  // Use Intl.DateTimeFormat to get month/year in Arizona timezone
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: ARIZONA_TIMEZONE,
+    year: "numeric",
+    month: "numeric",
+  });
+
+  const parts = formatter.formatToParts(date);
+  const monthPart = parts.find((p) => p.type === "month");
+  const yearPart = parts.find((p) => p.type === "year");
+
+  return {
+    month: parseInt(monthPart?.value || "1", 10),
+    year: parseInt(yearPart?.value || "2000", 10),
+  };
+}
+
+/**
+ * Get the current month and year in Arizona timezone
+ * Use for: checking current month for compliance reports
+ */
+export function getCurrentArizonaMonthAndYear(): { month: number; year: number } {
+  return getArizonaMonthAndYear(new Date());
+}
+
+/**
+ * Format date for notification display (date-only fields use UTC)
+ * Use for: displaying expiration dates in notifications
+ */
+export function formatDateForNotification(date: Date | null | undefined): string {
+  if (!date) return "N/A";
+  return date.toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 // =============================================================================
 // LEGACY COMPATIBILITY (deprecated - use the functions above instead)
 // =============================================================================

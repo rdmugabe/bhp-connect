@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // Format date of birth for display
+    // Format date of birth for display (use UTC since date-only field)
     let formattedDOB = data.dateOfBirth;
     try {
       const dobDate = new Date(data.dateOfBirth);
@@ -40,12 +40,13 @@ export async function POST(request: NextRequest) {
         month: "2-digit",
         day: "2-digit",
         year: "numeric",
+        timeZone: "UTC",
       });
     } catch {
       // Keep original format if parsing fails
     }
 
-    // Format admit date for display
+    // Format admit date for display (use UTC since date-only field)
     let formattedAdmitDate = data.admitDate || "";
     if (data.admitDate) {
       try {
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
           month: "2-digit",
           day: "2-digit",
           year: "numeric",
+          timeZone: "UTC",
         });
       } catch {
         // Keep original format if parsing fails

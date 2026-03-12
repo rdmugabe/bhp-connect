@@ -55,6 +55,74 @@ enum MeetingStatus {
   CANCELLED
 }
 
+// eMAR (Electronic Medication Administration Record) Enums
+enum MedicationOrderStatus {
+  ACTIVE
+  DISCONTINUED
+  COMPLETED
+  ON_HOLD
+}
+
+enum MedicationFrequency {
+  ONCE
+  DAILY
+  BID
+  TID
+  QID
+  Q4H
+  Q6H
+  Q8H
+  Q12H
+  QHS
+  QAM
+  PRN
+  WEEKLY
+  CUSTOM
+}
+
+enum MedicationRoute {
+  PO
+  SL
+  IM
+  IV
+  SC
+  TOPICAL
+  INHALED
+  OPHTHALMIC
+  OTIC
+  NASAL
+  RECTAL
+  TRANSDERMAL
+  OTHER
+}
+
+enum AdministrationStatus {
+  SCHEDULED
+  DUE
+  GIVEN
+  REFUSED
+  HELD
+  MISSED
+  NOT_AVAILABLE
+  LOA
+  DISCONTINUED
+}
+
+enum AlertType {
+  MEDICATION_DUE
+  MEDICATION_OVERDUE
+  MISSED_DOSE
+  ALLERGY_WARNING
+  DUPLICATE_MEDICATION
+  PRN_FOLLOWUP_DUE
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
 model User {
   id              String         @id @default(cuid())
   email           String         @unique
@@ -124,6 +192,8 @@ model Facility {
   artMeetings           ARTMeeting[]
   dischargeSummaries    DischargeSummary[]
   incidentReports       IncidentReport[]
+  medicationOrders      MedicationOrder[]
+  medicationAlerts      MedicationAlert[]
 
   @@index([bhpId])
 }
@@ -423,6 +493,8 @@ model Intake {
   artMeetings      ARTMeeting[]
   dischargeSummary DischargeSummary?
   incidentReports  IncidentReport[]
+  medicationOrders MedicationOrder[]
+  medicationAlerts MedicationAlert[]
 
   @@index([facilityId])
   @@index([status])
@@ -1201,4 +1273,176 @@ model IncidentReport {
   @@index([intakeId])
   @@index([incidentDate])
   @@index([status])
+}
+
+// eMAR (Electronic Medication Administration Record) Models
+
+model MedicationOrder {
+  id                String              @id @default(cuid())
+  intakeId          String
+  intake            Intake              @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  facilityId        String
+  facility          Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  // Medication Details
+  medicationName    String
+  genericName       String?
+  strength          String
+  dosageForm        String?
+
+  // Dosing
+  dose              String
+  route             MedicationRoute
+  frequency         MedicationFrequency
+  customFrequency   String?
+  scheduleTimes     String[]            @default([])
+
+  // PRN
+  isPRN             Boolean             @default(false)
+  prnReason         String?             @db.Text
+  prnMinIntervalHours Int?
+  prnMaxDailyDoses  Int?
+
+  // Prescriber
+  prescriberName    String
+  prescriberNPI     String?
+  prescriberPhone   String?
+
+  // Dates
+  startDate         DateTime
+  endDate           DateTime?
+
+  // Instructions
+  instructions      String?             @db.Text
+  administrationNotes String?           @db.Text
+
+  // Pharmacy
+  pharmacyName      String?
+  pharmacyPhone     String?
+  rxNumber          String?
+
+  // Control
+  isControlled      Boolean             @default(false)
+  controlSchedule   String?
+
+  // Status
+  status            MedicationOrderStatus @default(ACTIVE)
+  discontinuedAt    DateTime?
+  discontinuedBy    String?
+  discontinueReason String?             @db.Text
+
+  // Audit
+  orderedBy         String
+  orderedAt         DateTime            @default(now())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  schedules         MedicationSchedule[]
+  administrations   MedicationAdministration[]
+
+  @@index([intakeId])
+  @@index([facilityId])
+  @@index([status])
+  @@index([isPRN])
+}
+
+model MedicationSchedule {
+  id                String              @id @default(cuid())
+  medicationOrderId String
+  medicationOrder   MedicationOrder     @relation(fields: [medicationOrderId], references: [id], onDelete: Cascade)
+
+  scheduledDate     DateTime            @db.Date
+  scheduledTime     String
+  scheduledDateTime DateTime
+  status            AdministrationStatus @default(SCHEDULED)
+  windowStartTime   DateTime
+  windowEndTime     DateTime
+
+  administrationId  String?             @unique
+  administration    MedicationAdministration? @relation(fields: [administrationId], references: [id])
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([medicationOrderId])
+  @@index([scheduledDateTime])
+  @@index([status])
+}
+
+model MedicationAdministration {
+  id                String              @id @default(cuid())
+  medicationOrderId String
+  medicationOrder   MedicationOrder     @relation(fields: [medicationOrderId], references: [id], onDelete: Cascade)
+
+  schedule          MedicationSchedule?
+  scheduledDateTime DateTime?
+  administeredAt    DateTime
+
+  administeredById  String
+  administeredBy    String
+
+  doseGiven         String
+  route             MedicationRoute
+  status            AdministrationStatus
+
+  refusedReason     String?             @db.Text
+  heldReason        String?             @db.Text
+  heldBy            String?
+  notGivenReason    String?             @db.Text
+
+  // PRN specific
+  prnReasonGiven    String?             @db.Text
+  prnEffectiveness  String?             @db.Text
+  prnFollowupAt     DateTime?
+  prnFollowupNotes  String?             @db.Text
+  prnFollowupById   String?
+
+  // Vitals (optional)
+  vitalsBP          String?
+  vitalsPulse       Int?
+  vitalsTemp        String?
+  vitalsResp        Int?
+  vitalsPain        Int?
+
+  // Witness for controlled substances
+  witnessRequired   Boolean             @default(false)
+  witnessId         String?
+  witnessName       String?
+
+  notes             String?             @db.Text
+
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([medicationOrderId])
+  @@index([administeredAt])
+  @@index([status])
+}
+
+model MedicationAlert {
+  id                String              @id @default(cuid())
+  facilityId        String
+  facility          Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  intakeId          String?
+  intake            Intake?             @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  medicationOrderId String?
+  scheduleId        String?
+
+  alertType         AlertType
+  severity          AlertSeverity
+  title             String
+  message           String              @db.Text
+
+  isActive          Boolean             @default(true)
+  acknowledgedAt    DateTime?
+  acknowledgedById  String?
+  acknowledgedBy    String?
+
+  triggeredAt       DateTime            @default(now())
+  expiresAt         DateTime?
+  createdAt         DateTime            @default(now())
+
+  @@index([facilityId])
+  @@index([intakeId])
+  @@index([isActive])
 }

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCurrentBiWeekInfo } from "@/lib/utils";
+import { getCurrentArizonaMonthAndYear } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -96,10 +97,9 @@ export async function GET(request: NextRequest) {
           },
         });
 
-        // Count missing fire drill reports for current month
+        // Count missing fire drill reports for current month (use Arizona timezone)
         const now = new Date();
-        const currentMonth = now.getMonth() + 1;
-        const currentYear = now.getFullYear();
+        const { month: currentMonth, year: currentYear } = getCurrentArizonaMonthAndYear();
 
         const fireDrillReports = await prisma.fireDrillReport.findMany({
           where: {
@@ -125,9 +125,9 @@ export async function GET(request: NextRequest) {
           select: { drillType: true, quarter: true, shift: true },
         });
 
-        // Calculate current quarter
-        const month = now.getMonth();
-        const currentQuarter = month < 3 ? "Q1" : month < 6 ? "Q2" : month < 9 ? "Q3" : "Q4";
+        // Calculate current quarter (using Arizona timezone month)
+        const arizonaMonth = currentMonth - 1; // Convert to 0-indexed for quarter calculation
+        const currentQuarter = arizonaMonth < 3 ? "Q1" : arizonaMonth < 6 ? "Q2" : arizonaMonth < 9 ? "Q3" : "Q4";
 
         // Check evacuation drills (every 6 months = H1 and H2, with AM and PM shifts)
         const inH1 = currentQuarter === "Q1" || currentQuarter === "Q2";

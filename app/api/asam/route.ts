@@ -6,6 +6,7 @@ import { asamSchema, asamDraftSchema, ASAMInput, ASAMDraftInput } from "@/lib/va
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { parseJsonBody } from "@/lib/api-utils";
 import { parseOptionalDateOfBirth, parseOptionalPastDate, parseOptionalSignatureDate } from "@/lib/date-utils";
+import { syncASAMMedicationsToEmar } from "@/lib/emar/medication-sync";
 
 export async function GET(request: NextRequest) {
   try {
@@ -323,6 +324,38 @@ export async function POST(request: NextRequest) {
         ...(isDraft && { draftStep: currentStep || 1 }),
       },
     });
+
+    // Sync medications to eMAR if not a draft
+    if (!isDraft) {
+      try {
+        const medicalMeds = validatedData.medicalMedications as Array<{
+          medication: string;
+          dose?: string;
+          reason?: string;
+          effectiveness?: string;
+        }> | null | undefined;
+
+        const psychiatricMeds = validatedData.psychiatricMedications as Array<{
+          medication: string;
+          dose?: string;
+          reason?: string;
+          effectiveness?: string;
+        }> | null | undefined;
+
+        if ((medicalMeds && medicalMeds.length > 0) || (psychiatricMeds && psychiatricMeds.length > 0)) {
+          await syncASAMMedicationsToEmar(
+            intakeId,
+            bhrfProfile.facilityId,
+            medicalMeds,
+            psychiatricMeds,
+            session.user.name || session.user.email || "System"
+          );
+        }
+      } catch (syncError) {
+        console.error("Failed to sync ASAM medications to eMAR:", syncError);
+        // Don't fail the ASAM creation, just log the error
+      }
+    }
 
     return NextResponse.json({ assessment }, { status: 201 });
   } catch (error) {
