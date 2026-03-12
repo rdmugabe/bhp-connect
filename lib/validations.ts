@@ -1422,8 +1422,14 @@ export const dischargeSummarySchema = z.object({
   contactPhoneAfterDischarge: z.string().optional(),
   contactAddressAfterDischarge: z.string().optional(),
 
+  // Clinical Info - Prefilled from Intake/ASAM
+  diagnoses: z.string().optional(),
+  allergies: z.string().optional(),
+  asamLevelOfCare: z.string().optional(),
+
   // Clinical Content
   presentingIssuesAtAdmission: z.string().optional(),
+  treatmentSummary: z.string().optional(),
   objectivesAttained: z.array(z.object({
     objective: z.string(),
     attained: z.enum(["Fully Attained", "Partially Attained", "Not Attained", "N/A"]),
@@ -1469,6 +1475,14 @@ export const dischargeSummarySchema = z.object({
   // Clinical Recommendations
   clinicalRecommendations: z.string().optional(),
 
+  // Relapse Prevention & Crisis
+  relapsePreventionPlan: z.string().optional(),
+  crisisResources: z.string().optional(),
+
+  // Patient Education
+  patientEducationProvided: z.string().optional(),
+  specialInstructions: z.string().optional(),
+
   // Cultural Preferences
   culturalPreferencesConsidered: z.boolean().default(false),
 
@@ -1501,8 +1515,14 @@ export const dischargeSummaryDraftSchema = z.object({
   contactPhoneAfterDischarge: z.string().optional(),
   contactAddressAfterDischarge: z.string().optional(),
 
+  // Clinical Info - Prefilled from Intake/ASAM
+  diagnoses: z.string().optional(),
+  allergies: z.string().optional(),
+  asamLevelOfCare: z.string().optional(),
+
   // Clinical Content
   presentingIssuesAtAdmission: z.string().optional(),
+  treatmentSummary: z.string().optional(),
   objectivesAttained: z.array(z.object({
     objective: z.string(),
     attained: z.enum(["Fully Attained", "Partially Attained", "Not Attained", "N/A"]),
@@ -1547,6 +1567,14 @@ export const dischargeSummaryDraftSchema = z.object({
 
   // Clinical Recommendations
   clinicalRecommendations: z.string().optional(),
+
+  // Relapse Prevention & Crisis
+  relapsePreventionPlan: z.string().optional(),
+  crisisResources: z.string().optional(),
+
+  // Patient Education
+  patientEducationProvided: z.string().optional(),
+  specialInstructions: z.string().optional(),
 
   // Cultural Preferences
   culturalPreferencesConsidered: z.boolean().optional().default(false),

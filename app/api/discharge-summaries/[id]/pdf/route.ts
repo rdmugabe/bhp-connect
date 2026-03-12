@@ -83,7 +83,13 @@ export async function GET(
       recommendedLevelOfCare: dischargeSummary.recommendedLevelOfCare || undefined,
       contactPhoneAfterDischarge: dischargeSummary.contactPhoneAfterDischarge || undefined,
       contactAddressAfterDischarge: dischargeSummary.contactAddressAfterDischarge || undefined,
+      // Clinical Info - Prefilled from Intake/ASAM
+      diagnoses: dischargeSummary.diagnoses || undefined,
+      allergies: dischargeSummary.allergies || undefined,
+      asamLevelOfCare: dischargeSummary.asamLevelOfCare || undefined,
+      // Clinical Content
       presentingIssuesAtAdmission: dischargeSummary.presentingIssuesAtAdmission || undefined,
+      treatmentSummary: dischargeSummary.treatmentSummary || undefined,
       objectivesAttained: (dischargeSummary.objectivesAttained as Array<{ objective: string; attained: string }>) || [],
       objectiveNarratives: (dischargeSummary.objectiveNarratives as { fullyAttained?: string; partiallyAttained?: string; notAttained?: string }) || {},
       completedServices: dischargeSummary.completedServices || [],
@@ -95,6 +101,12 @@ export async function GET(
       dischargeMedications: (dischargeSummary.dischargeMedications as Array<{ medication: string; dosage?: string; frequency?: string; prescriber?: string }>) || [],
       serviceReferrals: (dischargeSummary.serviceReferrals as Array<{ service: string; provider?: string; phone?: string; address?: string; appointmentDate?: string }>) || [],
       clinicalRecommendations: dischargeSummary.clinicalRecommendations || undefined,
+      // Relapse Prevention & Crisis
+      relapsePreventionPlan: dischargeSummary.relapsePreventionPlan || undefined,
+      crisisResources: dischargeSummary.crisisResources || undefined,
+      // Patient Education
+      patientEducationProvided: dischargeSummary.patientEducationProvided || undefined,
+      specialInstructions: dischargeSummary.specialInstructions || undefined,
       culturalPreferencesConsidered: dischargeSummary.culturalPreferencesConsidered || false,
       suicidePreventionEducation: dischargeSummary.suicidePreventionEducation || undefined,
       clientSignature: dischargeSummary.clientSignature || undefined,

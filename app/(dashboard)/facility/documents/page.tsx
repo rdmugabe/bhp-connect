@@ -339,7 +339,8 @@ export default function FacilityDocumentsPage() {
 
   async function fetchResidents() {
     try {
-      const response = await fetch("/api/intakes?status=APPROVED");
+      // Fetch only active (non-discharged), approved residents
+      const response = await fetch("/api/intakes?status=APPROVED&active=true");
       if (response.ok) {
         const data = await response.json();
         setResidents(data.intakes || []);

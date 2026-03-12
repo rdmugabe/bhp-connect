@@ -29,7 +29,7 @@ import {
   COMPLETED_SERVICES,
 } from "@/lib/validations";
 import { formatDate } from "@/lib/utils";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Sparkles, Loader2 } from "lucide-react";
 
 interface ResidentInfo {
   id: string;
@@ -38,6 +38,15 @@ interface ResidentInfo {
   policyNumber?: string | null;
   ahcccsHealthPlan?: string | null;
   admissionDate?: Date | string | null;
+  // Clinical data for prefilling from Intake
+  diagnosis?: string | null;
+  allergies?: string | null;
+  treatmentObjectives?: string | null;
+  presentingProblem?: string | null;
+  // ASAM data for prefilling
+  asamLevelOfCare?: string | null;
+  asamReasonForTreatment?: string | null;
+  asamCurrentSymptoms?: string | null;
 }
 
 interface ObjectiveAttained {
@@ -70,7 +79,13 @@ interface DischargeSummaryData {
   recommendedLevelOfCare?: string | null;
   contactPhoneAfterDischarge?: string | null;
   contactAddressAfterDischarge?: string | null;
+  // Clinical content - prefilled
+  diagnoses?: string | null;
+  allergies?: string | null;
+  asamLevelOfCare?: string | null;
+  // Clinical content - editable
   presentingIssuesAtAdmission?: string | null;
+  treatmentSummary?: string | null;
   objectivesAttained?: ObjectiveAttained[];
   objectiveNarratives?: {
     fullyAttained?: string;
@@ -87,6 +102,12 @@ interface DischargeSummaryData {
   dischargeMedications?: Medication[];
   serviceReferrals?: ServiceReferral[];
   clinicalRecommendations?: string | null;
+  // Relapse prevention & crisis
+  relapsePreventionPlan?: string | null;
+  crisisResources?: string | null;
+  // Patient education
+  patientEducationProvided?: string | null;
+  specialInstructions?: string | null;
   culturalPreferencesConsidered?: boolean;
   suicidePreventionEducation?: string | null;
   clientSignature?: string | null;
@@ -105,6 +126,7 @@ interface DischargeSummaryFormProps {
   initialData?: DischargeSummaryData;
   mode?: "create" | "edit";
   readOnly?: boolean;
+  prefillMedications?: Medication[];
 }
 
 function formatDateInput(date?: string | Date | null): string {
@@ -121,11 +143,14 @@ export function DischargeSummaryForm({
   initialData,
   mode = "create",
   readOnly = false,
+  prefillMedications = [],
 }: DischargeSummaryFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
   const [formData, setFormData] = useState({
     dischargeDate: formatDateInput(initialData?.dischargeDate),
@@ -136,7 +161,18 @@ export function DischargeSummaryForm({
     recommendedLevelOfCare: initialData?.recommendedLevelOfCare || "",
     contactPhoneAfterDischarge: initialData?.contactPhoneAfterDischarge || "",
     contactAddressAfterDischarge: initialData?.contactAddressAfterDischarge || "",
-    presentingIssuesAtAdmission: initialData?.presentingIssuesAtAdmission || "",
+    // Clinical content - prefilled from intake/ASAM (always fallback to resident data if not set)
+    diagnoses: initialData?.diagnoses || resident.diagnosis || "",
+    allergies: initialData?.allergies || resident.allergies || "",
+    asamLevelOfCare: initialData?.asamLevelOfCare || resident.asamLevelOfCare || "",
+    // Clinical content - editable (prefilled from intake and ASAM data)
+    presentingIssuesAtAdmission: initialData?.presentingIssuesAtAdmission ||
+      (mode === "create" ? [
+        resident.presentingProblem,
+        resident.asamReasonForTreatment,
+        resident.asamCurrentSymptoms,
+      ].filter(Boolean).join("\n\n") || "" : ""),
+    treatmentSummary: initialData?.treatmentSummary || "",
     objectivesAttained: initialData?.objectivesAttained || [] as ObjectiveAttained[],
     objectiveNarratives: initialData?.objectiveNarratives || {
       fullyAttained: "",
@@ -150,9 +186,15 @@ export function DischargeSummaryForm({
     personalItemsReceived: initialData?.personalItemsReceived || false,
     personalItemsStoredDays: initialData?.personalItemsStoredDays || 0,
     itemsRemainAtFacility: initialData?.itemsRemainAtFacility || false,
-    dischargeMedications: initialData?.dischargeMedications || [] as Medication[],
+    dischargeMedications: initialData?.dischargeMedications || (mode === "create" ? prefillMedications : []) as Medication[],
     serviceReferrals: initialData?.serviceReferrals || [] as ServiceReferral[],
     clinicalRecommendations: initialData?.clinicalRecommendations || "",
+    // Relapse prevention & crisis
+    relapsePreventionPlan: initialData?.relapsePreventionPlan || "",
+    crisisResources: initialData?.crisisResources || "",
+    // Patient education
+    patientEducationProvided: initialData?.patientEducationProvided || "",
+    specialInstructions: initialData?.specialInstructions || "",
     culturalPreferencesConsidered: initialData?.culturalPreferencesConsidered || false,
     suicidePreventionEducation: initialData?.suicidePreventionEducation || "",
     clientSignature: initialData?.clientSignature || "",
@@ -247,6 +289,80 @@ export function DischargeSummaryForm({
       serviceReferrals: formData.serviceReferrals.filter((_, i) => i !== index),
     });
   };
+
+  async function handleGenerateWithAI() {
+    if (!formData.dischargeDate) {
+      toast({
+        variant: "destructive",
+        title: "Discharge Date Required",
+        description: "Please enter a discharge date before generating with AI.",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      const response = await fetch("/api/discharge-summaries/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          intakeId: resident.id,
+          dischargeDate: formData.dischargeDate,
+          dischargeType: formData.dischargeType,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to generate discharge summary");
+      }
+
+      const data = await response.json();
+      const { generated, prefill } = data;
+
+      // Update form with generated content
+      setFormData((prev) => ({
+        ...prev,
+        presentingIssuesAtAdmission: generated.presentingIssuesAtAdmission || prev.presentingIssuesAtAdmission,
+        treatmentSummary: generated.treatmentSummary || prev.treatmentSummary,
+        dischargeSummaryNarrative: generated.dischargeSummaryNarrative || prev.dischargeSummaryNarrative,
+        clinicalRecommendations: generated.clinicalRecommendations || prev.clinicalRecommendations,
+        objectivesAttained: generated.objectivesAttained?.length > 0
+          ? generated.objectivesAttained
+          : prev.objectivesAttained,
+        objectiveNarratives: {
+          fullyAttained: generated.objectiveNarratives?.fullyAttained || prev.objectiveNarratives.fullyAttained,
+          partiallyAttained: generated.objectiveNarratives?.partiallyAttained || prev.objectiveNarratives.partiallyAttained,
+          notAttained: generated.objectiveNarratives?.notAttained || prev.objectiveNarratives.notAttained,
+        },
+        relapsePreventionPlan: generated.relapsePreventionPlan || prev.relapsePreventionPlan,
+        crisisResources: generated.crisisResources || prev.crisisResources,
+        patientEducationProvided: generated.patientEducationProvided || prev.patientEducationProvided,
+        specialInstructions: generated.specialInstructions || prev.specialInstructions,
+        suicidePreventionEducation: generated.suicidePreventionEducation || prev.suicidePreventionEducation,
+        // Also update medications if we got prefill data and current is empty
+        dischargeMedications: prev.dischargeMedications.length === 0 && prefill?.dischargeMedications?.length > 0
+          ? prefill.dischargeMedications
+          : prev.dischargeMedications,
+      }));
+
+      setHasGenerated(true);
+
+      toast({
+        title: "Content Generated",
+        description: "AI has generated the discharge summary content. Please review and edit as needed.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate content",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent, isDraft: boolean = false) {
     e.preventDefault();
@@ -503,14 +619,97 @@ export function DischargeSummaryForm({
         </CardContent>
       </Card>
 
+      {/* Clinical Information (Prefilled from Intake/ASAM) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Clinical Information</CardTitle>
+          <CardDescription>
+            Prefilled from intake assessment and ASAM evaluation
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="diagnoses">Diagnoses</Label>
+              <Textarea
+                id="diagnoses"
+                value={formData.diagnoses}
+                onChange={(e) =>
+                  setFormData({ ...formData, diagnoses: e.target.value })
+                }
+                disabled={readOnly}
+                placeholder="Primary and secondary diagnoses"
+                rows={3}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="allergies">Allergies</Label>
+              <Textarea
+                id="allergies"
+                value={formData.allergies}
+                onChange={(e) =>
+                  setFormData({ ...formData, allergies: e.target.value })
+                }
+                disabled={readOnly}
+                placeholder="Known allergies"
+                rows={3}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="asamLevelOfCare">ASAM Level of Care</Label>
+            <Input
+              id="asamLevelOfCare"
+              value={formData.asamLevelOfCare}
+              onChange={(e) =>
+                setFormData({ ...formData, asamLevelOfCare: e.target.value })
+              }
+              disabled={readOnly}
+              placeholder="Recommended level of care from ASAM assessment"
+              className="mt-1"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Clinical Content */}
       <Card>
         <CardHeader>
-          <CardTitle>Clinical Content</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Treatment Summary</CardTitle>
+            {!readOnly && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGenerateWithAI}
+                disabled={isGenerating}
+                className="gap-2"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    {hasGenerated ? "Regenerate with AI" : "Generate with AI"}
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+          {!readOnly && (
+            <CardDescription>
+              Click &quot;Generate with AI&quot; to auto-fill narrative fields based on intake data, progress notes, and treatment history.
+            </CardDescription>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="presentingIssuesAtAdmission">Presenting Issues at Admission</Label>
+            <Label htmlFor="presentingIssuesAtAdmission">Presenting Problems at Admission</Label>
             <Textarea
               id="presentingIssuesAtAdmission"
               value={formData.presentingIssuesAtAdmission}
@@ -520,6 +719,21 @@ export function DischargeSummaryForm({
               disabled={readOnly}
               placeholder="Describe the issues at the time of admission"
               rows={3}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="treatmentSummary">Treatment Goals Addressed</Label>
+            <Textarea
+              id="treatmentSummary"
+              value={formData.treatmentSummary}
+              onChange={(e) =>
+                setFormData({ ...formData, treatmentSummary: e.target.value })
+              }
+              disabled={readOnly}
+              placeholder="Summary of treatment goals and how they were addressed during stay"
+              rows={4}
               className="mt-1"
             />
           </div>
@@ -549,6 +763,82 @@ export function DischargeSummaryForm({
               }
               disabled={readOnly}
               placeholder="Clinical recommendations for ongoing care"
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Relapse Prevention & Crisis Planning */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Relapse Prevention & Crisis Planning</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="relapsePreventionPlan">Relapse Prevention Plan</Label>
+            <Textarea
+              id="relapsePreventionPlan"
+              value={formData.relapsePreventionPlan}
+              onChange={(e) =>
+                setFormData({ ...formData, relapsePreventionPlan: e.target.value })
+              }
+              disabled={readOnly}
+              placeholder="Describe the relapse prevention strategies and plan"
+              rows={4}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="crisisResources">Crisis Resources</Label>
+            <Textarea
+              id="crisisResources"
+              value={formData.crisisResources}
+              onChange={(e) =>
+                setFormData({ ...formData, crisisResources: e.target.value })
+              }
+              disabled={readOnly}
+              placeholder="Crisis hotlines, emergency contacts, and resources provided to resident"
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Patient Education */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Patient Education</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="patientEducationProvided">Patient Education Provided</Label>
+            <Textarea
+              id="patientEducationProvided"
+              value={formData.patientEducationProvided}
+              onChange={(e) =>
+                setFormData({ ...formData, patientEducationProvided: e.target.value })
+              }
+              disabled={readOnly}
+              placeholder="Education provided to resident regarding their condition and care"
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="specialInstructions">Special Instructions</Label>
+            <Textarea
+              id="specialInstructions"
+              value={formData.specialInstructions}
+              onChange={(e) =>
+                setFormData({ ...formData, specialInstructions: e.target.value })
+              }
+              disabled={readOnly}
+              placeholder="Any special instructions for the resident upon discharge"
               rows={3}
               className="mt-1"
             />

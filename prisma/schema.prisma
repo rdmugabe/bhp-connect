@@ -1132,10 +1132,24 @@ model DischargeSummary {
   contactPhoneAfterDischarge   String?
   contactAddressAfterDischarge String?  @db.Text
 
-  // Clinical Content
+  // Clinical Content - Prefilled from Intake/ASAM
+  diagnoses                    String?  @db.Text  // From intake diagnosis
+  allergies                    String?  @db.Text  // From intake allergies
+  asamLevelOfCare              String?            // From ASAM recommendedLevelOfCare
+
+  // Clinical Content - Editable
   presentingIssuesAtAdmission  String?  @db.Text
+  treatmentSummary             String?  @db.Text  // Summary of treatment provided
   objectivesAttained           Json?    // Array of objectives with attainment status
   objectiveNarratives          Json?    // Object with narrative for each objective
+
+  // Relapse Prevention & Crisis Planning
+  relapsePreventionPlan        String?  @db.Text
+  crisisResources              String?  @db.Text
+
+  // Patient Education
+  patientEducationProvided     String?  @db.Text
+  specialInstructions          String?  @db.Text
 
   // Completed Services
   completedServices            String[] // Array of service names

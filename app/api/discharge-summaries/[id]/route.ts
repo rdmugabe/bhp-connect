@@ -143,7 +143,13 @@ export async function PATCH(
         recommendedLevelOfCare: validatedData.recommendedLevelOfCare,
         contactPhoneAfterDischarge: validatedData.contactPhoneAfterDischarge,
         contactAddressAfterDischarge: validatedData.contactAddressAfterDischarge,
+        // Clinical info - prefilled
+        diagnoses: validatedData.diagnoses,
+        allergies: validatedData.allergies,
+        asamLevelOfCare: validatedData.asamLevelOfCare,
+        // Clinical content
         presentingIssuesAtAdmission: validatedData.presentingIssuesAtAdmission,
+        treatmentSummary: validatedData.treatmentSummary,
         objectivesAttained: validatedData.objectivesAttained || [],
         objectiveNarratives: validatedData.objectiveNarratives || {},
         completedServices: validatedData.completedServices || [],
@@ -156,6 +162,12 @@ export async function PATCH(
         dischargeMedications: validatedData.dischargeMedications || [],
         serviceReferrals: validatedData.serviceReferrals || [],
         clinicalRecommendations: validatedData.clinicalRecommendations,
+        // Relapse prevention & crisis
+        relapsePreventionPlan: validatedData.relapsePreventionPlan,
+        crisisResources: validatedData.crisisResources,
+        // Patient education
+        patientEducationProvided: validatedData.patientEducationProvided,
+        specialInstructions: validatedData.specialInstructions,
         culturalPreferencesConsidered: validatedData.culturalPreferencesConsidered || false,
         suicidePreventionEducation: validatedData.suicidePreventionEducation,
         clientSignature: validatedData.clientSignature,

@@ -19,8 +19,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const facilityId = searchParams.get("facilityId");
     const status = searchParams.get("status");
+    const activeOnly = searchParams.get("active") === "true"; // Only show non-discharged residents
 
     let intakes;
+
+    // Build discharged filter
+    const dischargedFilter = activeOnly ? { dischargedAt: null } : {};
 
     if (session.user.role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
@@ -38,6 +42,7 @@ export async function GET(request: NextRequest) {
             ...(facilityId && { id: facilityId }),
           },
           ...(status && { status: status as "DRAFT" | "PENDING" | "APPROVED" | "DENIED" | "CONDITIONAL" }),
+          ...dischargedFilter,
         },
         include: {
           facility: {
@@ -62,6 +67,7 @@ export async function GET(request: NextRequest) {
         where: {
           facilityId: bhrfProfile.facilityId,
           ...(status && { status: status as "DRAFT" | "PENDING" | "APPROVED" | "DENIED" | "CONDITIONAL" }),
+          ...dischargedFilter,
         },
         include: {
           facility: {

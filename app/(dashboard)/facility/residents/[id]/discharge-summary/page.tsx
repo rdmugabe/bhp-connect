@@ -39,14 +39,34 @@ export default async function DischargeSummaryPage({ params, searchParams }: Pag
     redirect("/facility");
   }
 
-  // Get the intake (resident) with their discharge summary
+  // Get the intake (resident) with their discharge summary and related data
   const intake = await prisma.intake.findUnique({
     where: { id: intakeId },
     include: {
       facility: true,
       dischargeSummary: true,
+      medications: true,
+      asamAssessments: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
     },
   });
+
+  // Get current medications from eMAR if available
+  const medicationOrders = intake ? await prisma.medicationOrder.findMany({
+    where: {
+      intakeId: intake.id,
+      status: "ACTIVE",
+      discontinuedAt: null,
+    },
+    select: {
+      medicationName: true,
+      dose: true,
+      frequency: true,
+      prescriberName: true,
+    },
+  }) : [];
 
   if (!intake || intake.facilityId !== bhrfProfile.facilityId) {
     notFound();
@@ -146,7 +166,40 @@ export default async function DischargeSummaryPage({ params, searchParams }: Pag
           policyNumber: intake.policyNumber,
           ahcccsHealthPlan: intake.ahcccsHealthPlan,
           admissionDate: intake.admissionDate,
+          // Clinical data for pre-filling from Intake
+          diagnosis: intake.diagnosis,
+          allergies: intake.allergies,
+          treatmentObjectives: intake.treatmentObjectives,
+          // Build presenting problem from multiple intake sources
+          presentingProblem: [
+            intake.reasonForServices,
+            intake.currentBehavioralSymptoms,
+            intake.personalPsychHX,
+          ].filter(Boolean).join("\n\n") || null,
+          // ASAM data for pre-filling
+          asamLevelOfCare: intake.asamAssessments[0]?.recommendedLevelOfCare || null,
+          asamReasonForTreatment: intake.asamAssessments[0]?.reasonForTreatment || null,
+          asamCurrentSymptoms: intake.asamAssessments[0]?.currentSymptoms || null,
         }}
+        prefillMedications={[
+          // From intake medications
+          ...intake.medications.map((med) => ({
+            medication: med.name,
+            dosage: med.dosage || "",
+            frequency: med.frequency || "",
+            prescriber: med.prescriber || "",
+          })),
+          // From active medication orders (eMAR)
+          ...medicationOrders.map((order) => ({
+            medication: order.medicationName,
+            dosage: order.dose || "",
+            frequency: order.frequency || "",
+            prescriber: order.prescriberName || "",
+          })),
+        ].filter((med, index, self) =>
+          // Remove duplicates by medication name
+          index === self.findIndex((m) => m.medication.toLowerCase() === med.medication.toLowerCase())
+        )}
         initialData={
           dischargeSummary
             ? {
@@ -159,7 +212,13 @@ export default async function DischargeSummaryPage({ params, searchParams }: Pag
                 recommendedLevelOfCare: dischargeSummary.recommendedLevelOfCare,
                 contactPhoneAfterDischarge: dischargeSummary.contactPhoneAfterDischarge,
                 contactAddressAfterDischarge: dischargeSummary.contactAddressAfterDischarge,
+                // Clinical info - prefilled
+                diagnoses: dischargeSummary.diagnoses,
+                allergies: dischargeSummary.allergies,
+                asamLevelOfCare: dischargeSummary.asamLevelOfCare,
+                // Clinical content
                 presentingIssuesAtAdmission: dischargeSummary.presentingIssuesAtAdmission,
+                treatmentSummary: dischargeSummary.treatmentSummary,
                 objectivesAttained: dischargeSummary.objectivesAttained as Array<{
                   objective: string;
                   attained: "Fully Attained" | "Partially Attained" | "Not Attained" | "N/A";
@@ -190,6 +249,12 @@ export default async function DischargeSummaryPage({ params, searchParams }: Pag
                   appointmentDate: string;
                 }>,
                 clinicalRecommendations: dischargeSummary.clinicalRecommendations,
+                // Relapse prevention & crisis
+                relapsePreventionPlan: dischargeSummary.relapsePreventionPlan,
+                crisisResources: dischargeSummary.crisisResources,
+                // Patient education
+                patientEducationProvided: dischargeSummary.patientEducationProvided,
+                specialInstructions: dischargeSummary.specialInstructions,
                 culturalPreferencesConsidered: dischargeSummary.culturalPreferencesConsidered,
                 suicidePreventionEducation: dischargeSummary.suicidePreventionEducation,
                 clientSignature: dischargeSummary.clientSignature,

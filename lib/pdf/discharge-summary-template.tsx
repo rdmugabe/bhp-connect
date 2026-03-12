@@ -278,8 +278,14 @@ interface DischargeSummaryData {
   contactPhoneAfterDischarge?: string;
   contactAddressAfterDischarge?: string;
 
+  // Clinical Info - Prefilled from Intake/ASAM
+  diagnoses?: string;
+  allergies?: string;
+  asamLevelOfCare?: string;
+
   // Clinical Content
   presentingIssuesAtAdmission?: string;
+  treatmentSummary?: string;
   objectivesAttained?: Array<{
     objective: string;
     attained: string;
@@ -317,6 +323,14 @@ interface DischargeSummaryData {
 
   // Clinical Recommendations
   clinicalRecommendations?: string;
+
+  // Relapse Prevention & Crisis
+  relapsePreventionPlan?: string;
+  crisisResources?: string;
+
+  // Patient Education
+  patientEducationProvided?: string;
+  specialInstructions?: string;
   culturalPreferencesConsidered?: boolean;
   suicidePreventionEducation?: string;
 
@@ -381,9 +395,6 @@ function PageFooter({ facilityName }: { facilityName: string }) {
     <View style={styles.footer} fixed>
       <Text style={styles.footerText}>
         {facilityName} | Discharge Summary | Confidential
-      </Text>
-      <Text style={styles.footerText}>
-        Generated: {new Date().toLocaleString()}
       </Text>
     </View>
   );
@@ -481,6 +492,31 @@ export function DischargeSummaryDocument({ data }: { data: DischargeSummaryData 
           </View>
         </View>
 
+        {/* Clinical Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Clinical Information</Text>
+          <View style={styles.textBlock}>
+            <Text style={styles.textBlockLabel}>Diagnoses:</Text>
+            <Text style={styles.textBlockValue}>
+              {data.diagnoses || "N/A"}
+            </Text>
+          </View>
+          <View style={styles.twoColumn}>
+            <View style={styles.column}>
+              <View style={styles.row}>
+                <Text style={styles.label}>Allergies:</Text>
+                <Text style={styles.value}>{data.allergies || "None reported"}</Text>
+              </View>
+            </View>
+            <View style={styles.column}>
+              <View style={styles.row}>
+                <Text style={styles.label}>ASAM Level of Care:</Text>
+                <Text style={styles.value}>{data.asamLevelOfCare || "N/A"}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Presenting Issues */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Presenting Issues at Admission</Text>
@@ -488,6 +524,16 @@ export function DischargeSummaryDocument({ data }: { data: DischargeSummaryData 
             {data.presentingIssuesAtAdmission || "N/A"}
           </Text>
         </View>
+
+        {/* Treatment Summary */}
+        {data.treatmentSummary && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Treatment Summary</Text>
+            <Text style={styles.textBlockValue}>
+              {data.treatmentSummary}
+            </Text>
+          </View>
+        )}
 
         {/* Objectives Attained */}
         {data.objectivesAttained && data.objectivesAttained.length > 0 && (
@@ -652,8 +698,45 @@ export function DischargeSummaryDocument({ data }: { data: DischargeSummaryData 
           </Text>
         </View>
 
-        {/* Cultural Preferences */}
+        {/* Relapse Prevention Plan */}
+        {data.relapsePreventionPlan && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Relapse Prevention Plan</Text>
+            <Text style={styles.textBlockValue}>
+              {data.relapsePreventionPlan}
+            </Text>
+          </View>
+        )}
+
+        {/* Crisis Resources */}
+        {data.crisisResources && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Crisis Resources</Text>
+            <Text style={styles.textBlockValue}>
+              {data.crisisResources}
+            </Text>
+          </View>
+        )}
+
+        {/* Patient Education */}
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Patient Education</Text>
+          {data.patientEducationProvided && (
+            <View style={styles.textBlock}>
+              <Text style={styles.textBlockLabel}>Education Provided:</Text>
+              <Text style={styles.textBlockValue}>
+                {data.patientEducationProvided}
+              </Text>
+            </View>
+          )}
+          {data.specialInstructions && (
+            <View style={styles.textBlock}>
+              <Text style={styles.textBlockLabel}>Special Instructions:</Text>
+              <Text style={styles.textBlockValue}>
+                {data.specialInstructions}
+              </Text>
+            </View>
+          )}
           <View style={styles.row}>
             <Text style={styles.label}>Cultural Preferences Considered:</Text>
             <Text style={styles.value}>{data.culturalPreferencesConsidered ? "Yes" : "No"}</Text>
