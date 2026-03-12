@@ -217,6 +217,50 @@ export async function POST(request: NextRequest) {
       ? Math.round((given / totalScheduled) * 100)
       : 0;
 
+    // Get PRN administrations with follow-up data
+    const prnAdministrations = await prisma.medicationAdministration.findMany({
+      where: {
+        medicationOrder: {
+          intakeId,
+          isPRN: true,
+        },
+        administeredAt: {
+          gte: reportStartUTC,
+          lte: reportEndUTC,
+        },
+        status: "GIVEN",
+      },
+      include: {
+        medicationOrder: {
+          select: {
+            medicationName: true,
+            strength: true,
+            dose: true,
+          },
+        },
+      },
+      orderBy: { administeredAt: "desc" },
+    });
+
+    // Format PRN follow-ups for the template
+    const prnFollowups = prnAdministrations.map((admin) => {
+      const arizonaTime = toZonedTime(new Date(admin.administeredAt), FACILITY_TIMEZONE);
+      return {
+        id: admin.id,
+        medicationName: admin.medicationOrder.medicationName,
+        strength: admin.medicationOrder.strength,
+        dose: admin.medicationOrder.dose,
+        administeredAt: format(arizonaTime, "MM/dd/yyyy h:mm a"),
+        administeredBy: admin.administeredBy,
+        reasonGiven: admin.prnReasonGiven || "Not documented",
+        effectiveness: admin.prnEffectiveness || "Not documented",
+        followupNotes: admin.prnFollowupNotes || "No follow-up notes",
+        followupAt: admin.prnFollowupAt
+          ? format(toZonedTime(new Date(admin.prnFollowupAt), FACILITY_TIMEZONE), "MM/dd/yyyy h:mm a")
+          : null,
+      };
+    });
+
     // Prepare PDF data
     const pdfData = {
       patient: {
@@ -243,6 +287,7 @@ export async function POST(request: NextRequest) {
         notAvailable,
         completionRate,
       },
+      prnFollowups,
       generatedAt: format(new Date(), "MM/dd/yyyy h:mm a"),
       generatedBy: session.user.name || session.user.email || "Unknown",
     };

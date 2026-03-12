@@ -292,6 +292,71 @@ const styles = StyleSheet.create({
   initialsLegendName: {
     fontSize: 6,
   },
+  // PRN Follow-up styles
+  prnTable: {
+    marginBottom: 10,
+  },
+  prnTableHeader: {
+    flexDirection: "row",
+    backgroundColor: "#553c9a",
+    color: "#fff",
+  },
+  prnTableRow: {
+    flexDirection: "row",
+    borderBottom: "0.5 solid #e2e8f0",
+    minHeight: 20,
+  },
+  prnTableRowAlt: {
+    backgroundColor: "#f7fafc",
+  },
+  prnCell: {
+    padding: 4,
+    borderRight: "0.5 solid #e2e8f0",
+    fontSize: 7,
+  },
+  prnCellHeader: {
+    padding: 4,
+    fontSize: 7,
+    fontWeight: "bold",
+    color: "#fff",
+    borderRight: "0.5 solid #9f7aea",
+  },
+  prnMedCell: {
+    width: "15%",
+  },
+  prnDateCell: {
+    width: "12%",
+  },
+  prnByCell: {
+    width: "10%",
+  },
+  prnReasonCell: {
+    width: "18%",
+  },
+  prnEffectivenessCell: {
+    width: "12%",
+  },
+  prnNotesCell: {
+    width: "23%",
+  },
+  prnFollowupCell: {
+    width: "10%",
+  },
+  effectivenessEffective: {
+    color: "#22543d",
+    fontWeight: "bold",
+  },
+  effectivenessPartial: {
+    color: "#744210",
+    fontWeight: "bold",
+  },
+  effectivenessNotEffective: {
+    color: "#742a2a",
+    fontWeight: "bold",
+  },
+  effectivenessUnknown: {
+    color: "#4a5568",
+  },
 });
 
 interface MedicationData {
@@ -322,6 +387,19 @@ interface PharmacyInfo {
   phone?: string;
 }
 
+interface PRNFollowupData {
+  id: string;
+  medicationName: string;
+  strength: string;
+  dose: string;
+  administeredAt: string;
+  administeredBy: string;
+  reasonGiven: string;
+  effectiveness: string;
+  followupNotes: string;
+  followupAt: string | null;
+}
+
 interface EmarReportData {
   patient: {
     residentName: string;
@@ -347,6 +425,7 @@ interface EmarReportData {
     notAvailable: number;
     completionRate: number;
   };
+  prnFollowups?: PRNFollowupData[];
   generatedAt: string;
   generatedBy: string;
 }
@@ -698,6 +777,151 @@ export function EmarReportTemplate({ data }: { data: EmarReportData }) {
           </Text>
         </View>
       </Page>
+
+      {/* PRN Follow-up Page - Only show if there are PRN administrations */}
+      {data.prnFollowups && data.prnFollowups.length > 0 && (
+        <Page size="LETTER" orientation="landscape" style={styles.page}>
+          {/* Title */}
+          <Text style={styles.title}>PRN MEDICATION FOLLOW-UP RECORD</Text>
+          <Text style={styles.subtitle}>
+            {format(new Date(data.dateRange.start + "T12:00:00"), "MMMM yyyy")}
+          </Text>
+
+          {/* Header Information */}
+          <View style={styles.headerSection}>
+            <View style={styles.headerRow}>
+              <Text style={styles.headerLabel}>Facility:</Text>
+              <Text style={styles.headerValue}>{data.facility.name}</Text>
+              <Text style={styles.headerLabel}>Patient:</Text>
+              <Text style={styles.headerValue}>{data.patient.residentName}</Text>
+              <Text style={styles.headerLabel}>DOB:</Text>
+              <Text style={styles.headerValue}>
+                {format(new Date(data.patient.dateOfBirth.split("T")[0] + "T12:00:00"), "MM/dd/yyyy")}
+              </Text>
+            </View>
+          </View>
+
+          {/* PRN Follow-up Table */}
+          <View style={styles.prnTable}>
+            {/* Table Header */}
+            <View style={styles.prnTableHeader}>
+              <View style={[styles.prnCellHeader, styles.prnMedCell]}>
+                <Text>Medication</Text>
+              </View>
+              <View style={[styles.prnCellHeader, styles.prnDateCell]}>
+                <Text>Administered</Text>
+              </View>
+              <View style={[styles.prnCellHeader, styles.prnByCell]}>
+                <Text>By</Text>
+              </View>
+              <View style={[styles.prnCellHeader, styles.prnReasonCell]}>
+                <Text>Reason Given</Text>
+              </View>
+              <View style={[styles.prnCellHeader, styles.prnEffectivenessCell]}>
+                <Text>Effectiveness</Text>
+              </View>
+              <View style={[styles.prnCellHeader, styles.prnNotesCell]}>
+                <Text>Follow-up Notes</Text>
+              </View>
+              <View style={[styles.prnCellHeader, styles.prnFollowupCell]}>
+                <Text>Follow-up At</Text>
+              </View>
+            </View>
+
+            {/* Table Rows */}
+            {data.prnFollowups.map((prn, index) => {
+              const getEffectivenessStyle = (effectiveness: string) => {
+                switch (effectiveness) {
+                  case "EFFECTIVE":
+                    return styles.effectivenessEffective;
+                  case "PARTIALLY_EFFECTIVE":
+                    return styles.effectivenessPartial;
+                  case "NOT_EFFECTIVE":
+                    return styles.effectivenessNotEffective;
+                  default:
+                    return styles.effectivenessUnknown;
+                }
+              };
+
+              const formatEffectiveness = (effectiveness: string) => {
+                switch (effectiveness) {
+                  case "EFFECTIVE":
+                    return "Effective";
+                  case "PARTIALLY_EFFECTIVE":
+                    return "Partial";
+                  case "NOT_EFFECTIVE":
+                    return "Not Effective";
+                  case "UNABLE_TO_ASSESS":
+                    return "Unable to Assess";
+                  default:
+                    return effectiveness;
+                }
+              };
+
+              return (
+                <View
+                  key={prn.id}
+                  style={[
+                    styles.prnTableRow,
+                    index % 2 === 1 ? styles.prnTableRowAlt : {},
+                  ]}
+                >
+                  <View style={[styles.prnCell, styles.prnMedCell]}>
+                    <Text style={{ fontWeight: "bold" }}>{prn.medicationName}</Text>
+                    <Text>{prn.strength} - {prn.dose}</Text>
+                  </View>
+                  <View style={[styles.prnCell, styles.prnDateCell]}>
+                    <Text>{prn.administeredAt}</Text>
+                  </View>
+                  <View style={[styles.prnCell, styles.prnByCell]}>
+                    <Text>{prn.administeredBy}</Text>
+                  </View>
+                  <View style={[styles.prnCell, styles.prnReasonCell]}>
+                    <Text>{prn.reasonGiven}</Text>
+                  </View>
+                  <View style={[styles.prnCell, styles.prnEffectivenessCell]}>
+                    <Text style={getEffectivenessStyle(prn.effectiveness)}>
+                      {formatEffectiveness(prn.effectiveness)}
+                    </Text>
+                  </View>
+                  <View style={[styles.prnCell, styles.prnNotesCell]}>
+                    <Text>{prn.followupNotes}</Text>
+                  </View>
+                  <View style={[styles.prnCell, styles.prnFollowupCell]}>
+                    <Text>{prn.followupAt || "-"}</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Summary */}
+          <View style={styles.summarySection}>
+            <Text style={styles.summaryTitle}>PRN Administration Summary</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Total PRN Doses:</Text>
+              <Text style={styles.summaryValue}>{data.prnFollowups.length}</Text>
+              <Text style={styles.summaryLabel}>With Follow-up:</Text>
+              <Text style={styles.summaryValue}>
+                {data.prnFollowups.filter(p => p.effectiveness !== "Not documented").length}
+              </Text>
+              <Text style={styles.summaryLabel}>Pending Follow-up:</Text>
+              <Text style={styles.summaryValue}>
+                {data.prnFollowups.filter(p => p.effectiveness === "Not documented").length}
+              </Text>
+            </View>
+          </View>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text>Generated: {data.generatedAt}</Text>
+            <Text>Generated by: {data.generatedBy}</Text>
+            <Text>
+              PRN Follow-up Report - {data.patient.residentName} - {format(new Date(data.dateRange.start + "T12:00:00"), "MMMM yyyy")}
+            </Text>
+          </View>
+        </Page>
+      )}
     </Document>
   );
 }
