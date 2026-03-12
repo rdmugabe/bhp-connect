@@ -50,6 +50,7 @@ export default async function ViewOversightTrainingReportPage({ params }: PagePr
   const staffParticipants = report.staffParticipants as { name: string; position?: string }[];
 
   function formatDate(date: Date) {
+    // Use UTC to preserve date-only fields
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",

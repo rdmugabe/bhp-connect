@@ -1132,11 +1132,16 @@ export const asamStep8Schema = z.object({
     dimension5Rationale: z.string().optional(),
     dimension6Rationale: z.string().optional(),
   }).optional(),
-  dsm5Criteria: z.array(z.object({
-    substanceName: z.string(),
-    criteria: z.array(z.boolean()).optional(),
-    totalCriteria: z.number().optional(),
-  })).optional(),
+  dsm5Criteria: z.union([
+    // Format 1: Array of strings (e.g., ["Hazardous use", "Tolerance", ...])
+    z.array(z.string()),
+    // Format 2: Array of objects with substanceName and criteria
+    z.array(z.object({
+      substanceName: z.string(),
+      criteria: z.array(z.union([z.string(), z.boolean()])).optional(),
+      totalCriteria: z.number().optional(),
+    })),
+  ]).optional(),
   dsm5Diagnoses: z.string().optional(),
   levelOfCareDetermination: z.object({
     withdrawalManagement: z.string().optional(),

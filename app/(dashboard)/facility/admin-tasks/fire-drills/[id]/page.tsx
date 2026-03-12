@@ -57,6 +57,7 @@ export default async function ViewFireDrillReportPage({ params }: PageProps) {
   const signatures = (report.signatures || {}) as Record<string, string>;
 
   function formatDate(date: Date) {
+    // Use UTC to preserve date-only fields
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",

@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { IncidentReportPDF } from "@/lib/pdf/incident-report-template";
+import { formatISODateOnly } from "@/lib/date-utils";
 
 export async function GET(
   request: NextRequest,
@@ -154,8 +155,8 @@ export async function GET(
       },
     });
 
-    // Create filename
-    const dateStr = new Date(report.incidentDate).toISOString().split("T")[0];
+    // Create filename (use UTC for stored date-only field)
+    const dateStr = formatISODateOnly(report.incidentDate);
     const reportNum = report.reportNumber || report.id.slice(0, 8);
     const filename = `incident_report_${reportNum}_${dateStr}.pdf`;
 

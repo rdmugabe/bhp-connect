@@ -173,6 +173,7 @@ export default function FireDrillsPage() {
   }
 
   function formatDate(dateString: string) {
+    // Use UTC to preserve date-only fields
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",

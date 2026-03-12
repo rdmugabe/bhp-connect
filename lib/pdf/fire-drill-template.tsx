@@ -257,7 +257,9 @@ interface FireDrillData {
 }
 
 function formatDate(dateString: string): string {
+  // Use UTC to preserve date-only fields. See lib/date-utils.ts for strategy.
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "N/A";
   return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",

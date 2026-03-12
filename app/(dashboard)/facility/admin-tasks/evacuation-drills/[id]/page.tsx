@@ -57,6 +57,7 @@ export default async function ViewEvacuationDrillReportPage({ params }: PageProp
   const signatures = (report.signatures || {}) as Record<string, string>;
 
   function formatDate(date: Date) {
+    // Use UTC to preserve date-only fields
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",

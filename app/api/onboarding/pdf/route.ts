@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { OnboardingPDF } from "@/lib/pdf/onboarding-template";
 import { parseJsonBody } from "@/lib/api-utils";
+import { getTodayArizona } from "@/lib/date-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     const sanitizedName = residentName
       .replace(/[^a-zA-Z0-9]/g, "_")
       .substring(0, 30);
-    const dateStr = new Date().toISOString().split("T")[0];
+    const dateStr = getTodayArizona();
     const filename = `Onboarding_${sanitizedName}_${dateStr}.pdf`;
 
     // Return PDF response

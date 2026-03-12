@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { ASAMPDF } from "@/lib/pdf/asam-template";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { getTodayArizona, formatISODateOnly } from "@/lib/date-utils";
 
 export async function GET(
   request: NextRequest,
@@ -205,7 +206,7 @@ export async function GET(
 
       // Summary
       summaryRationale: assessment.summaryRationale,
-      dsm5Criteria: emptyToNull(assessment.dsm5Criteria) as Record<string, boolean> | null,
+      dsm5Criteria: emptyToNull(assessment.dsm5Criteria) as Record<string, boolean> | { substanceName: string; criteria: (string | boolean)[]; totalCriteria: number }[] | string[] | null,
       dsm5Diagnoses: assessment.dsm5Diagnoses,
       levelOfCareDetermination: assessment.levelOfCareDetermination,
       matInterested: assessment.matInterested,
@@ -254,7 +255,7 @@ export async function GET(
     const sanitizedName = assessment.patientName
       .replace(/[^a-zA-Z0-9]/g, "_")
       .substring(0, 30);
-    const dateStr = new Date().toISOString().split("T")[0];
+    const dateStr = getTodayArizona();
     const filename = `ASAM_${sanitizedName}_${dateStr}.pdf`;
 
     // Return PDF response

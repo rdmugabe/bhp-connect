@@ -216,6 +216,7 @@ export default async function OversightTrainingPage() {
                         {formatBiWeekLabel(report.biWeek, report.year)}
                       </TableCell>
                       <TableCell>
+                        {/* Use UTC to preserve date-only fields */}
                         {new Date(report.trainingDate).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",

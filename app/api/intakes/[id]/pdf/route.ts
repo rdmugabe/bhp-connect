@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { IntakePDF } from "@/lib/pdf/intake-template";
+import { getTodayArizona, formatISODateOnly } from "@/lib/date-utils";
 
 export async function GET(
   request: NextRequest,
@@ -361,7 +362,7 @@ export async function GET(
     const sanitizedName = intake.residentName
       .replace(/[^a-zA-Z0-9]/g, "_")
       .substring(0, 30);
-    const dateStr = new Date().toISOString().split("T")[0];
+    const dateStr = getTodayArizona();
     const filename = `intake_${sanitizedName}_${dateStr}.pdf`;
 
     // Return PDF response

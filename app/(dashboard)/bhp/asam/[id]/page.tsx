@@ -57,11 +57,13 @@ const getSeverityLabel = (severity: number | null) => {
   return labels[severity] || "Not Rated";
 };
 
+// Use UTC for date-only fields to preserve the date as entered
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "UTC",
   });
 };
 

@@ -5,20 +5,42 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Format a DATE-ONLY field (DOB, admission date, signature date, etc.)
+ * Uses UTC to preserve the date as entered (no timezone shift).
+ */
 export function formatDate(date: Date | string | null | undefined): string {
   if (!date) return "";
 
-  // Handle both Date objects and strings
   const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
 
-  // Extract UTC components to avoid timezone shifts
+  // Extract UTC components to avoid timezone shifts for date-only fields
   const year = d.getUTCFullYear();
   const month = d.getUTCMonth();
   const day = d.getUTCDate();
 
-  // Format using UTC values
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${months[month]} ${day}, ${year}`;
+}
+
+/**
+ * Format a TIMESTAMP (createdAt, updatedAt, submittedAt, etc.)
+ * Uses Arizona timezone to show the actual local time.
+ */
+export function formatTimestampDate(date: Date | string | null | undefined): string {
+  if (!date) return "";
+
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+
+  // Use Arizona timezone for timestamps (actual moments in time)
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "America/Phoenix",
+  });
 }
 
 export function formatDateTime(date: Date | string): string {
@@ -28,6 +50,7 @@ export function formatDateTime(date: Date | string): string {
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "America/Phoenix",
   });
 }
 

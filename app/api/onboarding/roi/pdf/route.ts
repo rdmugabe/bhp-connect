@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { ReleaseOfInformationDocument } from "@/lib/pdf/release-of-information-template";
 import { parseJsonBody } from "@/lib/api-utils";
+import { getTodayArizona } from "@/lib/date-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
     const patientNameForFile = patientName
       .replace(/[^a-zA-Z0-9]/g, "_")
       .toLowerCase();
-    const dateForFile = new Date().toISOString().split("T")[0];
+    const dateForFile = getTodayArizona();
     const filename = `release_of_information_${patientNameForFile}_${dateForFile}.pdf`;
 
     return new NextResponse(new Uint8Array(pdfBuffer), {

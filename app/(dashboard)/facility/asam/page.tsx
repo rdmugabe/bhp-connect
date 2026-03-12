@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Eye, Plus, Edit, FileText, Archive } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatTimestampDate } from "@/lib/utils";
 import { ASAMDraftsTable } from "@/components/asam/asam-drafts-table";
 
 export default async function FacilityASAMPage() {
@@ -165,7 +165,7 @@ export default async function FacilityASAMPage() {
                     </Link>
                   </TableCell>
                   <TableCell>{formatDate(assessment.dateOfBirth)}</TableCell>
-                  <TableCell>{formatDate(assessment.createdAt)}</TableCell>
+                  <TableCell>{formatTimestampDate(assessment.createdAt)}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
                       <Link href={`/facility/asam/${assessment.id}`}>

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { EmployeeOnboardingPDF } from "@/lib/pdf/employee-onboarding-template";
 import { parseJsonBody } from "@/lib/api-utils";
+import { getTodayArizona, formatDateOnly } from "@/lib/date-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,13 +57,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Format hire date for display
-    const formattedHireDate = new Date(hireDate).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: "UTC",
-    });
+    // Format hire date for display (use UTC to preserve date-only field)
+    const formattedHireDate = formatDateOnly(hireDate);
 
     // Generate PDF
     const pdfData = {
@@ -77,7 +73,7 @@ export async function POST(request: NextRequest) {
     const sanitizedName = employeeName
       .replace(/[^a-zA-Z0-9]/g, "_")
       .substring(0, 30);
-    const dateStr = new Date().toISOString().split("T")[0];
+    const dateStr = getTodayArizona();
     const filename = `Employee_Onboarding_${sanitizedName}_${dateStr}.pdf`;
 
     // Return PDF response

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { DischargeSummaryDocument } from "@/lib/pdf/discharge-summary-template";
 import { createAuditLog, AuditActions } from "@/lib/audit";
+import { formatISODateOnly, getTodayArizona } from "@/lib/date-utils";
 
 export async function GET(
   request: NextRequest,
@@ -126,9 +127,10 @@ export async function GET(
     const residentNameForFile = (dischargeSummary.intake.residentName || "unknown")
       .replace(/[^a-zA-Z0-9]/g, "_")
       .toLowerCase();
+    // Use UTC for stored date-only fields, Arizona timezone for current date
     const dateForFile = dischargeSummary.dischargeDate
-      ? new Date(dischargeSummary.dischargeDate).toISOString().split("T")[0]
-      : "undated";
+      ? formatISODateOnly(dischargeSummary.dischargeDate)
+      : getTodayArizona();
     const filename = `discharge_summary_${residentNameForFile}_${dateForFile}.pdf`;
 
     return new NextResponse(new Uint8Array(pdfBuffer), {

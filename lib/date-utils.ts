@@ -520,3 +520,196 @@ export function parseDateToUTC(value: unknown): Date | null {
     date.getDate()
   ));
 }
+
+/**
+ * =============================================================================
+ * TIMEZONE HANDLING STRATEGY
+ * =============================================================================
+ *
+ * This app serves users in Arizona (America/Phoenix - MST, no DST).
+ *
+ * DATE TYPES:
+ *
+ * 1. DATE-ONLY FIELDS (DOB, admission date, signature date, etc.)
+ *    - Represent calendar dates, NOT moments in time
+ *    - Stored in DB as UTC midnight (e.g., "2026-03-09T00:00:00.000Z")
+ *    - MUST be formatted using UTC to preserve the original date
+ *    - Use: formatDateOnly(), formatISODateOnly()
+ *
+ * 2. TIMESTAMPS (createdAt, updatedAt, "right now")
+ *    - Represent actual moments in time
+ *    - Should use local timezone (Arizona) for display
+ *    - Use: formatTimestamp(), getTodayArizona(), getNowArizona()
+ *
+ * COMMON MISTAKE:
+ *    new Date("2026-03-09") creates UTC midnight.
+ *    Formatting with local timezone (UTC-7) shows "March 8th" (wrong!)
+ *    Always use UTC for date-only fields to preserve the entered date.
+ * =============================================================================
+ */
+
+/**
+ * Arizona timezone constant (MST, no daylight saving)
+ */
+export const ARIZONA_TIMEZONE = "America/Phoenix";
+
+// =============================================================================
+// DATE-ONLY FIELD FORMATTERS (use UTC to preserve the date as entered)
+// =============================================================================
+
+/**
+ * Format a date-only field for display (e.g., "March 9, 2026")
+ * Uses UTC to preserve the original date regardless of user's timezone.
+ *
+ * Use for: DOB, admission dates, signature dates, incident dates, etc.
+ */
+export function formatDateOnly(
+  date: Date | string | null | undefined,
+  options?: { format?: "long" | "short" | "numeric" }
+): string {
+  if (!date) return "N/A";
+
+  const d = date instanceof Date ? date : parseDate(date);
+  if (!d || isNaN(d.getTime())) return "N/A";
+
+  const format = options?.format ?? "long";
+
+  if (format === "numeric") {
+    return d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "UTC",
+    });
+  }
+
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: format,
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/**
+ * Format a date-only field as ISO string (YYYY-MM-DD)
+ * Uses UTC to preserve the original date.
+ *
+ * Use for: filenames, data exports, API responses for date-only fields
+ */
+export function formatISODateOnly(date: Date | string | null | undefined): string {
+  if (!date) return "";
+
+  const d = date instanceof Date ? date : parseDate(date);
+  if (!d || isNaN(d.getTime())) return "";
+
+  // Use UTC methods to get the date as stored
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Format a date-only field with weekday (e.g., "Monday, March 9, 2026")
+ * Uses UTC to preserve the original date.
+ */
+export function formatDateOnlyWithWeekday(date: Date | string | null | undefined): string {
+  if (!date) return "N/A";
+
+  const d = date instanceof Date ? date : parseDate(date);
+  if (!d || isNaN(d.getTime())) return "N/A";
+
+  return d.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+// =============================================================================
+// TIMESTAMP FORMATTERS (use Arizona timezone for actual moments in time)
+// =============================================================================
+
+/**
+ * Format a timestamp for display in Arizona timezone
+ * Use for: createdAt, updatedAt, or displaying "right now"
+ */
+export function formatTimestamp(
+  date: Date | string | null | undefined,
+  options?: { includeTime?: boolean }
+): string {
+  if (!date) return "N/A";
+
+  const d = date instanceof Date ? date : parseDate(date);
+  if (!d || isNaN(d.getTime())) return "N/A";
+
+  if (options?.includeTime) {
+    return d.toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: ARIZONA_TIMEZONE,
+    });
+  }
+
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: ARIZONA_TIMEZONE,
+  });
+}
+
+/**
+ * Get current date string in Arizona timezone (YYYY-MM-DD)
+ * Use for: generating filenames with today's date
+ */
+export function getTodayArizona(): string {
+  const now = new Date();
+  return now.toLocaleDateString("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: ARIZONA_TIMEZONE,
+  });
+}
+
+/**
+ * Get current datetime in Arizona timezone
+ */
+export function getNowArizona(): Date {
+  // Return current time (the Date object is timezone-agnostic internally)
+  return new Date();
+}
+
+// =============================================================================
+// LEGACY COMPATIBILITY (deprecated - use the functions above instead)
+// =============================================================================
+
+/**
+ * @deprecated Use formatTimestamp() instead
+ */
+export function formatDateArizona(date: Date | string | null | undefined): string {
+  return formatTimestamp(date);
+}
+
+/**
+ * @deprecated Use getTodayArizona() instead
+ */
+export function formatISODateArizona(date: Date | string | null | undefined): string {
+  if (!date) return "";
+  const d = date instanceof Date ? date : parseDate(date);
+  if (!d) return "";
+  return d.toLocaleDateString("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: ARIZONA_TIMEZONE,
+  });
+}

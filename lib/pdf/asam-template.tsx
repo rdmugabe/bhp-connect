@@ -404,7 +404,7 @@ interface ASAMData {
     dimension5Rationale?: string;
     dimension6Rationale?: string;
   } | string | null;
-  dsm5Criteria: Record<string, boolean> | null;
+  dsm5Criteria: Record<string, boolean> | { substanceName: string; criteria: (string | boolean)[]; totalCriteria: number }[] | string[] | null;
   dsm5Diagnoses: string | null;
   levelOfCareDetermination: {
     withdrawalManagement?: string;
@@ -439,8 +439,13 @@ interface ASAMData {
   bhpName: string;
 }
 
+/**
+ * Format date-only fields using UTC to preserve the original date.
+ * See lib/date-utils.ts for the timezone handling strategy.
+ */
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "N/A";
   return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -553,7 +558,7 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
         )}
 
         {/* Demographics */}
-        <View style={styles.section} wrap={false}>
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>PATIENT DEMOGRAPHICS</Text>
           <View style={styles.twoColumn}>
             <View style={styles.column}>
@@ -1064,7 +1069,42 @@ export function ASAMPDF({ data }: { data: ASAMData }) {
         <View style={styles.dsm5Box} wrap={false}>
           <Text style={styles.sectionTitle}>DSM-5 SUBSTANCE USE DISORDER CRITERIA</Text>
 
-          {isValidRecord(data.dsm5Criteria) && (
+          {/* Handle array formats */}
+          {Array.isArray(data.dsm5Criteria) && data.dsm5Criteria.length > 0 && (
+            <>
+              {/* Check if it's an array of strings (plain criteria list) */}
+              {typeof data.dsm5Criteria[0] === 'string' ? (
+                <View style={styles.textBlock}>
+                  <Text style={styles.textBlockLabel}>Criteria Met ({data.dsm5Criteria.length}):</Text>
+                  <Text style={styles.textBlockValue}>
+                    {(data.dsm5Criteria as string[]).join(", ")}
+                  </Text>
+                </View>
+              ) : (
+                /* Array of objects with substanceName and criteria */
+                (data.dsm5Criteria as { substanceName: string; criteria?: (string | boolean)[]; totalCriteria?: number }[]).map((item, idx) => {
+                  const criteriaDisplay = Array.isArray(item.criteria)
+                    ? item.criteria.every(c => typeof c === 'boolean')
+                      ? `${item.criteria.filter(Boolean).length} criteria met`
+                      : item.criteria.filter(c => typeof c === 'string').join(", ")
+                    : "Not specified";
+                  return (
+                    <View key={idx} style={styles.textBlock}>
+                      <Text style={styles.textBlockLabel}>
+                        {item.substanceName} ({item.totalCriteria || 0} criteria):
+                      </Text>
+                      <Text style={styles.textBlockValue}>
+                        {criteriaDisplay}
+                      </Text>
+                    </View>
+                  );
+                })
+              )}
+            </>
+          )}
+
+          {/* Handle old Record format */}
+          {!Array.isArray(data.dsm5Criteria) && isValidRecord(data.dsm5Criteria) && (
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>Criteria Met:</Text>
               <Text style={styles.textBlockValue}>

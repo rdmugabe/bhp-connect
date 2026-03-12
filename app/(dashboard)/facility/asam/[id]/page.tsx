@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatTimestampDate } from "@/lib/utils";
 
 const getSeverityLabel = (severity: number | null) => {
   if (severity === null) return "Not Rated";
@@ -63,7 +63,7 @@ export default async function ViewASAMPage({
               ASAM Assessment: {assessment.patientName}
             </h1>
             <p className="text-muted-foreground">
-              Submitted on {formatDate(assessment.createdAt)}
+              Submitted on {formatTimestampDate(assessment.createdAt)}
             </p>
           </div>
         </div>

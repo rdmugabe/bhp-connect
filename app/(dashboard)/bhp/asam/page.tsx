@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Eye, Edit, FileText } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatTimestampDate } from "@/lib/utils";
 
 export default async function BHPASAMPage() {
   const session = await getServerSession(authOptions);
@@ -110,7 +110,7 @@ export default async function BHPASAMPage() {
                     </Link>
                   </TableCell>
                   <TableCell>{formatDate(assessment.dateOfBirth)}</TableCell>
-                  <TableCell>{formatDate(assessment.createdAt)}</TableCell>
+                  <TableCell>{formatTimestampDate(assessment.createdAt)}</TableCell>
                   <TableCell>
                     <Badge variant="outline">
                       {assessment.recommendedLevelOfCare || "N/A"}
