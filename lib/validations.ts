@@ -2234,3 +2234,69 @@ export const progressNoteUpdateSchema = z.object({
 export type ProgressNoteInput = z.infer<typeof progressNoteSchema>;
 export type ProgressNoteDraftInput = z.infer<typeof progressNoteDraftSchema>;
 export type ProgressNoteUpdateInput = z.infer<typeof progressNoteUpdateSchema>;
+
+// =====================================================
+// Calendar Event Validation Schema
+// =====================================================
+
+export const CALENDAR_EVENT_TYPES = [
+  "DOCTOR_VISIT",
+  "THERAPY",
+  "COURT_DATE",
+  "FAMILY_VISIT",
+  "CASE_MANAGEMENT",
+  "TRANSPORTATION",
+  "OTHER",
+] as const;
+
+export const CALENDAR_EVENT_STATUSES = [
+  "SCHEDULED",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
+
+export const calendarEventSchema = z.object({
+  intakeId: z.string().min(1, "Resident is required"),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  eventType: z.enum(CALENDAR_EVENT_TYPES),
+  location: z.string().optional(),
+  startDateTime: z.string().min(1, "Start date/time is required"),
+  endDateTime: z.string().min(1, "End date/time is required"),
+  allDay: z.boolean().default(false),
+  color: z.string().optional(),
+  reminderMinutes: z.array(z.number()).default([]),
+}).refine(
+  (data) => {
+    const start = new Date(data.startDateTime);
+    const end = new Date(data.endDateTime);
+    return end >= start;
+  },
+  {
+    message: "End time must be after start time",
+    path: ["endDateTime"],
+  }
+);
+
+export const calendarEventUpdateSchema = z.object({
+  intakeId: z.string().optional(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  eventType: z.enum(CALENDAR_EVENT_TYPES).optional(),
+  location: z.string().optional(),
+  startDateTime: z.string().optional(),
+  endDateTime: z.string().optional(),
+  allDay: z.boolean().optional(),
+  color: z.string().optional(),
+  reminderMinutes: z.array(z.number()).optional(),
+  status: z.enum(CALENDAR_EVENT_STATUSES).optional(),
+  cancelReason: z.string().optional(),
+});
+
+export const calendarReminderAcknowledgeSchema = z.object({
+  reminderId: z.string().min(1, "Reminder ID is required"),
+});
+
+export type CalendarEventInput = z.infer<typeof calendarEventSchema>;
+export type CalendarEventUpdateInput = z.infer<typeof calendarEventUpdateSchema>;
+export type CalendarReminderAcknowledgeInput = z.infer<typeof calendarReminderAcknowledgeSchema>;

@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, ClipboardList } from "lucide-react";
 import { ARTMeetingList } from "@/components/art-meetings/art-meeting-list";
+import { ResidentTabs } from "@/components/residents/resident-tabs";
 
 export default async function ResidentARTMeetingsPage({
   params,
@@ -72,18 +73,15 @@ export default async function ResidentARTMeetingsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href={`/facility/residents/${id}`}>
+          <Link href="/facility/residents">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              ART Meetings
-            </h1>
-            <p className="text-muted-foreground">
               {resident.residentName}
-            </p>
+            </h1>
           </div>
         </div>
         <Link href={`/facility/residents/${id}/art-meetings/new`}>
@@ -93,6 +91,8 @@ export default async function ResidentARTMeetingsPage({
           </Button>
         </Link>
       </div>
+
+      <ResidentTabs residentId={id} isApproved={resident.status === "APPROVED"} isDischarged={false} />
 
       <Card>
         <CardHeader>

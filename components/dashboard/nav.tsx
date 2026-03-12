@@ -22,13 +22,14 @@ import {
   ClipboardCheck,
   AlertTriangle,
   Pill,
+  CalendarDays,
 } from "lucide-react";
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  showBadge?: "messages" | "applications" | "intakes" | "asam" | "meetings" | "adminTasks" | "artMeetings";
+  showBadge?: "messages" | "applications" | "intakes" | "asam" | "meetings" | "adminTasks" | "artMeetings" | "calendar";
 }
 
 const bhpNavItems: NavItem[] = [
@@ -112,6 +113,12 @@ const bhrfNavItems: NavItem[] = [
     title: "Residents",
     href: "/facility/residents",
     icon: Users2,
+  },
+  {
+    title: "Calendar",
+    href: "/facility/calendar",
+    icon: CalendarDays,
+    showBadge: "calendar",
   },
   {
     title: "Onboarding",
@@ -201,6 +208,7 @@ interface BadgeCounts {
   meetings: number;
   adminTasks: number;
   artMeetings: number;
+  calendar: number;
 }
 
 interface DashboardNavProps {
@@ -217,6 +225,7 @@ export function DashboardNav({ role }: DashboardNavProps) {
     meetings: 0,
     adminTasks: 0,
     artMeetings: 0,
+    calendar: 0,
   });
 
   useEffect(() => {

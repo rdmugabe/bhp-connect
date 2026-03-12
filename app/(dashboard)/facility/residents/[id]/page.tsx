@@ -20,11 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus, ClipboardList, LogOut, Sparkles } from "lucide-react";
+import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus, ClipboardList, LogOut, Sparkles, CalendarDays } from "lucide-react";
 import { ARTMeetingBadge } from "@/components/art-meetings/art-meeting-badge";
 import { formatDate } from "@/lib/utils";
 import { ResidentActions } from "@/components/residents/resident-actions";
 import { AdmissionHistory } from "@/components/residents/admission-history";
+import { ResidentTabs } from "@/components/residents/resident-tabs";
 
 export default async function FacilityResidentDetailPage({
   params,
@@ -65,6 +66,14 @@ export default async function FacilityResidentDetailPage({
         where: { archivedAt: null },
         orderBy: { noteDate: "desc" },
         take: 3, // Show only last 3 notes
+      },
+      calendarEvents: {
+        where: {
+          status: "SCHEDULED",
+          startDateTime: { gte: new Date() },
+        },
+        orderBy: { startDateTime: "asc" },
+        take: 5, // Show next 5 upcoming events
       },
       dischargeSummary: true,
       facility: {
@@ -176,6 +185,13 @@ export default async function FacilityResidentDetailPage({
           )}
         </div>
       </div>
+
+      {/* Tabs Navigation */}
+      <ResidentTabs
+        residentId={resident.id}
+        isApproved={resident.status === "APPROVED"}
+        isDischarged={isAlreadyDischarged}
+      />
 
       {/* Resident Summary Card */}
       <Card>
@@ -530,6 +546,95 @@ export default async function FacilityResidentDetailPage({
           </Table>
         </CardContent>
       </Card>
+
+      {/* Calendar */}
+      {!isAlreadyDischarged && resident.status === "APPROVED" && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5" />
+                  Calendar
+                  {resident.calendarEvents.length > 0 && (
+                    <Badge variant="secondary">{resident.calendarEvents.length} upcoming</Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  Appointments and scheduled events
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Link href={`/facility/residents/${resident.id}/calendar`}>
+                  <Button variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Event
+                  </Button>
+                </Link>
+                <Link href={`/facility/residents/${resident.id}/calendar`}>
+                  <Button variant="ghost" size="sm">
+                    View All
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Event</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Date & Time</TableHead>
+                  <TableHead>Location</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {resident.calendarEvents.length > 0 ? (
+                  resident.calendarEvents.map((event) => (
+                    <TableRow key={event.id}>
+                      <TableCell className="font-medium">{event.title}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" style={{
+                          borderColor: event.eventType === "DOCTOR_VISIT" ? "#3B82F6" :
+                                       event.eventType === "THERAPY" ? "#8B5CF6" :
+                                       event.eventType === "COURT_DATE" ? "#EF4444" :
+                                       event.eventType === "FAMILY_VISIT" ? "#22C55E" :
+                                       event.eventType === "CASE_MANAGEMENT" ? "#F97316" :
+                                       event.eventType === "TRANSPORTATION" ? "#14B8A6" : "#6B7280",
+                          color: event.eventType === "DOCTOR_VISIT" ? "#3B82F6" :
+                                 event.eventType === "THERAPY" ? "#8B5CF6" :
+                                 event.eventType === "COURT_DATE" ? "#EF4444" :
+                                 event.eventType === "FAMILY_VISIT" ? "#22C55E" :
+                                 event.eventType === "CASE_MANAGEMENT" ? "#F97316" :
+                                 event.eventType === "TRANSPORTATION" ? "#14B8A6" : "#6B7280"
+                        }}>
+                          {event.eventType.replace(/_/g, " ")}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {event.allDay
+                          ? formatDate(event.startDateTime) + " (All Day)"
+                          : formatDate(event.startDateTime) + " " + new Date(event.startDateTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                      </TableCell>
+                      <TableCell>{event.location || "-"}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      No upcoming events.{" "}
+                      <Link href={`/facility/residents/${resident.id}/calendar`} className="text-primary hover:underline">
+                        Schedule one
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Discharge Summary */}
       <Card>

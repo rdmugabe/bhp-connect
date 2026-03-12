@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Edit } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { ResidentTabs } from "@/components/residents/resident-tabs";
 
 export const metadata: Metadata = {
   title: "Discharge Summary",
@@ -111,16 +112,16 @@ export default async function DischargeSummaryPage({ params, searchParams }: Pag
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href={`/facility/residents/${intakeId}`}>
+            <Link href="/facility/residents">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
           <div>
             <h1 className="text-2xl font-bold">
-              {hasExistingSummary ? "Discharge Summary" : "Create Discharge Summary"}
+              {intake.residentName}
             </h1>
             <p className="text-muted-foreground">
-              {intake.residentName} | DOB: {formatDate(intake.dateOfBirth)}
+              DOB: {formatDate(intake.dateOfBirth)}
             </p>
           </div>
         </div>
@@ -157,6 +158,8 @@ export default async function DischargeSummaryPage({ params, searchParams }: Pag
           </div>
         )}
       </div>
+
+      <ResidentTabs residentId={intakeId} isApproved={intake.status === "APPROVED"} isDischarged={!!intake.dischargedAt} />
 
       <DischargeSummaryForm
         resident={{

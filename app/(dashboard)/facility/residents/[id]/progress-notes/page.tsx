@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, FileText } from "lucide-react";
 import { ProgressNoteList } from "@/components/progress-notes/progress-note-card";
+import { ResidentTabs } from "@/components/residents/resident-tabs";
 
 export default async function ResidentProgressNotesPage({
   params,
@@ -75,18 +76,15 @@ export default async function ResidentProgressNotesPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href={`/facility/residents/${id}`}>
+          <Link href="/facility/residents">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Progress Notes
-            </h1>
-            <p className="text-muted-foreground">
               {resident.residentName}
-            </p>
+            </h1>
           </div>
         </div>
         <Link href={`/facility/residents/${id}/progress-notes/new`}>
@@ -96,6 +94,8 @@ export default async function ResidentProgressNotesPage({
           </Button>
         </Link>
       </div>
+
+      <ResidentTabs residentId={id} isApproved={resident.status === "APPROVED"} isDischarged={false} />
 
       <Card>
         <CardHeader>

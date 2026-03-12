@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
     let adminTasks = 0;
     let artMeetings = 0;
     let certificationIssues = 0;
+    let calendar = 0;
 
     if (role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
@@ -208,6 +209,19 @@ export async function GET(request: NextRequest) {
           return !meeting || (meeting.status === "DRAFT" && !meeting.isSkipped);
         }).length;
 
+        // Count active calendar reminders that are due
+        calendar = await prisma.calendarReminder.count({
+          where: {
+            event: {
+              facilityId: bhrfProfile.facilityId,
+              status: "SCHEDULED",
+            },
+            isActive: true,
+            reminderTime: { lte: new Date() },
+            acknowledgedAt: null,
+          },
+        });
+
         // Count employee certification issues (missing, expired, expiring soon)
         const requiredCertTypes = await prisma.employeeDocumentType.findMany({
           where: {
@@ -272,6 +286,7 @@ export async function GET(request: NextRequest) {
       adminTasks,
       artMeetings,
       certificationIssues,
+      calendar,
     });
   } catch (error) {
     console.error("Get notification counts error:", error);

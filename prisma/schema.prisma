@@ -195,6 +195,7 @@ model Facility {
   medicationOrders      MedicationOrder[]
   medicationAlerts      MedicationAlert[]
   progressNotes         ProgressNote[]
+  calendarEvents        CalendarEvent[]
 
   @@index([bhpId])
 }
@@ -497,6 +498,7 @@ model Intake {
   medicationOrders MedicationOrder[]
   medicationAlerts MedicationAlert[]
   progressNotes    ProgressNote[]
+  calendarEvents   CalendarEvent[]
 
   @@index([facilityId])
   @@index([status])
@@ -1516,4 +1518,68 @@ model ProgressNote {
   @@index([facilityId])
   @@index([noteDate])
   @@index([status])
+}
+
+// Calendar Event - Appointments and events for residents
+model CalendarEvent {
+  id              String   @id @default(cuid())
+  facilityId      String
+  facility        Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  intakeId        String
+  intake          Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+
+  // Event Details
+  title           String
+  description     String?  @db.Text
+  eventType       String   // DOCTOR_VISIT, THERAPY, COURT_DATE, FAMILY_VISIT, CASE_MANAGEMENT, TRANSPORTATION, OTHER
+  location        String?
+
+  // Scheduling
+  startDateTime   DateTime
+  endDateTime     DateTime
+  allDay          Boolean  @default(false)
+
+  // Display
+  color           String?  // Hex color code for custom color
+
+  // Reminders
+  reminderMinutes Int[]    @default([]) // e.g., [1440, 60] = 1 day before, 1 hour before
+
+  // Status
+  status          String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  cancelReason    String?
+
+  // Audit
+  createdBy       String
+  createdByName   String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Reminders tracking
+  reminders       CalendarReminder[]
+
+  @@index([facilityId])
+  @@index([intakeId])
+  @@index([startDateTime])
+  @@index([status])
+}
+
+// Calendar Reminder - Tracks when reminders should be sent and if they've been acknowledged
+model CalendarReminder {
+  id              String   @id @default(cuid())
+  eventId         String
+  event           CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  reminderTime    DateTime // When the reminder should trigger
+  isActive        Boolean  @default(true)
+  acknowledgedAt  DateTime?
+  acknowledgedBy  String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([eventId])
+  @@index([reminderTime])
+  @@index([isActive])
 }
