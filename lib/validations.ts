@@ -1489,6 +1489,22 @@ export const dischargeSummarySchema = z.object({
   // Suicide Prevention Education
   suicidePreventionEducation: z.string().optional(),
 
+  // Discharge Meeting Participants
+  meetingInvitees: z.object({
+    bhp: z.boolean().default(false),
+    caseManager: z.boolean().default(false),
+    bhtAdmin: z.boolean().default(false),
+    resident: z.boolean().default(false),
+    nurse: z.boolean().default(false),
+  }).optional(),
+  meetingAttendees: z.object({
+    bhp: z.boolean().default(false),
+    caseManager: z.boolean().default(false),
+    bhtAdmin: z.boolean().default(false),
+    resident: z.boolean().default(false),
+    nurse: z.boolean().default(false),
+  }).optional(),
+
   // Signatures
   clientSignature: z.string().optional(),
   clientSignatureDate: z.string().optional(),
@@ -1581,6 +1597,22 @@ export const dischargeSummaryDraftSchema = z.object({
 
   // Suicide Prevention Education
   suicidePreventionEducation: z.string().optional(),
+
+  // Discharge Meeting Participants
+  meetingInvitees: z.object({
+    bhp: z.boolean().default(false),
+    caseManager: z.boolean().default(false),
+    bhtAdmin: z.boolean().default(false),
+    resident: z.boolean().default(false),
+    nurse: z.boolean().default(false),
+  }).optional(),
+  meetingAttendees: z.object({
+    bhp: z.boolean().default(false),
+    caseManager: z.boolean().default(false),
+    bhtAdmin: z.boolean().default(false),
+    resident: z.boolean().default(false),
+    nurse: z.boolean().default(false),
+  }).optional(),
 
   // Signatures
   clientSignature: z.string().optional(),
@@ -2255,6 +2287,23 @@ export const CALENDAR_EVENT_STATUSES = [
   "CANCELLED",
 ] as const;
 
+export const RECURRENCE_TYPES = [
+  "DAILY",
+  "WEEKLY",
+  "BIWEEKLY",
+  "MONTHLY",
+] as const;
+
+export const DAYS_OF_WEEK = [
+  "SUN",
+  "MON",
+  "TUE",
+  "WED",
+  "THU",
+  "FRI",
+  "SAT",
+] as const;
+
 export const calendarEventSchema = z.object({
   intakeId: z.string().min(1, "Resident is required"),
   title: z.string().min(1, "Title is required"),
@@ -2266,6 +2315,11 @@ export const calendarEventSchema = z.object({
   allDay: z.boolean().default(false),
   color: z.string().optional(),
   reminderMinutes: z.array(z.number()).default([]),
+  // Recurrence fields
+  isRecurring: z.boolean().default(false),
+  recurrenceType: z.enum(RECURRENCE_TYPES).optional(),
+  recurrenceEndDate: z.string().optional(),
+  recurrenceDays: z.array(z.enum(DAYS_OF_WEEK)).default([]),
 }).refine(
   (data) => {
     const start = new Date(data.startDateTime);
@@ -2275,6 +2329,30 @@ export const calendarEventSchema = z.object({
   {
     message: "End time must be after start time",
     path: ["endDateTime"],
+  }
+).refine(
+  (data) => {
+    // If recurring, recurrence type is required
+    if (data.isRecurring && !data.recurrenceType) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Recurrence type is required for recurring events",
+    path: ["recurrenceType"],
+  }
+).refine(
+  (data) => {
+    // If weekly recurrence, at least one day must be selected
+    if (data.isRecurring && data.recurrenceType === "WEEKLY" && data.recurrenceDays.length === 0) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Select at least one day for weekly recurrence",
+    path: ["recurrenceDays"],
   }
 );
 
@@ -2291,6 +2369,13 @@ export const calendarEventUpdateSchema = z.object({
   reminderMinutes: z.array(z.number()).optional(),
   status: z.enum(CALENDAR_EVENT_STATUSES).optional(),
   cancelReason: z.string().optional(),
+  // Recurrence fields
+  isRecurring: z.boolean().optional(),
+  recurrenceType: z.enum(RECURRENCE_TYPES).optional(),
+  recurrenceEndDate: z.string().optional().nullable(),
+  recurrenceDays: z.array(z.enum(DAYS_OF_WEEK)).optional(),
+  // For editing recurring series
+  updateType: z.enum(["THIS_EVENT", "ALL_EVENTS"]).optional(),
 });
 
 export const calendarReminderAcknowledgeSchema = z.object({

@@ -123,6 +123,13 @@ enum AlertSeverity {
   CRITICAL
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
 model User {
   id              String         @id @default(cuid())
   email           String         @unique
@@ -144,6 +151,7 @@ model User {
   auditLogs           AuditLog[]
   sentMessages        Message[]            @relation("SentMessages")
   facilityApplication FacilityApplication?
+  facilityInvitations FacilityInvitation[]
 
   @@index([email])
   @@index([approvalStatus])
@@ -196,6 +204,7 @@ model Facility {
   medicationAlerts      MedicationAlert[]
   progressNotes         ProgressNote[]
   calendarEvents        CalendarEvent[]
+  facilityInvitations   FacilityInvitation[]
 
   @@index([bhpId])
 }
@@ -1183,6 +1192,10 @@ model DischargeSummary {
   // Suicide Prevention Education
   suicidePreventionEducation   String?  @db.Text
 
+  // Discharge Meeting Participants
+  meetingInvitees              Json?    // Object with boolean keys: bhp, caseManager, bhtAdmin, resident, nurse
+  meetingAttendees             Json?    // Object with boolean keys: bhp, caseManager, bhtAdmin, resident, nurse
+
   // Signatures
   clientSignature              String?
   clientSignatureDate          DateTime?
@@ -1411,7 +1424,8 @@ model MedicationAdministration {
   // PRN specific
   prnReasonGiven    String?             @db.Text
   prnEffectiveness  String?             @db.Text
-  prnFollowupAt     DateTime?
+  prnFollowupAt     DateTime?           // When follow-up is due
+  prnFollowupCompletedAt DateTime?      // When follow-up was actually done
   prnFollowupNotes  String?             @db.Text
   prnFollowupById   String?
 
@@ -1539,6 +1553,15 @@ model CalendarEvent {
   endDateTime     DateTime
   allDay          Boolean  @default(false)
 
+  // Recurrence
+  isRecurring       Boolean  @default(false)
+  recurrenceType    String?  // DAILY, WEEKLY, BIWEEKLY, MONTHLY
+  recurrenceEndDate DateTime?
+  recurrenceDays    String[] @default([]) // For weekly: SUN, MON, TUE, WED, THU, FRI, SAT
+  parentEventId     String?  // Links recurring instances to the parent event
+  parentEvent       CalendarEvent?  @relation("RecurringEvents", fields: [parentEventId], references: [id], onDelete: Cascade)
+  recurringInstances CalendarEvent[] @relation("RecurringEvents")
+
   // Display
   color           String?  // Hex color code for custom color
 
@@ -1582,4 +1605,36 @@ model CalendarReminder {
   @@index([eventId])
   @@index([reminderTime])
   @@index([isActive])
+}
+
+// Facility Staff Invitation
+model FacilityInvitation {
+  id              String           @id @default(cuid())
+  facilityId      String
+  facility        Facility         @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  // Invitation details
+  email           String
+  role            String           // Position/title (e.g., "BHT", "Case Manager")
+
+  // Token
+  token           String           @unique
+  expiresAt       DateTime
+
+  // Status
+  status          InvitationStatus @default(PENDING)
+
+  // Tracking
+  invitedById     String
+  invitedBy       User             @relation(fields: [invitedById], references: [id])
+  acceptedAt      DateTime?
+  acceptedUserId  String?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([facilityId])
+  @@index([email])
+  @@index([status])
+  @@index([expiresAt])
 }

@@ -21,14 +21,31 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { type CalendarEventInput } from "@/lib/validations";
+import { type CalendarEventInput, RECURRENCE_TYPES, DAYS_OF_WEEK } from "@/lib/validations";
 import {
   EVENT_TYPES,
   EVENT_TYPE_LABELS,
   REMINDER_OPTIONS,
   type EventType,
 } from "@/lib/calendar";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, Repeat } from "lucide-react";
+
+const RECURRENCE_TYPE_LABELS: Record<string, string> = {
+  DAILY: "Daily",
+  WEEKLY: "Weekly",
+  BIWEEKLY: "Every 2 Weeks",
+  MONTHLY: "Monthly",
+};
+
+const DAY_LABELS: Record<string, string> = {
+  SUN: "Sun",
+  MON: "Mon",
+  TUE: "Tue",
+  WED: "Wed",
+  THU: "Thu",
+  FRI: "Fri",
+  SAT: "Sat",
+};
 
 interface Resident {
   id: string;
@@ -48,6 +65,12 @@ interface EventFormData {
   color?: string;
   reminderMinutes: number[];
   status?: string;
+  // Recurrence fields
+  isRecurring?: boolean;
+  recurrenceType?: string;
+  recurrenceEndDate?: string;
+  recurrenceDays?: string[];
+  parentEventId?: string;
 }
 
 interface EventFormProps {
@@ -84,6 +107,11 @@ export function EventForm({
   const [endDateTime, setEndDateTime] = useState("");
   const [allDay, setAllDay] = useState(false);
   const [reminderMinutes, setReminderMinutes] = useState<number[]>([60]);
+  // Recurrence state
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceType, setRecurrenceType] = useState<string>("");
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState("");
+  const [recurrenceDays, setRecurrenceDays] = useState<string[]>([]);
 
   useEffect(() => {
     if (event) {
@@ -96,6 +124,11 @@ export function EventForm({
       setEndDateTime(event.endDateTime);
       setAllDay(event.allDay);
       setReminderMinutes(event.reminderMinutes || []);
+      // Recurrence fields
+      setIsRecurring(event.isRecurring || false);
+      setRecurrenceType(event.recurrenceType || "");
+      setRecurrenceEndDate(event.recurrenceEndDate || "");
+      setRecurrenceDays(event.recurrenceDays || []);
     } else {
       // Default to current time rounded to nearest 30 min
       const now = new Date();
@@ -112,6 +145,11 @@ export function EventForm({
       setEndDateTime(end.toISOString().slice(0, 16));
       setAllDay(false);
       setReminderMinutes([60]);
+      // Reset recurrence
+      setIsRecurring(false);
+      setRecurrenceType("");
+      setRecurrenceEndDate("");
+      setRecurrenceDays([]);
     }
     setErrors({});
   }, [event, open]);
@@ -129,6 +167,16 @@ export function EventForm({
       const end = new Date(endDateTime);
       if (end < start) {
         newErrors.endDateTime = "End time must be after start time";
+      }
+    }
+
+    // Recurrence validation
+    if (isRecurring) {
+      if (!recurrenceType) {
+        newErrors.recurrenceType = "Recurrence type is required";
+      }
+      if (recurrenceType === "WEEKLY" && recurrenceDays.length === 0) {
+        newErrors.recurrenceDays = "Select at least one day";
       }
     }
 
@@ -153,6 +201,11 @@ export function EventForm({
         endDateTime,
         allDay,
         reminderMinutes,
+        // Recurrence fields
+        isRecurring,
+        recurrenceType: isRecurring ? recurrenceType as CalendarEventInput["recurrenceType"] : undefined,
+        recurrenceEndDate: isRecurring && recurrenceEndDate ? recurrenceEndDate : undefined,
+        recurrenceDays: isRecurring && recurrenceType === "WEEKLY" ? recurrenceDays as CalendarEventInput["recurrenceDays"] : [],
       };
       await onSubmit(data);
       onOpenChange(false);
@@ -194,6 +247,14 @@ export function EventForm({
       setReminderMinutes(reminderMinutes.filter((v) => v !== value));
     } else {
       setReminderMinutes([...reminderMinutes, value]);
+    }
+  };
+
+  const toggleRecurrenceDay = (day: string) => {
+    if (recurrenceDays.includes(day)) {
+      setRecurrenceDays(recurrenceDays.filter((d) => d !== day));
+    } else {
+      setRecurrenceDays([...recurrenceDays, day]);
     }
   };
 
@@ -316,6 +377,85 @@ export function EventForm({
                 <p className="text-sm text-destructive">{errors.endDateTime}</p>
               )}
             </div>
+          </div>
+
+          {/* Recurrence Section */}
+          <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isRecurring"
+                checked={isRecurring}
+                onCheckedChange={(checked) => {
+                  setIsRecurring(checked === true);
+                  if (!checked) {
+                    setRecurrenceType("");
+                    setRecurrenceEndDate("");
+                    setRecurrenceDays([]);
+                  }
+                }}
+              />
+              <Label htmlFor="isRecurring" className="font-normal flex items-center gap-2">
+                <Repeat className="h-4 w-4" />
+                Repeat this event
+              </Label>
+            </div>
+
+            {isRecurring && (
+              <div className="space-y-3 pl-6">
+                <div className="space-y-2">
+                  <Label>Repeat *</Label>
+                  <Select value={recurrenceType} onValueChange={setRecurrenceType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RECURRENCE_TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {RECURRENCE_TYPE_LABELS[type]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.recurrenceType && (
+                    <p className="text-sm text-destructive">{errors.recurrenceType}</p>
+                  )}
+                </div>
+
+                {recurrenceType === "WEEKLY" && (
+                  <div className="space-y-2">
+                    <Label>Repeat on *</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {DAYS_OF_WEEK.map((day) => (
+                        <Badge
+                          key={day}
+                          variant={recurrenceDays.includes(day) ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() => toggleRecurrenceDay(day)}
+                        >
+                          {DAY_LABELS[day]}
+                        </Badge>
+                      ))}
+                    </div>
+                    {errors.recurrenceDays && (
+                      <p className="text-sm text-destructive">{errors.recurrenceDays}</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="recurrenceEndDate">End Date (optional)</Label>
+                  <Input
+                    id="recurrenceEndDate"
+                    type="date"
+                    value={recurrenceEndDate}
+                    onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty to repeat indefinitely
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
