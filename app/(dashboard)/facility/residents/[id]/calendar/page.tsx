@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CalendarDays, Loader2, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { startOfMonth, endOfMonth, addMonths } from "@/lib/calendar";
+import { startOfMonth, endOfMonth, addMonths, formatDateTimeLocal, formatDateLocal } from "@/lib/calendar";
 import { formatDate } from "@/lib/utils";
 import type { CalendarEventInput } from "@/lib/validations";
 import { ResidentTabs } from "@/components/residents/resident-tabs";
@@ -28,6 +28,12 @@ interface CalendarEvent {
   color?: string | null;
   status: string;
   reminderMinutes: number[];
+  // Recurrence fields
+  isRecurring?: boolean;
+  recurrenceType?: string | null;
+  recurrenceEndDate?: string | null;
+  recurrenceDays?: string[];
+  parentEventId?: string | null;
   intake?: {
     id: string;
     residentName: string;
@@ -117,8 +123,10 @@ export default function ResidentCalendarPage() {
       // Ensure intakeId is set to the current resident
       const eventData = { ...data, intakeId };
 
+      // For recurring events being edited, update the entire series
+      const updateSeries = selectedEvent?.id && (selectedEvent.isRecurring || !!selectedEvent.parentEventId);
       const url = selectedEvent?.id
-        ? `/api/calendar/${selectedEvent.id}`
+        ? `/api/calendar/${selectedEvent.id}${updateSeries ? "?updateSeries=true" : ""}`
         : "/api/calendar";
       const method = selectedEvent?.id ? "PATCH" : "POST";
 
@@ -136,8 +144,12 @@ export default function ResidentCalendarPage() {
       toast({
         title: "Success",
         description: selectedEvent?.id
-          ? "Event updated successfully"
-          : "Event created successfully",
+          ? updateSeries
+            ? "Event series updated successfully"
+            : "Event updated successfully"
+          : data.isRecurring
+            ? "Recurring event created successfully"
+            : "Event created successfully",
       });
 
       await fetchEvents();
@@ -157,9 +169,14 @@ export default function ResidentCalendarPage() {
     if (!selectedEvent?.id) return;
 
     try {
-      const response = await fetch(`/api/calendar/${selectedEvent.id}`, {
-        method: "DELETE",
-      });
+      // For recurring events, delete the entire series
+      const deleteSeries = selectedEvent.isRecurring || !!selectedEvent.parentEventId;
+      const response = await fetch(
+        `/api/calendar/${selectedEvent.id}?deleteSeries=${deleteSeries}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete event");
@@ -167,7 +184,9 @@ export default function ResidentCalendarPage() {
 
       toast({
         title: "Success",
-        description: "Event deleted successfully",
+        description: deleteSeries
+          ? "Event series deleted successfully"
+          : "Event deleted successfully",
       });
 
       await fetchEvents();
@@ -223,8 +242,8 @@ export default function ResidentCalendarPage() {
         description: "",
         eventType: "OTHER" as const,
         location: "",
-        startDateTime: new Date().toISOString().slice(0, 16),
-        endDateTime: new Date(Date.now() + 3600000).toISOString().slice(0, 16),
+        startDateTime: formatDateTimeLocal(new Date()),
+        endDateTime: formatDateTimeLocal(new Date(Date.now() + 3600000)),
         allDay: false,
         color: "",
         reminderMinutes: [60],
@@ -238,12 +257,18 @@ export default function ResidentCalendarPage() {
       description: event.description || undefined,
       eventType: event.eventType,
       location: event.location || undefined,
-      startDateTime: new Date(event.startDateTime).toISOString().slice(0, 16),
-      endDateTime: new Date(event.endDateTime).toISOString().slice(0, 16),
+      startDateTime: formatDateTimeLocal(event.startDateTime),
+      endDateTime: formatDateTimeLocal(event.endDateTime),
       allDay: event.allDay,
       color: event.color || undefined,
       reminderMinutes: event.reminderMinutes || [],
       status: event.status,
+      // Recurrence fields
+      isRecurring: event.isRecurring || false,
+      recurrenceType: event.recurrenceType || undefined,
+      recurrenceEndDate: event.recurrenceEndDate ? formatDateLocal(event.recurrenceEndDate) : undefined,
+      recurrenceDays: event.recurrenceDays || [],
+      parentEventId: event.parentEventId || undefined,
     };
   };
 

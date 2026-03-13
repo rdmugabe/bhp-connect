@@ -88,6 +88,8 @@ export async function PATCH(
     }
 
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const updateSeries = searchParams.get("updateSeries") === "true";
 
     const bhrfProfile = await prisma.bHRFProfile.findUnique({
       where: { userId: session.user.id },
@@ -134,30 +136,104 @@ export async function PATCH(
       }
     }
 
-    // Build update data
-    const updateData: Record<string, unknown> = {};
+    // Build update data (fields that don't change per-instance)
+    const commonUpdateData: Record<string, unknown> = {};
 
-    if (validatedData.intakeId !== undefined) updateData.intakeId = validatedData.intakeId;
-    if (validatedData.title !== undefined) updateData.title = validatedData.title;
-    if (validatedData.description !== undefined) updateData.description = validatedData.description;
-    if (validatedData.eventType !== undefined) updateData.eventType = validatedData.eventType;
-    if (validatedData.location !== undefined) updateData.location = validatedData.location;
-    if (validatedData.startDateTime !== undefined) updateData.startDateTime = new Date(validatedData.startDateTime);
-    if (validatedData.endDateTime !== undefined) updateData.endDateTime = new Date(validatedData.endDateTime);
-    if (validatedData.allDay !== undefined) updateData.allDay = validatedData.allDay;
-    if (validatedData.color !== undefined) updateData.color = validatedData.color;
-    if (validatedData.reminderMinutes !== undefined) updateData.reminderMinutes = validatedData.reminderMinutes;
+    if (validatedData.intakeId !== undefined) commonUpdateData.intakeId = validatedData.intakeId;
+    if (validatedData.title !== undefined) commonUpdateData.title = validatedData.title;
+    if (validatedData.description !== undefined) commonUpdateData.description = validatedData.description;
+    if (validatedData.eventType !== undefined) commonUpdateData.eventType = validatedData.eventType;
+    if (validatedData.location !== undefined) commonUpdateData.location = validatedData.location;
+    if (validatedData.allDay !== undefined) commonUpdateData.allDay = validatedData.allDay;
+    if (validatedData.color !== undefined) commonUpdateData.color = validatedData.color;
+    if (validatedData.reminderMinutes !== undefined) commonUpdateData.reminderMinutes = validatedData.reminderMinutes;
     if (validatedData.status !== undefined) {
-      updateData.status = validatedData.status;
+      commonUpdateData.status = validatedData.status;
       if (validatedData.status === "CANCELLED") {
-        updateData.cancelledAt = new Date();
-        updateData.cancelReason = validatedData.cancelReason || null;
+        commonUpdateData.cancelledAt = new Date();
+        commonUpdateData.cancelReason = validatedData.cancelReason || null;
       }
     }
 
+    // If updating entire series
+    if (updateSeries && (existingEvent.isRecurring || existingEvent.parentEventId)) {
+      const parentId = existingEvent.parentEventId || existingEvent.id;
+
+      // Get all events in the series
+      const seriesEvents = await prisma.calendarEvent.findMany({
+        where: {
+          OR: [
+            { id: parentId },
+            { parentEventId: parentId },
+          ],
+          facilityId: bhrfProfile.facilityId,
+        },
+        orderBy: { startDateTime: "asc" },
+      });
+
+      // Update all events in series with common fields
+      await prisma.calendarEvent.updateMany({
+        where: {
+          OR: [
+            { id: parentId },
+            { parentEventId: parentId },
+          ],
+          facilityId: bhrfProfile.facilityId,
+        },
+        data: commonUpdateData,
+      });
+
+      // If reminder minutes were updated, recreate reminders for all events
+      if (validatedData.reminderMinutes !== undefined) {
+        // Delete existing reminders for all series events
+        const eventIds = seriesEvents.map(e => e.id);
+        await prisma.calendarReminder.deleteMany({
+          where: { eventId: { in: eventIds } },
+        });
+
+        // Create new reminders for each event
+        if (validatedData.reminderMinutes.length > 0) {
+          for (const seriesEvent of seriesEvents) {
+            const reminderTimes = calculateReminderTimes(
+              seriesEvent.startDateTime,
+              validatedData.reminderMinutes
+            );
+
+            await prisma.calendarReminder.createMany({
+              data: reminderTimes.map((reminderTime) => ({
+                eventId: seriesEvent.id,
+                reminderTime,
+                isActive: true,
+              })),
+            });
+          }
+        }
+      }
+
+      // Return the updated parent event
+      const updatedEvent = await prisma.calendarEvent.findUnique({
+        where: { id: parentId },
+        include: {
+          intake: {
+            select: {
+              id: true,
+              residentName: true,
+            },
+          },
+        },
+      });
+
+      return NextResponse.json({ event: updatedEvent, updatedSeries: true, count: seriesEvents.length });
+    }
+
+    // Single event update - include time changes
+    const singleUpdateData = { ...commonUpdateData };
+    if (validatedData.startDateTime !== undefined) singleUpdateData.startDateTime = new Date(validatedData.startDateTime);
+    if (validatedData.endDateTime !== undefined) singleUpdateData.endDateTime = new Date(validatedData.endDateTime);
+
     const event = await prisma.calendarEvent.update({
       where: { id },
-      data: updateData,
+      data: singleUpdateData,
       include: {
         intake: {
           select: {
@@ -223,6 +299,8 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const deleteSeries = searchParams.get("deleteSeries") === "true";
 
     const bhrfProfile = await prisma.bHRFProfile.findUnique({
       where: { userId: session.user.id },
@@ -248,7 +326,29 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Delete the event (reminders will be cascade deleted)
+    // If deleting entire series
+    if (deleteSeries && (existingEvent.isRecurring || existingEvent.parentEventId)) {
+      // Find the parent event ID
+      const parentId = existingEvent.parentEventId || existingEvent.id;
+
+      // Delete all events in the series (children and parent)
+      // First delete children (they reference parent)
+      await prisma.calendarEvent.deleteMany({
+        where: {
+          parentEventId: parentId,
+          facilityId: bhrfProfile.facilityId,
+        },
+      });
+
+      // Then delete the parent
+      await prisma.calendarEvent.delete({
+        where: { id: parentId },
+      });
+
+      return NextResponse.json({ success: true, deletedSeries: true });
+    }
+
+    // Delete single event (reminders will be cascade deleted)
     await prisma.calendarEvent.delete({
       where: { id },
     });

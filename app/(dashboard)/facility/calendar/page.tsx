@@ -7,7 +7,7 @@ import { EventForm } from "@/components/calendar/event-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { startOfMonth, endOfMonth, addMonths } from "@/lib/calendar";
+import { startOfMonth, endOfMonth, addMonths, formatDateTimeLocal, formatDateLocal } from "@/lib/calendar";
 import type { CalendarEventInput } from "@/lib/validations";
 
 interface CalendarEvent {
@@ -22,6 +22,12 @@ interface CalendarEvent {
   color?: string | null;
   status: string;
   reminderMinutes: number[];
+  // Recurrence fields
+  isRecurring?: boolean;
+  recurrenceType?: string | null;
+  recurrenceEndDate?: string | null;
+  recurrenceDays?: string[];
+  parentEventId?: string | null;
   intake?: {
     id: string;
     residentName: string;
@@ -117,8 +123,10 @@ export default function FacilityCalendarPage() {
 
   const handleSubmit = async (data: CalendarEventInput) => {
     try {
+      // For recurring events being edited, update the entire series
+      const updateSeries = selectedEvent?.id && (selectedEvent.isRecurring || !!selectedEvent.parentEventId);
       const url = selectedEvent?.id
-        ? `/api/calendar/${selectedEvent.id}`
+        ? `/api/calendar/${selectedEvent.id}${updateSeries ? "?updateSeries=true" : ""}`
         : "/api/calendar";
       const method = selectedEvent?.id ? "PATCH" : "POST";
 
@@ -136,8 +144,12 @@ export default function FacilityCalendarPage() {
       toast({
         title: "Success",
         description: selectedEvent?.id
-          ? "Event updated successfully"
-          : "Event created successfully",
+          ? updateSeries
+            ? "Event series updated successfully"
+            : "Event updated successfully"
+          : data.isRecurring
+            ? "Recurring event created successfully"
+            : "Event created successfully",
       });
 
       await fetchEvents();
@@ -157,9 +169,14 @@ export default function FacilityCalendarPage() {
     if (!selectedEvent?.id) return;
 
     try {
-      const response = await fetch(`/api/calendar/${selectedEvent.id}`, {
-        method: "DELETE",
-      });
+      // For recurring events, delete the entire series
+      const deleteSeries = selectedEvent.isRecurring || !!selectedEvent.parentEventId;
+      const response = await fetch(
+        `/api/calendar/${selectedEvent.id}?deleteSeries=${deleteSeries}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete event");
@@ -167,7 +184,9 @@ export default function FacilityCalendarPage() {
 
       toast({
         title: "Success",
-        description: "Event deleted successfully",
+        description: deleteSeries
+          ? "Event series deleted successfully"
+          : "Event deleted successfully",
       });
 
       await fetchEvents();
@@ -224,12 +243,18 @@ export default function FacilityCalendarPage() {
       description: event.description || undefined,
       eventType: event.eventType,
       location: event.location || undefined,
-      startDateTime: new Date(event.startDateTime).toISOString().slice(0, 16),
-      endDateTime: new Date(event.endDateTime).toISOString().slice(0, 16),
+      startDateTime: formatDateTimeLocal(event.startDateTime),
+      endDateTime: formatDateTimeLocal(event.endDateTime),
       allDay: event.allDay,
       color: event.color || undefined,
       reminderMinutes: event.reminderMinutes || [],
       status: event.status,
+      // Recurrence fields
+      isRecurring: event.isRecurring || false,
+      recurrenceType: event.recurrenceType || undefined,
+      recurrenceEndDate: event.recurrenceEndDate ? formatDateLocal(event.recurrenceEndDate) : undefined,
+      recurrenceDays: event.recurrenceDays || [],
+      parentEventId: event.parentEventId || undefined,
     };
   };
 

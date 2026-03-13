@@ -69,7 +69,7 @@ function generateRecurringDates(
   }
 
   // Sort dates and remove duplicates
-  return [...new Set(dates.map(d => d.getTime()))].sort().map(t => new Date(t));
+  return Array.from(new Set(dates.map(d => d.getTime()))).sort((a, b) => a - b).map(t => new Date(t));
 }
 
 export async function GET(request: NextRequest) {

@@ -119,9 +119,17 @@ export function CalendarView({
                     />
                   ))}
                   {dayEvents.length > 3 && (
-                    <div className="text-xs text-muted-foreground text-center">
+                    <button
+                      type="button"
+                      className="text-xs text-primary hover:text-primary/80 hover:underline text-center w-full font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentDate(date);
+                        setView("day");
+                      }}
+                    >
                       +{dayEvents.length - 3} more
-                    </div>
+                    </button>
                   )}
                 </div>
               </div>
