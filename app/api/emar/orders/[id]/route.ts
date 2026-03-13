@@ -57,6 +57,12 @@ export async function GET(
           },
           take: 20,
         },
+        _count: {
+          select: {
+            schedules: true,
+            administrations: true,
+          },
+        },
       },
     });
 

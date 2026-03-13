@@ -36,10 +36,15 @@ export default async function EditASAMPage({
 
   // Allow editing of any ASAM assessment
 
+  // Fields that should be arrays (for useFieldArray)
+  const arrayFields = ["psychiatricMedications", "mentalHealthProviders", "treatmentProviders", "substancesUsed"];
+
   // Convert assessment to form data format - transform null to undefined and dates to strings
   const initialData = Object.fromEntries(
     Object.entries(assessment).map(([key, value]) => [
       key,
+      // Array fields should default to empty array, not undefined
+      arrayFields.includes(key) ? (Array.isArray(value) ? value : []) :
       value === null ? undefined :
       value instanceof Date ? value.toISOString().split("T")[0] :
       value

@@ -8,6 +8,29 @@ import { parseJsonBody } from "@/lib/api-utils";
 import { parseOptionalDateOfBirth, parseOptionalPastDate, parseOptionalSignatureDate } from "@/lib/date-utils";
 import { syncASAMMedicationsToEmar } from "@/lib/emar/medication-sync";
 
+// Helper function to check if a JSON object has meaningful data
+// For objects with boolean checkbox values, we consider it "has data" if it has any keys
+// (even if all values are false - that's still valid user input)
+function hasJsonData(obj: unknown): boolean {
+  if (obj === null || obj === undefined) return false;
+  if (typeof obj !== 'object') return false;
+  if (Array.isArray(obj)) return obj.length > 0;
+  // If object has any keys, it has data (even if all values are false)
+  return Object.keys(obj as Record<string, unknown>).length > 0;
+}
+
+// Helper to preserve existing JSON data if new data is empty/undefined
+// For arrays: an explicit empty array [] means user cleared the data, so we save it
+// Only preserve existing data if new data is undefined (not provided)
+function preserveJsonField<T>(newData: T | undefined, existingData: T | null): T | undefined | null {
+  // If new data is an array (even empty), use it - user explicitly set this value
+  if (Array.isArray(newData)) return newData;
+  // For objects and other types, check if it has meaningful data
+  if (hasJsonData(newData)) return newData;
+  // If new data is undefined/null/empty, preserve existing
+  return existingData;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -142,7 +165,7 @@ export async function PATCH(
             referredBy: validatedData.referredBy,
             reasonForTreatment: validatedData.reasonForTreatment,
             currentSymptoms: validatedData.currentSymptoms,
-            substanceUseHistory: validatedData.substanceUseHistory,
+            substanceUseHistory: preserveJsonField(validatedData.substanceUseHistory, existingAssessment.substanceUseHistory),
             usingMoreThanIntended: validatedData.usingMoreThanIntended,
             usingMoreDetails: validatedData.usingMoreDetails,
             physicallyIllWhenStopping: validatedData.physicallyIllWhenStopping,
@@ -158,19 +181,19 @@ export async function PATCH(
             familySubstanceHistory: validatedData.familySubstanceHistory,
             dimension1Severity: validatedData.dimension1Severity,
             dimension1Comments: validatedData.dimension1Comments,
-            medicalProviders: validatedData.medicalProviders,
-            medicalConditions: validatedData.medicalConditions,
+            medicalProviders: preserveJsonField(validatedData.medicalProviders, existingAssessment.medicalProviders),
+            medicalConditions: preserveJsonField(validatedData.medicalConditions, existingAssessment.medicalConditions),
             conditionsInterfere: validatedData.conditionsInterfere,
             conditionsInterfereDetails: validatedData.conditionsInterfereDetails,
             priorHospitalizations: validatedData.priorHospitalizations,
             lifeThreatening: validatedData.lifeThreatening,
-            medicalMedications: validatedData.medicalMedications,
+            medicalMedications: preserveJsonField(validatedData.medicalMedications, existingAssessment.medicalMedications),
             dimension2Severity: validatedData.dimension2Severity,
             dimension2Comments: validatedData.dimension2Comments,
-            moodSymptoms: validatedData.moodSymptoms,
-            anxietySymptoms: validatedData.anxietySymptoms,
-            psychosisSymptoms: validatedData.psychosisSymptoms,
-            otherSymptoms: validatedData.otherSymptoms,
+            moodSymptoms: preserveJsonField(validatedData.moodSymptoms, existingAssessment.moodSymptoms),
+            anxietySymptoms: preserveJsonField(validatedData.anxietySymptoms, existingAssessment.anxietySymptoms),
+            psychosisSymptoms: preserveJsonField(validatedData.psychosisSymptoms, existingAssessment.psychosisSymptoms),
+            otherSymptoms: preserveJsonField(validatedData.otherSymptoms, existingAssessment.otherSymptoms),
             suicidalThoughts: validatedData.suicidalThoughts,
             suicidalThoughtsDetails: validatedData.suicidalThoughtsDetails,
             thoughtsOfHarmingOthers: validatedData.thoughtsOfHarmingOthers,
@@ -185,15 +208,15 @@ export async function PATCH(
             hallucinationsDetails: validatedData.hallucinationsDetails,
             furtherMHAssessmentNeeded: validatedData.furtherMHAssessmentNeeded,
             furtherMHAssessmentDetails: validatedData.furtherMHAssessmentDetails,
-            psychiatricMedications: validatedData.psychiatricMedications,
-            mentalHealthProviders: validatedData.mentalHealthProviders,
+            psychiatricMedications: preserveJsonField(validatedData.psychiatricMedications, existingAssessment.psychiatricMedications),
+            mentalHealthProviders: preserveJsonField(validatedData.mentalHealthProviders, existingAssessment.mentalHealthProviders),
             dimension3Severity: validatedData.dimension3Severity,
             dimension3Comments: validatedData.dimension3Comments,
-            areasAffectedByUse: validatedData.areasAffectedByUse,
+            areasAffectedByUse: preserveJsonField(validatedData.areasAffectedByUse, existingAssessment.areasAffectedByUse),
             continueUseDespitefects: validatedData.continueUseDespiteEffects,
             continueUseDetails: validatedData.continueUseDetails,
             previousTreatmentHelp: validatedData.previousTreatmentHelp,
-            treatmentProviders: validatedData.treatmentProviders,
+            treatmentProviders: preserveJsonField(validatedData.treatmentProviders, existingAssessment.treatmentProviders),
             recoverySupport: validatedData.recoverySupport,
             recoveryBarriers: validatedData.recoveryBarriers,
             treatmentImportanceAlcohol: validatedData.treatmentImportanceAlcohol,
@@ -209,7 +232,7 @@ export async function PATCH(
             relapseWithoutTreatment: validatedData.relapseWithoutTreatment,
             relapseDetails: validatedData.relapseDetails,
             awareOfTriggers: validatedData.awareOfTriggers,
-            triggersList: validatedData.triggersList,
+            triggersList: preserveJsonField(validatedData.triggersList, existingAssessment.triggersList),
             copingWithTriggers: validatedData.copingWithTriggers,
             attemptsToControl: validatedData.attemptsToControl,
             longestSobriety: validatedData.longestSobriety,
@@ -233,10 +256,10 @@ export async function PATCH(
             probationParoleContact: validatedData.probationParoleContact,
             dimension6Severity: validatedData.dimension6Severity,
             dimension6Comments: validatedData.dimension6Comments,
-            summaryRationale: validatedData.summaryRationale,
-            dsm5Criteria: validatedData.dsm5Criteria,
+            summaryRationale: preserveJsonField(validatedData.summaryRationale, existingAssessment.summaryRationale),
+            dsm5Criteria: preserveJsonField(validatedData.dsm5Criteria, existingAssessment.dsm5Criteria),
             dsm5Diagnoses: validatedData.dsm5Diagnoses,
-            levelOfCareDetermination: validatedData.levelOfCareDetermination,
+            levelOfCareDetermination: preserveJsonField(validatedData.levelOfCareDetermination, existingAssessment.levelOfCareDetermination),
             matInterested: validatedData.matInterested,
             matDetails: validatedData.matDetails,
             recommendedLevelOfCare: validatedData.recommendedLevelOfCare,
@@ -329,6 +352,15 @@ export async function PATCH(
 
       const { isDraft, currentStep, ...assessmentData } = body;
 
+      // Debug logging for JSON fields
+      console.log("[ASAM API] === Saving draft ===");
+      console.log("[ASAM API] moodSymptoms received:", JSON.stringify(assessmentData.moodSymptoms));
+      console.log("[ASAM API] moodSymptoms is array?:", Array.isArray(assessmentData.moodSymptoms));
+      console.log("[ASAM API] moodSymptoms hasJsonData?:", hasJsonData(assessmentData.moodSymptoms));
+      console.log("[ASAM API] Existing moodSymptoms:", JSON.stringify(existingAssessment.moodSymptoms));
+      console.log("[ASAM API] medicalConditions received:", JSON.stringify(assessmentData.medicalConditions));
+      console.log("[ASAM API] medicalConditions is array?:", Array.isArray(assessmentData.medicalConditions));
+
       // Use appropriate schema based on draft status
       const validatedData = (isDraft
         ? asamDraftSchema.parse({ ...assessmentData, currentStep })
@@ -359,8 +391,8 @@ export async function PATCH(
           reasonForTreatment: validatedData.reasonForTreatment,
           currentSymptoms: validatedData.currentSymptoms,
 
-          // Dimension 1
-          substanceUseHistory: validatedData.substanceUseHistory,
+          // Dimension 1 - preserve existing JSON data if form sends empty
+          substanceUseHistory: preserveJsonField(validatedData.substanceUseHistory, existingAssessment.substanceUseHistory),
           usingMoreThanIntended: validatedData.usingMoreThanIntended,
           usingMoreDetails: validatedData.usingMoreDetails,
           physicallyIllWhenStopping: validatedData.physicallyIllWhenStopping,
@@ -377,22 +409,22 @@ export async function PATCH(
           dimension1Severity: validatedData.dimension1Severity,
           dimension1Comments: validatedData.dimension1Comments,
 
-          // Dimension 2
-          medicalProviders: validatedData.medicalProviders,
-          medicalConditions: validatedData.medicalConditions,
+          // Dimension 2 - preserve existing JSON data if form sends empty
+          medicalProviders: preserveJsonField(validatedData.medicalProviders, existingAssessment.medicalProviders),
+          medicalConditions: preserveJsonField(validatedData.medicalConditions, existingAssessment.medicalConditions),
           conditionsInterfere: validatedData.conditionsInterfere,
           conditionsInterfereDetails: validatedData.conditionsInterfereDetails,
           priorHospitalizations: validatedData.priorHospitalizations,
           lifeThreatening: validatedData.lifeThreatening,
-          medicalMedications: validatedData.medicalMedications,
+          medicalMedications: preserveJsonField(validatedData.medicalMedications, existingAssessment.medicalMedications),
           dimension2Severity: validatedData.dimension2Severity,
           dimension2Comments: validatedData.dimension2Comments,
 
-          // Dimension 3
-          moodSymptoms: validatedData.moodSymptoms,
-          anxietySymptoms: validatedData.anxietySymptoms,
-          psychosisSymptoms: validatedData.psychosisSymptoms,
-          otherSymptoms: validatedData.otherSymptoms,
+          // Dimension 3 - preserve existing JSON data if form sends empty
+          moodSymptoms: preserveJsonField(validatedData.moodSymptoms, existingAssessment.moodSymptoms),
+          anxietySymptoms: preserveJsonField(validatedData.anxietySymptoms, existingAssessment.anxietySymptoms),
+          psychosisSymptoms: preserveJsonField(validatedData.psychosisSymptoms, existingAssessment.psychosisSymptoms),
+          otherSymptoms: preserveJsonField(validatedData.otherSymptoms, existingAssessment.otherSymptoms),
           suicidalThoughts: validatedData.suicidalThoughts,
           suicidalThoughtsDetails: validatedData.suicidalThoughtsDetails,
           thoughtsOfHarmingOthers: validatedData.thoughtsOfHarmingOthers,
@@ -407,17 +439,17 @@ export async function PATCH(
           hallucinationsDetails: validatedData.hallucinationsDetails,
           furtherMHAssessmentNeeded: validatedData.furtherMHAssessmentNeeded,
           furtherMHAssessmentDetails: validatedData.furtherMHAssessmentDetails,
-          psychiatricMedications: validatedData.psychiatricMedications,
-          mentalHealthProviders: validatedData.mentalHealthProviders,
+          psychiatricMedications: preserveJsonField(validatedData.psychiatricMedications, existingAssessment.psychiatricMedications),
+          mentalHealthProviders: preserveJsonField(validatedData.mentalHealthProviders, existingAssessment.mentalHealthProviders),
           dimension3Severity: validatedData.dimension3Severity,
           dimension3Comments: validatedData.dimension3Comments,
 
-          // Dimension 4
-          areasAffectedByUse: validatedData.areasAffectedByUse,
+          // Dimension 4 - preserve existing JSON data if form sends empty
+          areasAffectedByUse: preserveJsonField(validatedData.areasAffectedByUse, existingAssessment.areasAffectedByUse),
           continueUseDespitefects: validatedData.continueUseDespiteEffects,
           continueUseDetails: validatedData.continueUseDetails,
           previousTreatmentHelp: validatedData.previousTreatmentHelp,
-          treatmentProviders: validatedData.treatmentProviders,
+          treatmentProviders: preserveJsonField(validatedData.treatmentProviders, existingAssessment.treatmentProviders),
           recoverySupport: validatedData.recoverySupport,
           recoveryBarriers: validatedData.recoveryBarriers,
           treatmentImportanceAlcohol: validatedData.treatmentImportanceAlcohol,
@@ -426,7 +458,7 @@ export async function PATCH(
           dimension4Severity: validatedData.dimension4Severity,
           dimension4Comments: validatedData.dimension4Comments,
 
-          // Dimension 5
+          // Dimension 5 - preserve existing JSON data if form sends empty
           cravingsFrequencyAlcohol: validatedData.cravingsFrequencyAlcohol,
           cravingsFrequencyDrugs: validatedData.cravingsFrequencyDrugs,
           cravingsDetails: validatedData.cravingsDetails,
@@ -435,7 +467,7 @@ export async function PATCH(
           relapseWithoutTreatment: validatedData.relapseWithoutTreatment,
           relapseDetails: validatedData.relapseDetails,
           awareOfTriggers: validatedData.awareOfTriggers,
-          triggersList: validatedData.triggersList,
+          triggersList: preserveJsonField(validatedData.triggersList, existingAssessment.triggersList),
           copingWithTriggers: validatedData.copingWithTriggers,
           attemptsToControl: validatedData.attemptsToControl,
           longestSobriety: validatedData.longestSobriety,
@@ -462,11 +494,11 @@ export async function PATCH(
           dimension6Severity: validatedData.dimension6Severity,
           dimension6Comments: validatedData.dimension6Comments,
 
-          // Summary and DSM-5
-          summaryRationale: validatedData.summaryRationale,
-          dsm5Criteria: validatedData.dsm5Criteria,
+          // Summary and DSM-5 - preserve existing JSON data if form sends empty
+          summaryRationale: preserveJsonField(validatedData.summaryRationale, existingAssessment.summaryRationale),
+          dsm5Criteria: preserveJsonField(validatedData.dsm5Criteria, existingAssessment.dsm5Criteria),
           dsm5Diagnoses: validatedData.dsm5Diagnoses,
-          levelOfCareDetermination: validatedData.levelOfCareDetermination,
+          levelOfCareDetermination: preserveJsonField(validatedData.levelOfCareDetermination, existingAssessment.levelOfCareDetermination),
           matInterested: validatedData.matInterested,
           matDetails: validatedData.matDetails,
 
