@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -117,12 +118,8 @@ interface Administration {
   };
 }
 
-export default function BhpPatientEmarPage({
-  params,
-}: {
-  params: Promise<{ intakeId: string }>;
-}) {
-  const { intakeId } = use(params);
+export default function BhpPatientEmarPage() {
+  const { intakeId } = useParams<{ intakeId: string }>();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [orders, setOrders] = useState<MedicationOrder[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);

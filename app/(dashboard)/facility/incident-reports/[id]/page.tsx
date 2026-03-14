@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -89,12 +90,8 @@ function getFollowUpLabel(code: string): string {
   return type?.label || code;
 }
 
-export default function ViewIncidentReportPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+export default function ViewIncidentReportPage() {
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { toast } = useToast();
   const [report, setReport] = useState<IncidentReport | null>(null);

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,12 +53,8 @@ interface InvitationDetails {
   expiresAt: string;
 }
 
-interface PageProps {
-  params: Promise<{ token: string }>;
-}
-
-export default function InviteRegistrationPage({ params }: PageProps) {
-  const { token } = use(params);
+export default function InviteRegistrationPage() {
+  const { token } = useParams<{ token: string }>();
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
