@@ -17,15 +17,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Key is required" }, { status: 400 });
     }
 
+    // Decode the key in case it was double-encoded
+    let decodedKey = key;
+    try {
+      // Check if the key appears to be URL encoded (contains %XX patterns)
+      if (key.includes('%')) {
+        decodedKey = decodeURIComponent(key);
+      }
+    } catch {
+      // If decoding fails, use the original key
+      decodedKey = key;
+    }
+
     // Check if this is a public credential access
-    const isPublicCredential = key.startsWith("credentials/");
+    const isPublicCredential = decodedKey.startsWith("credentials/");
 
     if (!isPublicCredential && !session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Generate signed URL
-    const signedUrl = await getSignedDownloadUrl(key, 3600); // 1 hour expiry
+    const signedUrl = await getSignedDownloadUrl(decodedKey, 3600); // 1 hour expiry
 
     // Log document access if user is authenticated
     if (session) {
@@ -33,7 +45,7 @@ export async function GET(request: NextRequest) {
         userId: session.user.id,
         action: AuditActions.DOCUMENT_VIEWED,
         entityType: "Document",
-        details: { key },
+        details: { key: decodedKey },
       });
     }
 
