@@ -6,15 +6,28 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const s3Client = new S3Client({
-  region: process.env.S3_REGION || process.env.AWS_REGION || "us-east-2",
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
-});
+// Lazy initialization to ensure environment variables are loaded
+let s3ClientInstance: S3Client | null = null;
 
-const BUCKET_NAME = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET || "bhp-connect-documents";
+function getS3Client(): S3Client {
+  if (!s3ClientInstance) {
+    const accessKeyId = process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || "";
+    const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || "";
+
+    s3ClientInstance = new S3Client({
+      region: process.env.S3_REGION || process.env.AWS_REGION || "us-east-2",
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+      },
+    });
+  }
+  return s3ClientInstance;
+}
+
+function getBucketName(): string {
+  return process.env.S3_BUCKET || process.env.AWS_S3_BUCKET || "bhp-connect-documents";
+}
 
 interface UploadParams {
   key: string;
@@ -28,14 +41,14 @@ export async function uploadToS3({
   contentType,
 }: UploadParams): Promise<string> {
   const command = new PutObjectCommand({
-    Bucket: BUCKET_NAME,
+    Bucket: getBucketName(),
     Key: key,
     Body: body,
     ContentType: contentType,
     ServerSideEncryption: "AES256",
   });
 
-  await s3Client.send(command);
+  await getS3Client().send(command);
 
   return key;
 }
@@ -45,11 +58,11 @@ export async function getSignedDownloadUrl(
   expiresIn: number = 3600
 ): Promise<string> {
   const command = new GetObjectCommand({
-    Bucket: BUCKET_NAME,
+    Bucket: getBucketName(),
     Key: key,
   });
 
-  return getSignedUrl(s3Client, command, { expiresIn });
+  return getSignedUrl(getS3Client(), command, { expiresIn });
 }
 
 export async function getSignedUploadUrl(
@@ -58,31 +71,31 @@ export async function getSignedUploadUrl(
   expiresIn: number = 3600
 ): Promise<string> {
   const command = new PutObjectCommand({
-    Bucket: BUCKET_NAME,
+    Bucket: getBucketName(),
     Key: key,
     ContentType: contentType,
     ServerSideEncryption: "AES256",
   });
 
-  return getSignedUrl(s3Client, command, { expiresIn });
+  return getSignedUrl(getS3Client(), command, { expiresIn });
 }
 
 export async function deleteFromS3(key: string): Promise<void> {
   const command = new DeleteObjectCommand({
-    Bucket: BUCKET_NAME,
+    Bucket: getBucketName(),
     Key: key,
   });
 
-  await s3Client.send(command);
+  await getS3Client().send(command);
 }
 
 export async function getFileFromS3(key: string): Promise<{ buffer: Buffer; contentType: string }> {
   const command = new GetObjectCommand({
-    Bucket: BUCKET_NAME,
+    Bucket: getBucketName(),
     Key: key,
   });
 
-  const response = await s3Client.send(command);
+  const response = await getS3Client().send(command);
   const bodyContents = await response.Body?.transformToByteArray();
 
   if (!bodyContents) {
