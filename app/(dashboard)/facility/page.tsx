@@ -67,10 +67,14 @@ export default async function FacilityDashboardPage() {
 
   const { facility } = bhrfProfile;
 
-  // Get accurate intake counts (not limited by the take: 5 for recent intakes)
+  // Get accurate intake counts for active residents (not archived or discharged)
   const intakeCounts = await prisma.intake.groupBy({
     by: ['status'],
-    where: { facilityId: facility.id },
+    where: {
+      facilityId: facility.id,
+      archivedAt: null,
+      dischargedAt: null,
+    },
     _count: true,
   });
 
