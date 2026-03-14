@@ -87,27 +87,10 @@ export function EmployeeDocumentsTable({
     }
   }
 
-  async function handleViewDocument(fileUrl: string) {
-    try {
-      // Fetch the signed URL first, then open it
-      // This avoids redirect issues on tablets
-      const response = await fetch(
-        `/api/documents/download?key=${encodeURIComponent(fileUrl)}&json=true`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to get download URL");
-      }
-
-      const { url } = await response.json();
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to open document",
-      });
-    }
+  function handleViewDocument(fileUrl: string) {
+    // Use direct navigation with redirect for document viewing
+    const url = `/api/documents/download?key=${encodeURIComponent(fileUrl)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   const getStatusBadge = (status: string, noExpiration: boolean) => {

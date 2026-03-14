@@ -49,15 +49,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Check if client wants JSON response instead of redirect
-    // This is better for tablet/mobile compatibility
-    const returnJson = searchParams.get("json") === "true";
-
-    if (returnJson) {
-      return NextResponse.json({ url: signedUrl });
-    }
-
-    // Redirect to signed URL (for backwards compatibility)
+    // Redirect to signed URL
     return NextResponse.redirect(signedUrl);
   } catch (error) {
     console.error("Download error:", error);
