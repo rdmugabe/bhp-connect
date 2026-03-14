@@ -87,10 +87,27 @@ export function EmployeeDocumentsTable({
     }
   }
 
-  function handleViewDocument(fileUrl: string) {
-    // Use window.open for better tablet/mobile compatibility
-    const url = `/api/documents/download?key=${encodeURIComponent(fileUrl)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+  async function handleViewDocument(fileUrl: string) {
+    try {
+      // Fetch the signed URL first, then open it
+      // This avoids redirect issues on tablets
+      const response = await fetch(
+        `/api/documents/download?key=${encodeURIComponent(fileUrl)}&json=true`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to get download URL");
+      }
+
+      const { url } = await response.json();
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to open document",
+      });
+    }
   }
 
   const getStatusBadge = (status: string, noExpiration: boolean) => {
