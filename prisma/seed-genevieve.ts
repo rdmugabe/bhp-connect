@@ -77,7 +77,7 @@ async function main() {
   let bhrfProfile = await prisma.bHRFProfile.findUnique({ where: { userId: bhrfUser.id } });
   if (!bhrfProfile) {
     // Check if facility already has a BHRF profile
-    const existingFacilityProfile = await prisma.bHRFProfile.findUnique({ where: { facilityId: facility.id } });
+    const existingFacilityProfile = await prisma.bHRFProfile.findFirst({ where: { facilityId: facility.id } });
     if (existingFacilityProfile) {
       bhrfProfile = existingFacilityProfile;
       console.log("Using existing BHRF profile for facility");
