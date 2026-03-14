@@ -182,6 +182,11 @@ model Facility {
   phone     String?
   bhpId     String
   bhp       BHPProfile @relation(fields: [bhpId], references: [id], onDelete: Cascade)
+
+  // Onboarding Settings
+  defaultAdminName      String?  // Default administrator name for onboarding packets
+  defaultAdminSignature String?  // S3 URL for default administrator signature image
+
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 

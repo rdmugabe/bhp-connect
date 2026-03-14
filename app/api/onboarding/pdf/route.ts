@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { OnboardingPDF } from "@/lib/pdf/onboarding-template";
 import { parseJsonBody } from "@/lib/api-utils";
-import { getTodayArizona } from "@/lib/date-utils";
+import { getTodayArizona, formatDateOnly } from "@/lib/date-utils";
+import { getFileFromS3 } from "@/lib/s3";
+
+interface OnboardingRequest {
+  residentName?: string;
+  admissionDate?: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,11 +26,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const parseResult = await parseJsonBody<{ residentName?: string }>(request);
+    // Get the BHRF profile and facility
+    const bhrfProfile = await prisma.bHRFProfile.findUnique({
+      where: { userId: session.user.id },
+      include: {
+        facility: {
+          select: {
+            name: true,
+            defaultAdminName: true,
+            defaultAdminSignature: true,
+          },
+        },
+      },
+    });
+
+    const parseResult = await parseJsonBody<OnboardingRequest>(request);
     if (!parseResult.success) {
       return parseResult.error;
     }
-    const { residentName } = parseResult.data;
+    const { residentName, admissionDate } = parseResult.data;
 
     if (!residentName || typeof residentName !== "string") {
       return NextResponse.json(
@@ -32,9 +53,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Format admission date if provided
+    const formattedAdmissionDate = admissionDate
+      ? formatDateOnly(new Date(admissionDate))
+      : undefined;
+
+    // Fetch signature image from S3 if it exists
+    let adminSignatureDataUri: string | undefined;
+    if (bhrfProfile?.facility.defaultAdminSignature) {
+      try {
+        const { buffer, contentType } = await getFileFromS3(
+          bhrfProfile.facility.defaultAdminSignature
+        );
+        const base64 = buffer.toString("base64");
+        adminSignatureDataUri = `data:${contentType};base64,${base64}`;
+      } catch (error) {
+        console.error("Failed to fetch signature image:", error);
+        // Continue without signature if fetch fails
+      }
+    }
+
     // Generate PDF (use Arizona timezone for timestamp display)
     const pdfData = {
       residentName: residentName.trim(),
+      facilityName: bhrfProfile?.facility.name,
+      admissionDate: formattedAdmissionDate,
+      adminName: bhrfProfile?.facility.defaultAdminName || undefined,
+      adminSignature: adminSignatureDataUri,
       date: new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",

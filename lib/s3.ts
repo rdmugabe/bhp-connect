@@ -76,12 +76,42 @@ export async function deleteFromS3(key: string): Promise<void> {
   await s3Client.send(command);
 }
 
+export async function getFileFromS3(key: string): Promise<{ buffer: Buffer; contentType: string }> {
+  const command = new GetObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+  });
+
+  const response = await s3Client.send(command);
+  const bodyContents = await response.Body?.transformToByteArray();
+
+  if (!bodyContents) {
+    throw new Error("Failed to get file contents from S3");
+  }
+
+  return {
+    buffer: Buffer.from(bodyContents),
+    contentType: response.ContentType || "application/octet-stream",
+  };
+}
+
 export function generateFileKey(
-  type: "credentials" | "documents" | "oversight-training" | "care-coordination",
-  userId: string,
+  facilityIdOrType: string,
+  typeOrUserId: string,
   filename: string
 ): string {
   const timestamp = Date.now();
   const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
-  return `${type}/${userId}/${timestamp}-${sanitizedFilename}`;
+  return `${typeOrUserId}/${facilityIdOrType}/${timestamp}-${sanitizedFilename}`;
 }
+
+// Aliases for backwards compatibility
+export const uploadFile = async (
+  buffer: Buffer,
+  key: string,
+  contentType: string
+): Promise<string> => {
+  return uploadToS3({ key, body: buffer, contentType });
+};
+
+export const deleteFile = deleteFromS3;

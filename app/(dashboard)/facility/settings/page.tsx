@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FolderOpen, FileType, Shield, ChevronRight } from "lucide-react";
+import { FolderOpen, FileType, Shield, ChevronRight, ClipboardSignature } from "lucide-react";
 
 export default async function FacilitySettingsPage() {
   const session = await getServerSession(authOptions);
@@ -36,6 +36,12 @@ export default async function FacilitySettingsPage() {
   });
 
   const settingsItems = [
+    {
+      title: "Onboarding Settings",
+      description: "Configure default staff/admin name for onboarding packets",
+      href: "/facility/settings/onboarding",
+      icon: ClipboardSignature,
+    },
     {
       title: "Document Categories",
       description: "Manage custom document categories for your facility",

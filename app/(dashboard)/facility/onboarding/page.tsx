@@ -54,6 +54,7 @@ interface Facility {
 export default function OnboardingPage() {
   // Resident state
   const [residentName, setResidentName] = useState("");
+  const [admissionDate, setAdmissionDate] = useState("");
   const [isGeneratingResident, setIsGeneratingResident] = useState(false);
 
   // Employee state
@@ -156,6 +157,15 @@ export default function OnboardingPage() {
       return;
     }
 
+    if (!admissionDate) {
+      toast({
+        title: "Error",
+        description: "Please enter an admission date",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGeneratingResident(true);
     try {
       const response = await fetch("/api/onboarding/pdf", {
@@ -163,7 +173,10 @@ export default function OnboardingPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ residentName: residentName.trim() }),
+        body: JSON.stringify({
+          residentName: residentName.trim(),
+          admissionDate: admissionDate,
+        }),
       });
 
       if (!response.ok) {
@@ -423,16 +436,23 @@ export default function OnboardingPage() {
                     placeholder="Enter resident's full name"
                     value={residentName}
                     onChange={(e) => setResidentName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleGenerateResidentPDF();
-                      }
-                    }}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="admissionDate">Admission Date</Label>
+                  <Input
+                    id="admissionDate"
+                    type="date"
+                    value={admissionDate}
+                    onChange={(e) => setAdmissionDate(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This date will be pre-filled in all signature sections
+                  </p>
                 </div>
                 <Button
                   onClick={handleGenerateResidentPDF}
-                  disabled={isGeneratingResident || !residentName.trim()}
+                  disabled={isGeneratingResident || !residentName.trim() || !admissionDate}
                   className="w-full"
                 >
                   {isGeneratingResident ? (

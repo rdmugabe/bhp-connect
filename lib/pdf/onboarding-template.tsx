@@ -4,6 +4,7 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
@@ -105,6 +106,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#f7fafc",
     borderBottom: "1 solid #1e3a5f",
     marginBottom: 5,
+  },
+  signatureImage: {
+    maxHeight: 40,
+    maxWidth: 150,
+    objectFit: "contain" as const,
+    marginBottom: 5,
+  },
+  signatureImageContainer: {
+    height: 45,
+    borderBottom: "1 solid #1e3a5f",
+    marginBottom: 5,
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "flex-start",
   },
   dateLine: {
     borderBottom: "1 solid #1e3a5f",
@@ -221,6 +236,9 @@ interface OnboardingData {
   residentName: string;
   facilityName?: string;
   date?: string;
+  admissionDate?: string;
+  adminName?: string;
+  adminSignature?: string; // Base64 data URI for signature image
 }
 
 function PageFooter({ pageNum, totalPages }: { pageNum: number; totalPages: number }) {
@@ -236,7 +254,15 @@ function PageFooter({ pageNum, totalPages }: { pageNum: number; totalPages: numb
   );
 }
 
-function SignatureBlock({ name, showDate = true }: { name: string; showDate?: boolean }) {
+function SignatureBlock({
+  name,
+  showDate = true,
+  admissionDate,
+}: {
+  name: string;
+  showDate?: boolean;
+  admissionDate?: string;
+}) {
   return (
     <View style={styles.signatureRow}>
       <View style={styles.signatureBlock}>
@@ -249,7 +275,11 @@ function SignatureBlock({ name, showDate = true }: { name: string; showDate?: bo
       </View>
       {showDate && (
         <View style={{ width: 120 }}>
-          <View style={styles.dateLine} />
+          {admissionDate ? (
+            <Text style={styles.prefilledName}>{admissionDate}</Text>
+          ) : (
+            <View style={styles.dateLine} />
+          )}
           <Text style={styles.signatureLabel}>Date</Text>
         </View>
       )}
@@ -257,19 +287,41 @@ function SignatureBlock({ name, showDate = true }: { name: string; showDate?: bo
   );
 }
 
-function StaffSignature() {
+function StaffSignature({
+  adminName,
+  admissionDate,
+  adminSignature,
+}: {
+  adminName?: string;
+  admissionDate?: string;
+  adminSignature?: string;
+}) {
   return (
     <View style={styles.signatureRow}>
       <View style={styles.signatureBlock}>
-        <View style={styles.signatureLine} />
+        {adminName ? (
+          <Text style={styles.prefilledName}>{adminName}</Text>
+        ) : (
+          <View style={styles.signatureLine} />
+        )}
         <Text style={styles.signatureLabel}>Staff Name (Printed)</Text>
       </View>
       <View style={styles.signatureBlock}>
-        <View style={styles.signatureLine} />
+        {adminSignature ? (
+          <View style={styles.signatureImageContainer}>
+            <Image src={adminSignature} style={styles.signatureImage} />
+          </View>
+        ) : (
+          <View style={styles.signatureLine} />
+        )}
         <Text style={styles.signatureLabel}>Staff Signature</Text>
       </View>
       <View style={{ width: 120 }}>
-        <View style={styles.dateLine} />
+        {admissionDate ? (
+          <Text style={styles.prefilledName}>{admissionDate}</Text>
+        ) : (
+          <View style={styles.dateLine} />
+        )}
         <Text style={styles.signatureLabel}>Date</Text>
       </View>
     </View>
@@ -542,8 +594,8 @@ function ConsentPage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <SignatureBlock name={data.residentName} />
-        <StaffSignature />
+        <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+        <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
       </View>
 
       <PageFooter pageNum={3} totalPages={18} />
@@ -698,8 +750,8 @@ function ResidentRightsPages({ data }: { data: OnboardingData }) {
         </View>
 
         <View style={styles.signatureSection} wrap={false}>
-          <SignatureBlock name={data.residentName} />
-          <StaffSignature />
+          <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+          <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
         </View>
 
         <PageFooter pageNum={5} totalPages={18} />
@@ -858,8 +910,8 @@ function HouseRulesPages({ data }: { data: OnboardingData }) {
         </View>
 
         <View style={styles.signatureSection} wrap={false}>
-          <SignatureBlock name={data.residentName} />
-          <StaffSignature />
+          <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+          <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
         </View>
 
         <PageFooter pageNum={7} totalPages={18} />
@@ -957,8 +1009,8 @@ function ContrabandPage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <SignatureBlock name={data.residentName} />
-        <StaffSignature />
+        <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+        <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
       </View>
 
       <PageFooter pageNum={8} totalPages={18} />
@@ -1042,8 +1094,8 @@ function OrientationPage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <SignatureBlock name={data.residentName} />
-        <StaffSignature />
+        <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+        <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
       </View>
 
       <PageFooter pageNum={9} totalPages={18} />
@@ -1122,8 +1174,8 @@ function PropertyPage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <SignatureBlock name={data.residentName} />
-        <StaffSignature />
+        <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+        <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
       </View>
 
       <PageFooter pageNum={10} totalPages={18} />
@@ -1199,8 +1251,8 @@ function ConfidentialityPage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <SignatureBlock name={data.residentName} />
-        <StaffSignature />
+        <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+        <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
       </View>
 
       <PageFooter pageNum={11} totalPages={18} />
@@ -1254,8 +1306,8 @@ function DisclosureListPage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <SignatureBlock name={data.residentName} />
-        <StaffSignature />
+        <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+        <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
       </View>
 
       <PageFooter pageNum={12} totalPages={18} />
@@ -1327,8 +1379,8 @@ function PhotoReleasePage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <SignatureBlock name={data.residentName} />
-        <StaffSignature />
+        <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+        <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
       </View>
 
       <PageFooter pageNum={13} totalPages={18} />
@@ -1404,8 +1456,8 @@ function VerificationPage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <SignatureBlock name={data.residentName} />
-        <StaffSignature />
+        <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+        <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
       </View>
 
       <PageFooter pageNum={14} totalPages={18} />
@@ -1577,8 +1629,8 @@ function BehavioralContractPages({ data }: { data: OnboardingData }) {
         </View>
 
         <View style={styles.signatureSection} wrap={false}>
-          <SignatureBlock name={data.residentName} />
-          <StaffSignature />
+          <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+          <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
         </View>
 
         <PageFooter pageNum={16} totalPages={18} />
@@ -1667,8 +1719,8 @@ function AdvancedDirectivesPage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={[styles.signatureSection, { marginTop: 15 }]} wrap={false}>
-        <SignatureBlock name={data.residentName} />
-        <StaffSignature />
+        <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+        <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
       </View>
 
       <PageFooter pageNum={17} totalPages={18} />
@@ -1751,8 +1803,8 @@ function ServicePlanRightsPage({ data }: { data: OnboardingData }) {
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <SignatureBlock name={data.residentName} />
-        <StaffSignature />
+        <SignatureBlock name={data.residentName} admissionDate={data.admissionDate} />
+        <StaffSignature adminName={data.adminName} admissionDate={data.admissionDate} adminSignature={data.adminSignature} />
       </View>
 
       <PageFooter pageNum={18} totalPages={18} />
