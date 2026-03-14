@@ -22,12 +22,13 @@ function hasJsonData(obj: unknown): boolean {
 // Helper to preserve existing JSON data if new data is empty/undefined
 // For arrays: an explicit empty array [] means user cleared the data, so we save it
 // Only preserve existing data if new data is undefined (not provided)
-function preserveJsonField<T>(newData: T | undefined, existingData: T | null): T | undefined | null {
+function preserveJsonField<T>(newData: T | undefined, existingData: T | null): T | undefined {
   // If new data is an array (even empty), use it - user explicitly set this value
   if (Array.isArray(newData)) return newData;
   // For objects and other types, check if it has meaningful data
   if (hasJsonData(newData)) return newData;
-  // If new data is undefined/null/empty, preserve existing
+  // If new data is undefined/null/empty, preserve existing (return undefined if null)
+  if (existingData === null) return undefined;
   return existingData;
 }
 
