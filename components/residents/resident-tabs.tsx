@@ -17,6 +17,7 @@ export function ResidentTabs({ residentId, isApproved, isDischarged }: ResidentT
   const tabs = [
     { name: "Overview", href: basePath, exact: true },
     { name: "Calendar", href: `${basePath}/calendar`, show: isApproved && !isDischarged },
+    { name: "Care Coordination", href: `${basePath}/care-coordination`, show: isApproved },
     { name: "ART Meetings", href: `${basePath}/art-meetings`, show: isApproved },
     { name: "Progress Notes", href: `${basePath}/progress-notes`, show: isApproved },
     { name: "Discharge Summary", href: `${basePath}/discharge-summary`, show: isApproved },

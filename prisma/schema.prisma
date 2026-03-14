@@ -205,6 +205,7 @@ model Facility {
   progressNotes         ProgressNote[]
   calendarEvents        CalendarEvent[]
   facilityInvitations   FacilityInvitation[]
+  careCoordinationEntries CareCoordinationEntry[]
 
   @@index([bhpId])
 }
@@ -508,6 +509,7 @@ model Intake {
   medicationAlerts MedicationAlert[]
   progressNotes    ProgressNote[]
   calendarEvents   CalendarEvent[]
+  careCoordinationEntries CareCoordinationEntry[]
 
   @@index([facilityId])
   @@index([status])
@@ -1528,6 +1530,9 @@ model ProgressNote {
   updatedAt       DateTime @updatedAt
   archivedAt      DateTime?
 
+  // Care Coordination Links
+  careCoordinationLinks CareCoordinationProgressNoteLink[]
+
   @@index([intakeId])
   @@index([facilityId])
   @@index([noteDate])
@@ -1637,4 +1642,101 @@ model FacilityInvitation {
   @@index([email])
   @@index([status])
   @@index([expiresAt])
+}
+
+// Care Coordination Activity Types
+enum CareCoordinationActivityType {
+  MEDICAL
+  BEHAVIORAL_HEALTH
+  TRANSPORTATION
+  INSURANCE
+  CASE_MANAGER
+  APPOINTMENTS
+  MEDICATIONS
+  FAMILY
+  REFERRALS
+  OTHER
+}
+
+// Care Coordination Timeline Entry
+model CareCoordinationEntry {
+  id              String                       @id @default(cuid())
+  intakeId        String
+  intake          Intake                       @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  facilityId      String
+  facility        Facility                     @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  // Activity Details
+  activityType    CareCoordinationActivityType
+  activityDate    DateTime
+  activityTime    String?
+  description     String                       @db.Text
+  outcome         String?                      @db.Text
+  followUpNeeded  Boolean                      @default(false)
+  followUpDate    DateTime?
+  followUpNotes   String?                      @db.Text
+
+  // Contact Information
+  contactName     String?
+  contactRole     String?
+  contactPhone    String?
+  contactEmail    String?
+
+  // Attachments
+  attachments     CareCoordinationAttachment[]
+
+  // Edit History
+  editHistory     Json?
+
+  // Audit Fields
+  createdById     String
+  createdByName   String
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+
+  // Soft Delete
+  archivedAt      DateTime?
+  archivedById    String?
+  archivedByName  String?
+  archiveReason   String?
+
+  // Progress Note Links
+  progressNoteLinks CareCoordinationProgressNoteLink[]
+
+  @@index([intakeId])
+  @@index([facilityId])
+  @@index([activityType])
+  @@index([activityDate])
+  @@index([archivedAt])
+}
+
+// Care Coordination Attachments
+model CareCoordinationAttachment {
+  id              String                 @id @default(cuid())
+  entryId         String
+  entry           CareCoordinationEntry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  fileName        String
+  fileType        String
+  fileSize        Int
+  fileUrl         String
+  uploadedById    String
+  uploadedByName  String
+  uploadedAt      DateTime               @default(now())
+
+  @@index([entryId])
+}
+
+// Link between Care Coordination Entries and Progress Notes
+model CareCoordinationProgressNoteLink {
+  id              String                 @id @default(cuid())
+  entryId         String
+  entry           CareCoordinationEntry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  progressNoteId  String
+  progressNote    ProgressNote           @relation(fields: [progressNoteId], references: [id], onDelete: Cascade)
+  linkedAt        DateTime               @default(now())
+  linkedById      String
+  linkedByName    String
+
+  @@unique([entryId, progressNoteId])
+  @@index([progressNoteId])
 }

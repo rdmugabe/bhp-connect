@@ -432,3 +432,157 @@ export async function generateDischargeSummary(
 
   return parseDischargeSummaryResponse(response);
 }
+
+// ============================================================================
+// CARE COORDINATION SUMMARY AI GENERATION
+// ============================================================================
+
+export interface CareCoordinationSummaryInputs {
+  residentName: string;
+  dateOfBirth: string;
+  facilityName: string;
+  dateRange?: {
+    startDate: string;
+    endDate: string;
+  };
+  entries: Array<{
+    activityType: string;
+    activityDate: string;
+    activityTime?: string;
+    description: string;
+    outcome?: string;
+    followUpNeeded: boolean;
+    followUpDate?: string;
+    followUpNotes?: string;
+    contactName?: string;
+    contactRole?: string;
+    createdByName: string;
+  }>;
+}
+
+export interface CareCoordinationSummaryResult {
+  summary: string;
+  keyHighlights: string[];
+  pendingFollowUps: string[];
+  coordinationGaps?: string;
+}
+
+const CARE_COORDINATION_SYSTEM_PROMPT = `You are a clinical documentation specialist for a behavioral health residential facility (BHRF). Your role is to generate professional care coordination summaries that synthesize multiple care coordination activities into a cohesive narrative.
+
+You will receive a list of care coordination entries documenting:
+- Medical appointments and consultations
+- Behavioral health services
+- Transportation coordination
+- Insurance and billing matters
+- Case management activities
+- Family communications
+- Referrals to external services
+- Medication management coordination
+
+DOCUMENTATION STANDARDS:
+- Write in third person, clinical language
+- Summarize activities chronologically or by theme
+- Highlight key outcomes and pending follow-ups
+- Identify any coordination gaps or concerns
+- Be concise but comprehensive
+
+OUTPUT FORMAT:
+Return a JSON object with exactly this structure:
+{
+  "summary": "A comprehensive narrative (2-3 paragraphs) summarizing all care coordination activities, their outcomes, and the overall care coordination status for this resident",
+  "keyHighlights": ["Array of 3-5 key highlights or achievements from the coordination activities"],
+  "pendingFollowUps": ["Array of pending follow-up items that need attention"],
+  "coordinationGaps": "Optional: Any identified gaps in care coordination that should be addressed, or null if none identified"
+}`;
+
+function formatCareCoordinationInputs(inputs: CareCoordinationSummaryInputs): string {
+  const sections: string[] = [];
+
+  sections.push("=== RESIDENT INFORMATION ===");
+  sections.push(`Resident: ${inputs.residentName}`);
+  sections.push(`Date of Birth: ${inputs.dateOfBirth}`);
+  sections.push(`Facility: ${inputs.facilityName}`);
+  if (inputs.dateRange) {
+    sections.push(`Date Range: ${inputs.dateRange.startDate} to ${inputs.dateRange.endDate}`);
+  }
+
+  sections.push("\n=== CARE COORDINATION ACTIVITIES ===");
+  sections.push(`Total Entries: ${inputs.entries.length}`);
+
+  inputs.entries.forEach((entry, index) => {
+    sections.push(`\n--- Entry ${index + 1} ---`);
+    sections.push(`Type: ${entry.activityType.replace("_", " ")}`);
+    sections.push(`Date: ${entry.activityDate}${entry.activityTime ? ` at ${entry.activityTime}` : ""}`);
+    sections.push(`Description: ${entry.description}`);
+    if (entry.outcome) {
+      sections.push(`Outcome: ${entry.outcome}`);
+    }
+    if (entry.followUpNeeded) {
+      sections.push(`Follow-up Needed: Yes`);
+      if (entry.followUpDate) {
+        sections.push(`Follow-up Date: ${entry.followUpDate}`);
+      }
+      if (entry.followUpNotes) {
+        sections.push(`Follow-up Notes: ${entry.followUpNotes}`);
+      }
+    }
+    if (entry.contactName) {
+      sections.push(`Contact: ${entry.contactName}${entry.contactRole ? ` (${entry.contactRole})` : ""}`);
+    }
+    sections.push(`Documented by: ${entry.createdByName}`);
+  });
+
+  return sections.join("\n");
+}
+
+function parseCareCoordinationSummaryResponse(response: Anthropic.Message): CareCoordinationSummaryResult {
+  const content = response.content[0];
+  if (content.type !== "text") {
+    throw new Error("Unexpected response format from AI");
+  }
+
+  const text = content.text.trim();
+
+  try {
+    let jsonText = text;
+    if (text.startsWith("```json")) {
+      jsonText = text.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+    } else if (text.startsWith("```")) {
+      jsonText = text.replace(/^```\s*/, "").replace(/\s*```$/, "");
+    }
+
+    const parsed = JSON.parse(jsonText);
+
+    return {
+      summary: parsed.summary || "",
+      keyHighlights: Array.isArray(parsed.keyHighlights) ? parsed.keyHighlights : [],
+      pendingFollowUps: Array.isArray(parsed.pendingFollowUps) ? parsed.pendingFollowUps : [],
+      coordinationGaps: parsed.coordinationGaps || undefined,
+    };
+  } catch (e) {
+    console.error("Failed to parse care coordination summary AI response:", e);
+    throw new Error("Failed to parse AI response for care coordination summary");
+  }
+}
+
+export async function generateCareCoordinationSummary(
+  inputs: CareCoordinationSummaryInputs
+): Promise<CareCoordinationSummaryResult> {
+  const client = getAnthropicClient();
+
+  const userMessage = formatCareCoordinationInputs(inputs);
+
+  const response = await client.messages.create({
+    model: "claude-3-haiku-20240307",
+    max_tokens: 1024,
+    system: CARE_COORDINATION_SYSTEM_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: `Please generate a care coordination summary based on the following activities:\n\n${userMessage}`,
+      },
+    ],
+  });
+
+  return parseCareCoordinationSummaryResponse(response);
+}

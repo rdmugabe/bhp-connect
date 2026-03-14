@@ -77,7 +77,7 @@ export async function deleteFromS3(key: string): Promise<void> {
 }
 
 export function generateFileKey(
-  type: "credentials" | "documents" | "oversight-training",
+  type: "credentials" | "documents" | "oversight-training" | "care-coordination",
   userId: string,
   filename: string
 ): string {

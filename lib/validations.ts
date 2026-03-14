@@ -2385,3 +2385,100 @@ export const calendarReminderAcknowledgeSchema = z.object({
 export type CalendarEventInput = z.infer<typeof calendarEventSchema>;
 export type CalendarEventUpdateInput = z.infer<typeof calendarEventUpdateSchema>;
 export type CalendarReminderAcknowledgeInput = z.infer<typeof calendarReminderAcknowledgeSchema>;
+
+// =====================================================
+// Care Coordination Validation Schema
+// =====================================================
+
+export const CARE_COORDINATION_ACTIVITY_TYPES = [
+  "MEDICAL",
+  "BEHAVIORAL_HEALTH",
+  "TRANSPORTATION",
+  "INSURANCE",
+  "CASE_MANAGER",
+  "APPOINTMENTS",
+  "MEDICATIONS",
+  "FAMILY",
+  "REFERRALS",
+  "OTHER",
+] as const;
+
+export const careCoordinationEntrySchema = z.object({
+  intakeId: z.string().min(1, "Resident is required"),
+
+  // Activity Details
+  activityType: z.enum(CARE_COORDINATION_ACTIVITY_TYPES),
+  activityDate: z.string().min(1, "Activity date is required"),
+  activityTime: z.string().optional(),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  outcome: z.string().optional(),
+
+  // Follow-up
+  followUpNeeded: z.boolean().default(false),
+  followUpDate: z.string().optional(),
+  followUpNotes: z.string().optional(),
+
+  // Contact Information
+  contactName: z.string().optional(),
+  contactRole: z.string().optional(),
+  contactPhone: z.string().optional(),
+  contactEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
+}).refine(
+  (data) => {
+    // If follow-up is needed, follow-up date should be provided
+    if (data.followUpNeeded && !data.followUpDate) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Follow-up date is required when follow-up is needed",
+    path: ["followUpDate"],
+  }
+);
+
+export const careCoordinationEntryUpdateSchema = z.object({
+  activityType: z.enum(CARE_COORDINATION_ACTIVITY_TYPES).optional(),
+  activityDate: z.string().optional(),
+  activityTime: z.string().optional().nullable(),
+  description: z.string().min(10, "Description must be at least 10 characters").optional(),
+  outcome: z.string().optional().nullable(),
+  followUpNeeded: z.boolean().optional(),
+  followUpDate: z.string().optional().nullable(),
+  followUpNotes: z.string().optional().nullable(),
+  contactName: z.string().optional().nullable(),
+  contactRole: z.string().optional().nullable(),
+  contactPhone: z.string().optional().nullable(),
+  contactEmail: z.string().email("Invalid email address").optional().nullable().or(z.literal("")),
+});
+
+export const careCoordinationArchiveSchema = z.object({
+  archiveReason: z.string().min(5, "Archive reason must be at least 5 characters"),
+});
+
+export const careCoordinationSummaryRequestSchema = z.object({
+  intakeId: z.string().min(1, "Resident is required"),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  activityTypes: z.array(z.enum(CARE_COORDINATION_ACTIVITY_TYPES)).optional(),
+});
+
+export const careCoordinationPdfRequestSchema = z.object({
+  intakeId: z.string().min(1, "Resident is required"),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  activityTypes: z.array(z.enum(CARE_COORDINATION_ACTIVITY_TYPES)).optional(),
+  includeSummary: z.boolean().default(false),
+});
+
+export const careCoordinationProgressNoteLinkSchema = z.object({
+  entryId: z.string().min(1, "Entry ID is required"),
+  progressNoteId: z.string().min(1, "Progress Note ID is required"),
+});
+
+export type CareCoordinationEntryInput = z.infer<typeof careCoordinationEntrySchema>;
+export type CareCoordinationEntryUpdateInput = z.infer<typeof careCoordinationEntryUpdateSchema>;
+export type CareCoordinationArchiveInput = z.infer<typeof careCoordinationArchiveSchema>;
+export type CareCoordinationSummaryRequestInput = z.infer<typeof careCoordinationSummaryRequestSchema>;
+export type CareCoordinationPdfRequestInput = z.infer<typeof careCoordinationPdfRequestSchema>;
+export type CareCoordinationProgressNoteLinkInput = z.infer<typeof careCoordinationProgressNoteLinkSchema>;
