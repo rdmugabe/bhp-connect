@@ -29,7 +29,7 @@ interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  showBadge?: "messages" | "applications" | "intakes" | "asam" | "meetings" | "adminTasks" | "artMeetings" | "calendar";
+  showBadge?: "messages" | "applications" | "intakes" | "asam" | "meetings" | "adminTasks" | "artMeetings" | "calendar" | "emar";
 }
 
 const bhpNavItems: NavItem[] = [
@@ -78,6 +78,7 @@ const bhpNavItems: NavItem[] = [
     title: "eMAR",
     href: "/bhp/emar",
     icon: Pill,
+    showBadge: "emar",
   },
   {
     title: "Credentials",
@@ -150,6 +151,7 @@ const bhrfNavItems: NavItem[] = [
     title: "eMAR",
     href: "/facility/emar",
     icon: Pill,
+    showBadge: "emar",
   },
   {
     title: "Documents",
@@ -209,6 +211,7 @@ interface BadgeCounts {
   adminTasks: number;
   artMeetings: number;
   calendar: number;
+  emar: number;
 }
 
 interface DashboardNavProps {
@@ -226,6 +229,7 @@ export function DashboardNav({ role }: DashboardNavProps) {
     adminTasks: 0,
     artMeetings: 0,
     calendar: 0,
+    emar: 0,
   });
 
   useEffect(() => {

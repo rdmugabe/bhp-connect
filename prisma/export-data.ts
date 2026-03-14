@@ -25,6 +25,9 @@ async function exportData() {
   data.facilityApplications = await prisma.facilityApplication.findMany();
   console.log(`Exported ${data.facilityApplications.length} facility applications`);
 
+  data.facilityInvitations = await prisma.facilityInvitation.findMany();
+  console.log(`Exported ${data.facilityInvitations.length} facility invitations`);
+
   data.credentials = await prisma.credential.findMany();
   console.log(`Exported ${data.credentials.length} credentials`);
 
@@ -61,6 +64,45 @@ async function exportData() {
   data.meetings = await prisma.meeting.findMany();
   console.log(`Exported ${data.meetings.length} meetings`);
 
+  data.fireDrillReports = await prisma.fireDrillReport.findMany();
+  console.log(`Exported ${data.fireDrillReports.length} fire drill reports`);
+
+  data.evacuationDrillReports = await prisma.evacuationDrillReport.findMany();
+  console.log(`Exported ${data.evacuationDrillReports.length} evacuation drill reports`);
+
+  data.oversightTrainingReports = await prisma.oversightTrainingReport.findMany();
+  console.log(`Exported ${data.oversightTrainingReports.length} oversight training reports`);
+
+  data.artMeetings = await prisma.aRTMeeting.findMany();
+  console.log(`Exported ${data.artMeetings.length} ART meetings`);
+
+  data.dischargeSummaries = await prisma.dischargeSummary.findMany();
+  console.log(`Exported ${data.dischargeSummaries.length} discharge summaries`);
+
+  data.incidentReports = await prisma.incidentReport.findMany();
+  console.log(`Exported ${data.incidentReports.length} incident reports`);
+
+  data.medicationOrders = await prisma.medicationOrder.findMany();
+  console.log(`Exported ${data.medicationOrders.length} medication orders`);
+
+  data.medicationSchedules = await prisma.medicationSchedule.findMany();
+  console.log(`Exported ${data.medicationSchedules.length} medication schedules`);
+
+  data.medicationAdministrations = await prisma.medicationAdministration.findMany();
+  console.log(`Exported ${data.medicationAdministrations.length} medication administrations`);
+
+  data.medicationAlerts = await prisma.medicationAlert.findMany();
+  console.log(`Exported ${data.medicationAlerts.length} medication alerts`);
+
+  data.progressNotes = await prisma.progressNote.findMany();
+  console.log(`Exported ${data.progressNotes.length} progress notes`);
+
+  data.calendarEvents = await prisma.calendarEvent.findMany();
+  console.log(`Exported ${data.calendarEvents.length} calendar events`);
+
+  data.calendarReminders = await prisma.calendarReminder.findMany();
+  console.log(`Exported ${data.calendarReminders.length} calendar reminders`);
+
   data.auditLogs = await prisma.auditLog.findMany();
   console.log(`Exported ${data.auditLogs.length} audit logs`);
 
@@ -71,7 +113,8 @@ async function exportData() {
   }
 
   // Write to file with timestamp
-  const timestamp = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const timestamp = `${now.toISOString().split("T")[0]}-${now.toTimeString().slice(0, 8).replace(/:/g, "")}`;
   const filename = path.join(backupDir, `data-export-${timestamp}.json`);
 
   fs.writeFileSync(filename, JSON.stringify(data, null, 2));

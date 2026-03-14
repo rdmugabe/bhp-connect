@@ -69,6 +69,14 @@ interface ServiceReferral {
   appointmentDate: string;
 }
 
+interface MeetingParticipants {
+  bhp: boolean;
+  caseManager: boolean;
+  bhtAdmin: boolean;
+  resident: boolean;
+  nurse: boolean;
+}
+
 interface DischargeSummaryData {
   id?: string;
   dischargeDate?: string | Date | null;
@@ -110,6 +118,8 @@ interface DischargeSummaryData {
   specialInstructions?: string | null;
   culturalPreferencesConsidered?: boolean;
   suicidePreventionEducation?: string | null;
+  meetingInvitees?: MeetingParticipants;
+  meetingAttendees?: MeetingParticipants;
   clientSignature?: string | null;
   clientSignatureDate?: string | Date | null;
   staffSignature?: string | null;
@@ -136,6 +146,69 @@ function formatDateInput(date?: string | Date | null): string {
   } catch {
     return "";
   }
+}
+
+// Transform objectives to ensure attained is a valid string enum value
+function transformObjectives(objectives: unknown): ObjectiveAttained[] {
+  if (!objectives || !Array.isArray(objectives)) return [];
+  return objectives.map((obj: { objective?: string; attained?: unknown }) => {
+    let attained: ObjectiveAttained["attained"] = "N/A";
+    if (typeof obj.attained === "boolean") {
+      attained = obj.attained ? "Fully Attained" : "Not Attained";
+    } else if (typeof obj.attained === "string") {
+      const validValues = ["Fully Attained", "Partially Attained", "Not Attained", "N/A"];
+      attained = validValues.includes(obj.attained) ? obj.attained as ObjectiveAttained["attained"] : "N/A";
+    }
+    return {
+      objective: obj.objective || "",
+      attained,
+    };
+  });
+}
+
+// Transform medications to ensure field names match validation schema
+function transformMedications(meds: unknown): Medication[] {
+  if (!meds || !Array.isArray(meds)) return [];
+  return meds.map((med: Record<string, string>) => ({
+    medication: med.medication || med.name || "",
+    dosage: med.dosage || med.dose || "",
+    frequency: med.frequency || "",
+    prescriber: med.prescriber || "",
+  }));
+}
+
+// Transform referrals to ensure field names match validation schema
+function transformReferrals(refs: unknown): ServiceReferral[] {
+  if (!refs || !Array.isArray(refs)) return [];
+  return refs.map((ref: Record<string, string>) => ({
+    service: ref.service || "",
+    provider: ref.provider || "",
+    phone: ref.phone || "",
+    address: ref.address || "",
+    appointmentDate: ref.appointmentDate || "",
+  }));
+}
+
+// Transform objectiveNarratives to ensure correct schema structure
+function transformNarratives(narratives: unknown): { fullyAttained: string; partiallyAttained: string; notAttained: string } {
+  const defaultNarratives = { fullyAttained: "", partiallyAttained: "", notAttained: "" };
+  if (!narratives || typeof narratives !== "object") return defaultNarratives;
+  const n = narratives as Record<string, string>;
+  // If it has the expected keys, use them
+  if ("fullyAttained" in n || "partiallyAttained" in n || "notAttained" in n) {
+    return {
+      fullyAttained: n.fullyAttained || "",
+      partiallyAttained: n.partiallyAttained || "",
+      notAttained: n.notAttained || "",
+    };
+  }
+  // Otherwise, it might have objective1, objective2, etc - combine into notAttained
+  const values = Object.values(n).filter(v => typeof v === "string" && v.trim());
+  return {
+    fullyAttained: "",
+    partiallyAttained: "",
+    notAttained: values.join("\n\n"),
+  };
 }
 
 export function DischargeSummaryForm({
@@ -173,12 +246,8 @@ export function DischargeSummaryForm({
         resident.asamCurrentSymptoms,
       ].filter(Boolean).join("\n\n") || "" : ""),
     treatmentSummary: initialData?.treatmentSummary || "",
-    objectivesAttained: initialData?.objectivesAttained || [] as ObjectiveAttained[],
-    objectiveNarratives: initialData?.objectiveNarratives || {
-      fullyAttained: "",
-      partiallyAttained: "",
-      notAttained: "",
-    },
+    objectivesAttained: transformObjectives(initialData?.objectivesAttained),
+    objectiveNarratives: transformNarratives(initialData?.objectiveNarratives),
     completedServices: initialData?.completedServices || [] as string[],
     actualDischargeDate: formatDateInput(initialData?.actualDischargeDate),
     dischargeSummaryNarrative: initialData?.dischargeSummaryNarrative || "",
@@ -186,8 +255,10 @@ export function DischargeSummaryForm({
     personalItemsReceived: initialData?.personalItemsReceived || false,
     personalItemsStoredDays: initialData?.personalItemsStoredDays || 0,
     itemsRemainAtFacility: initialData?.itemsRemainAtFacility || false,
-    dischargeMedications: initialData?.dischargeMedications || (mode === "create" ? prefillMedications : []) as Medication[],
-    serviceReferrals: initialData?.serviceReferrals || [] as ServiceReferral[],
+    dischargeMedications: initialData?.dischargeMedications
+      ? transformMedications(initialData.dischargeMedications)
+      : (mode === "create" ? prefillMedications : []),
+    serviceReferrals: transformReferrals(initialData?.serviceReferrals),
     clinicalRecommendations: initialData?.clinicalRecommendations || "",
     // Relapse prevention & crisis
     relapsePreventionPlan: initialData?.relapsePreventionPlan || "",
@@ -197,6 +268,20 @@ export function DischargeSummaryForm({
     specialInstructions: initialData?.specialInstructions || "",
     culturalPreferencesConsidered: initialData?.culturalPreferencesConsidered || false,
     suicidePreventionEducation: initialData?.suicidePreventionEducation || "",
+    meetingInvitees: initialData?.meetingInvitees || {
+      bhp: false,
+      caseManager: false,
+      bhtAdmin: false,
+      resident: false,
+      nurse: false,
+    },
+    meetingAttendees: initialData?.meetingAttendees || {
+      bhp: false,
+      caseManager: false,
+      bhtAdmin: false,
+      resident: false,
+      nurse: false,
+    },
     clientSignature: initialData?.clientSignature || "",
     clientSignatureDate: formatDateInput(initialData?.clientSignatureDate),
     staffSignature: initialData?.staffSignature || "",
@@ -562,6 +647,193 @@ export function DischargeSummaryForm({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Discharge Meeting Participants */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Discharge Meeting Participants</CardTitle>
+          <CardDescription>
+            Track who was invited to and attended the discharge meeting
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Invitees */}
+            <div>
+              <h4 className="font-medium mb-4">Invited to Meeting</h4>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="invitee-bhp"
+                    checked={formData.meetingInvitees.bhp}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        meetingInvitees: { ...formData.meetingInvitees, bhp: !!checked },
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <Label htmlFor="invitee-bhp" className="font-normal cursor-pointer">
+                    BHP (Behavioral Health Professional)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="invitee-caseManager"
+                    checked={formData.meetingInvitees.caseManager}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        meetingInvitees: { ...formData.meetingInvitees, caseManager: !!checked },
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <Label htmlFor="invitee-caseManager" className="font-normal cursor-pointer">
+                    Case Manager
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="invitee-bhtAdmin"
+                    checked={formData.meetingInvitees.bhtAdmin}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        meetingInvitees: { ...formData.meetingInvitees, bhtAdmin: !!checked },
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <Label htmlFor="invitee-bhtAdmin" className="font-normal cursor-pointer">
+                    BHT / Administrator
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="invitee-resident"
+                    checked={formData.meetingInvitees.resident}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        meetingInvitees: { ...formData.meetingInvitees, resident: !!checked },
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <Label htmlFor="invitee-resident" className="font-normal cursor-pointer">
+                    Resident
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="invitee-nurse"
+                    checked={formData.meetingInvitees.nurse}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        meetingInvitees: { ...formData.meetingInvitees, nurse: !!checked },
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <Label htmlFor="invitee-nurse" className="font-normal cursor-pointer">
+                    Nurse
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            {/* Attendees */}
+            <div>
+              <h4 className="font-medium mb-4">Present at Meeting</h4>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="attendee-bhp"
+                    checked={formData.meetingAttendees.bhp}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        meetingAttendees: { ...formData.meetingAttendees, bhp: !!checked },
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <Label htmlFor="attendee-bhp" className="font-normal cursor-pointer">
+                    BHP (Behavioral Health Professional)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="attendee-caseManager"
+                    checked={formData.meetingAttendees.caseManager}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        meetingAttendees: { ...formData.meetingAttendees, caseManager: !!checked },
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <Label htmlFor="attendee-caseManager" className="font-normal cursor-pointer">
+                    Case Manager
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="attendee-bhtAdmin"
+                    checked={formData.meetingAttendees.bhtAdmin}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        meetingAttendees: { ...formData.meetingAttendees, bhtAdmin: !!checked },
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <Label htmlFor="attendee-bhtAdmin" className="font-normal cursor-pointer">
+                    BHT / Administrator
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="attendee-resident"
+                    checked={formData.meetingAttendees.resident}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        meetingAttendees: { ...formData.meetingAttendees, resident: !!checked },
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <Label htmlFor="attendee-resident" className="font-normal cursor-pointer">
+                    Resident
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="attendee-nurse"
+                    checked={formData.meetingAttendees.nurse}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        meetingAttendees: { ...formData.meetingAttendees, nurse: !!checked },
+                      })
+                    }
+                    disabled={readOnly}
+                  />
+                  <Label htmlFor="attendee-nurse" className="font-normal cursor-pointer">
+                    Nurse
+                  </Label>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>

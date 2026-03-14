@@ -136,17 +136,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the intake exists and belongs to this facility
+    // Allow ASAM for both DRAFT and APPROVED intakes to support parallel documentation
     const intake = await prisma.intake.findFirst({
       where: {
         id: intakeId,
         facilityId: bhrfProfile.facilityId,
-        status: "APPROVED", // Only allow ASAM for approved intakes
+        status: { in: ["DRAFT", "APPROVED"] },
       },
     });
 
     if (!intake) {
       return NextResponse.json(
-        { error: "Invalid intake selected or intake not approved" },
+        { error: "Invalid intake selected" },
         { status: 400 }
       );
     }

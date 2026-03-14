@@ -22,6 +22,7 @@ import {
   Clock,
   ClipboardList,
 } from "lucide-react";
+import { InviteStaffButton } from "@/components/facility/invite-staff-button";
 import { formatDate, getExpirationStatus, getCurrentBiWeekInfo } from "@/lib/utils";
 
 export default async function FacilityDashboardPage() {
@@ -420,6 +421,7 @@ export default async function FacilityDashboardPage() {
                 Contact BHP
               </Button>
             </Link>
+            <InviteStaffButton />
           </div>
         </CardContent>
       </Card>

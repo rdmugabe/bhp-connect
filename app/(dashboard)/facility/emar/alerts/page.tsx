@@ -42,7 +42,9 @@ import {
   Bell,
   AlertCircle,
   Info,
+  Clock,
 } from "lucide-react";
+import { PRNFollowupDialog } from "@/components/emar/prn-followup-dialog";
 
 interface Alert {
   id: string;
@@ -54,6 +56,31 @@ interface Alert {
   intakeId?: string;
   intake?: {
     residentName: string;
+  };
+  medicationOrderId?: string;
+  medicationOrder?: {
+    medicationName: string;
+    strength: string;
+    dose: string;
+    intake: {
+      residentName: string;
+    };
+  };
+  // For PRN follow-up alerts, we need the administration ID
+  relatedAdministrationId?: string;
+}
+
+interface PRNAdministration {
+  id: string;
+  administeredAt: string;
+  prnReasonGiven?: string;
+  medicationOrder: {
+    medicationName: string;
+    strength: string;
+    dose: string;
+    intake: {
+      residentName: string;
+    };
   };
 }
 
@@ -79,6 +106,9 @@ export default function AlertsPage() {
   const [acknowledgeDialogOpen, setAcknowledgeDialogOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [acknowledging, setAcknowledging] = useState(false);
+  const [prnFollowupDialogOpen, setPrnFollowupDialogOpen] = useState(false);
+  const [selectedPRNAdmin, setSelectedPRNAdmin] = useState<PRNAdministration | null>(null);
+  const [loadingPRNAdmin, setLoadingPRNAdmin] = useState(false);
 
   const fetchAlerts = async (refresh = false) => {
     try {
@@ -113,6 +143,44 @@ export default function AlertsPage() {
   const handleRefresh = () => {
     setRefreshing(true);
     fetchAlerts(true);
+  };
+
+  const handlePRNFollowup = async (alert: Alert) => {
+    if (!alert.medicationOrderId) {
+      // If no medication order, just acknowledge the alert
+      setSelectedAlert(alert);
+      setAcknowledgeDialogOpen(true);
+      return;
+    }
+
+    setLoadingPRNAdmin(true);
+    try {
+      // Find the PRN administration that needs follow-up for this medication order
+      const response = await fetch(
+        `/api/emar/administrations?medicationOrderId=${alert.medicationOrderId}&needsPRNFollowup=true`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.administrations && data.administrations.length > 0) {
+          setSelectedPRNAdmin(data.administrations[0]);
+          setPrnFollowupDialogOpen(true);
+        } else {
+          // No pending follow-up found, just acknowledge
+          setSelectedAlert(alert);
+          setAcknowledgeDialogOpen(true);
+        }
+      } else {
+        // If fetch fails, fall back to regular acknowledge
+        setSelectedAlert(alert);
+        setAcknowledgeDialogOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching PRN administration:", error);
+      setSelectedAlert(alert);
+      setAcknowledgeDialogOpen(true);
+    } finally {
+      setLoadingPRNAdmin(false);
+    }
   };
 
   const handleAcknowledge = async () => {
@@ -360,17 +428,29 @@ export default function AlertsPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedAlert(alert);
-                            setAcknowledgeDialogOpen(true);
-                          }}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Acknowledge
-                        </Button>
+                        {alert.alertType === "PRN_FOLLOWUP_DUE" ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePRNFollowup(alert)}
+                            disabled={loadingPRNAdmin}
+                          >
+                            <Clock className="h-4 w-4 mr-1" />
+                            {loadingPRNAdmin ? "Loading..." : "Record Follow-up"}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedAlert(alert);
+                              setAcknowledgeDialogOpen(true);
+                            }}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Acknowledge
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
@@ -404,6 +484,17 @@ export default function AlertsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* PRN Follow-up Dialog */}
+      <PRNFollowupDialog
+        administration={selectedPRNAdmin}
+        open={prnFollowupDialogOpen}
+        onOpenChange={setPrnFollowupDialogOpen}
+        onSuccess={() => {
+          setSelectedPRNAdmin(null);
+          fetchAlerts(false);
+        }}
+      />
     </div>
   );
 }

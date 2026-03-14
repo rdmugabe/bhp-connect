@@ -250,7 +250,8 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Validate intake belongs to facility
+      // Validate intake belongs to facility and check if discharged
+      let isDischargedResident = false;
       if (intakeId) {
         const intake = await prisma.intake.findFirst({
           where: { id: intakeId, facilityId: bhrfProfile.facilityId },
@@ -258,6 +259,8 @@ export async function POST(request: NextRequest) {
         if (!intake) {
           return NextResponse.json({ error: "Invalid resident" }, { status: 400 });
         }
+        // Check if resident is discharged - documents for discharged residents are auto-archived
+        isDischargedResident = intake.dischargedAt !== null;
       }
 
       const document = await prisma.document.create({
@@ -273,6 +276,8 @@ export async function POST(request: NextRequest) {
           ownerType: ownerType || "FACILITY",
           employeeId: employeeId || null,
           intakeId: intakeId || null,
+          // Auto-archive documents for discharged residents
+          archivedAt: isDischargedResident ? new Date() : null,
         },
         include: {
           category: true,

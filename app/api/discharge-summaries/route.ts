@@ -206,6 +206,9 @@ export async function POST(request: NextRequest) {
         specialInstructions: validatedData.specialInstructions,
         culturalPreferencesConsidered: validatedData.culturalPreferencesConsidered || false,
         suicidePreventionEducation: validatedData.suicidePreventionEducation,
+        // Discharge Meeting Participants
+        meetingInvitees: validatedData.meetingInvitees || {},
+        meetingAttendees: validatedData.meetingAttendees || {},
         clientSignature: validatedData.clientSignature,
         clientSignatureDate: parseOptionalSignatureDate(validatedData.clientSignatureDate),
         staffSignature: validatedData.staffSignature,
@@ -245,7 +248,12 @@ export async function POST(request: NextRequest) {
     console.error("Create discharge summary error:", error);
 
     if (error instanceof Error && error.name === "ZodError") {
-      return NextResponse.json({ error: "Invalid input data" }, { status: 400 });
+      const zodError = error as { errors?: Array<{ path: string[]; message: string }> };
+      console.error("Zod validation errors:", JSON.stringify(zodError.errors, null, 2));
+      return NextResponse.json({
+        error: "Invalid input data",
+        details: zodError.errors
+      }, { status: 400 });
     }
 
     return NextResponse.json(

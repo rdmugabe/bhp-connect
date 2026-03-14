@@ -26,6 +26,18 @@ export async function GET(request: NextRequest) {
     // Build discharged filter
     const dischargedFilter = activeOnly ? { dischargedAt: null } : {};
 
+    // Build status filter - supports comma-separated values (e.g., "DRAFT,APPROVED")
+    type IntakeStatus = "DRAFT" | "PENDING" | "APPROVED" | "DENIED" | "CONDITIONAL";
+    const buildStatusFilter = (statusParam: string | null) => {
+      if (!statusParam) return {};
+      const statuses = statusParam.split(",").map(s => s.trim()) as IntakeStatus[];
+      if (statuses.length === 1) {
+        return { status: statuses[0] };
+      }
+      return { status: { in: statuses } };
+    };
+    const statusFilter = buildStatusFilter(status);
+
     if (session.user.role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
         where: { userId: session.user.id },
@@ -41,7 +53,7 @@ export async function GET(request: NextRequest) {
             bhpId: bhpProfile.id,
             ...(facilityId && { id: facilityId }),
           },
-          ...(status && { status: status as "DRAFT" | "PENDING" | "APPROVED" | "DENIED" | "CONDITIONAL" }),
+          ...statusFilter,
           ...dischargedFilter,
         },
         include: {
@@ -66,7 +78,7 @@ export async function GET(request: NextRequest) {
       intakes = await prisma.intake.findMany({
         where: {
           facilityId: bhrfProfile.facilityId,
-          ...(status && { status: status as "DRAFT" | "PENDING" | "APPROVED" | "DENIED" | "CONDITIONAL" }),
+          ...statusFilter,
           ...dischargedFilter,
         },
         include: {

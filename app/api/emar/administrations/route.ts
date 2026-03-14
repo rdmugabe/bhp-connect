@@ -66,7 +66,12 @@ export async function GET(request: NextRequest) {
     // Build date filter
     let dateFilter: { gte?: Date; lte?: Date } = {};
 
-    if (dateStr) {
+    if (needsPRNFollowup) {
+      // For PRN follow-up queries, look back further (30 days)
+      dateFilter = {
+        gte: startOfDay(subDays(new Date(), 30)),
+      };
+    } else if (dateStr) {
       const targetDate = parseISO(dateStr);
       dateFilter = {
         gte: startOfDay(targetDate),
@@ -97,7 +102,8 @@ export async function GET(request: NextRequest) {
         ...(status && { status: status as "GIVEN" | "REFUSED" | "HELD" | "MISSED" }),
         // Filter for administrations that need PRN follow-up
         ...(needsPRNFollowup && {
-          prnFollowupAt: { not: null },
+          status: "GIVEN",
+          prnFollowupAt: { not: null, lte: new Date() },
           prnFollowupNotes: null,
         }),
       },

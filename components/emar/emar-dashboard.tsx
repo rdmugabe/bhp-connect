@@ -194,6 +194,19 @@ export function EmarDashboard() {
               Today&apos;s Schedule
             </Button>
           </Link>
+          <Link href="/facility/emar/alerts">
+            <Button variant="outline" size="sm" className={cn(
+              alerts.length > 0 && "border-yellow-400 bg-yellow-50 hover:bg-yellow-100"
+            )}>
+              <AlertTriangle className={cn("h-4 w-4 mr-2", alerts.length > 0 && "text-yellow-600")} />
+              Alerts
+              {alerts.length > 0 && (
+                <Badge variant="destructive" className="ml-2 h-5 px-1.5">
+                  {alerts.length}
+                </Badge>
+              )}
+            </Button>
+          </Link>
           <Link href="/facility/emar/reports">
             <Button variant="outline" size="sm">
               <FileText className="h-4 w-4 mr-2" />
@@ -463,13 +476,11 @@ export function EmarDashboard() {
                 })}
               </div>
             )}
-            {alerts.length > 5 && (
-              <Link href="/facility/emar/alerts">
-                <Button variant="link" className="w-full mt-4">
-                  View All Alerts
-                </Button>
-              </Link>
-            )}
+            <Link href="/facility/emar/alerts">
+              <Button variant="link" className="w-full mt-4">
+                {alerts.length > 0 ? "View All Alerts" : "View Alerts Page"}
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

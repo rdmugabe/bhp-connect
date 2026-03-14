@@ -127,10 +127,20 @@ export async function PATCH(
     }
     const { isDraft, ...summaryData } = parseResult.data as { isDraft?: boolean; [key: string]: unknown };
 
+    // Log the data being validated
+    console.log("Validating discharge summary data:", JSON.stringify(summaryData, null, 2));
+    console.log("isDraft:", isDraft);
+
     // Use appropriate schema based on draft status
-    const validatedData = isDraft
-      ? dischargeSummaryDraftSchema.parse(summaryData)
-      : dischargeSummarySchema.parse(summaryData);
+    let validatedData;
+    try {
+      validatedData = isDraft
+        ? dischargeSummaryDraftSchema.parse(summaryData)
+        : dischargeSummarySchema.parse(summaryData);
+    } catch (validationError) {
+      console.error("Validation failed:", validationError);
+      throw validationError;
+    }
 
     const dischargeSummary = await prisma.dischargeSummary.update({
       where: { id },
@@ -170,6 +180,9 @@ export async function PATCH(
         specialInstructions: validatedData.specialInstructions,
         culturalPreferencesConsidered: validatedData.culturalPreferencesConsidered || false,
         suicidePreventionEducation: validatedData.suicidePreventionEducation,
+        // Discharge Meeting Participants
+        meetingInvitees: validatedData.meetingInvitees || existingSummary.meetingInvitees || {},
+        meetingAttendees: validatedData.meetingAttendees || existingSummary.meetingAttendees || {},
         clientSignature: validatedData.clientSignature,
         clientSignatureDate: parseOptionalSignatureDate(validatedData.clientSignatureDate),
         staffSignature: validatedData.staffSignature,
@@ -207,7 +220,12 @@ export async function PATCH(
     console.error("Update discharge summary error:", error);
 
     if (error instanceof Error && error.name === "ZodError") {
-      return NextResponse.json({ error: "Invalid input data" }, { status: 400 });
+      const zodError = error as { errors?: Array<{ path: string[]; message: string }> };
+      console.error("Zod validation errors:", JSON.stringify(zodError.errors, null, 2));
+      return NextResponse.json({
+        error: "Invalid input data",
+        details: zodError.errors
+      }, { status: 400 });
     }
 
     return NextResponse.json(

@@ -20,16 +20,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ intakes: [] });
     }
 
-    // Get approved intakes that don't already have an ASAM assessment
+    // Get intakes (DRAFT or APPROVED) that don't already have an ASAM assessment
     // or have a denied/draft ASAM (allowing retry)
+    // Including DRAFT allows parallel documentation while intake is being completed
     const intakes = await prisma.intake.findMany({
       where: {
         facilityId: bhrfProfile.facilityId,
-        status: "APPROVED",
+        status: { in: ["DRAFT", "APPROVED"] },
+        dischargedAt: null, // Exclude discharged residents
       },
       select: {
         id: true,
         residentName: true,
+        status: true,
         dateOfBirth: true,
         sex: true,
         ethnicity: true,

@@ -142,6 +142,8 @@ export async function PATCH(
       }
     }
 
+    // Check if assigning to a discharged resident
+    let isDischargedResident = false;
     if (validatedData.ownerType === "RESIDENT" && validatedData.intakeId) {
       const intake = await prisma.intake.findFirst({
         where: {
@@ -155,6 +157,8 @@ export async function PATCH(
           { status: 400 }
         );
       }
+      // Check if resident is discharged - documents for discharged residents are auto-archived
+      isDischargedResident = intake.dischargedAt !== null;
     }
 
     // Prepare update data
@@ -165,11 +169,17 @@ export async function PATCH(
       name?: string;
       expiresAt?: Date | null;
       categoryId?: string | null;
+      archivedAt?: Date | null;
     } = {
       ownerType: validatedData.ownerType,
       employeeId: validatedData.ownerType === "EMPLOYEE" ? validatedData.employeeId || null : null,
       intakeId: validatedData.ownerType === "RESIDENT" ? validatedData.intakeId || null : null,
     };
+
+    // Auto-archive documents for discharged residents
+    if (isDischargedResident) {
+      updateData.archivedAt = new Date();
+    }
 
     if (validatedData.name) {
       updateData.name = validatedData.name;

@@ -47,7 +47,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Upload, ExternalLink, FileText, Settings, Plus, FolderOpen, Building2, User, Users, Trash2, Download, Pencil, Archive, ArchiveRestore, ChevronDown, ChevronRight, Calendar } from "lucide-react";
+import { Upload, ExternalLink, FileText, Settings, Plus, FolderOpen, Building2, User, Users, Trash2, Download, Pencil, Archive, ArchiveRestore, ChevronDown, ChevronRight, Calendar, Brain } from "lucide-react";
+import { PsychEvalUploadDialog } from "@/components/psych-eval/psych-eval-upload-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate, getExpirationStatus } from "@/lib/utils";
 
@@ -72,6 +73,7 @@ interface Employee {
 interface Resident {
   id: string;
   residentName: string;
+  dischargedAt?: string | null;
 }
 
 interface Document {
@@ -139,6 +141,7 @@ export default function FacilityDocumentsPage() {
   const [activeTab, setActiveTab] = useState<"active" | "archived">("active");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["facility"])); // Facility expanded by default
   const [expandedAdmissions, setExpandedAdmissions] = useState<Set<string>>(new Set());
+  const [showPsychEvalDialog, setShowPsychEvalDialog] = useState(false);
 
   // Separate requested and uploaded documents
   const requestedDocs = documents.filter((d) => d.status === "REQUESTED");
@@ -339,11 +342,20 @@ export default function FacilityDocumentsPage() {
 
   async function fetchResidents() {
     try {
-      // Fetch only active (non-discharged), approved residents
-      const response = await fetch("/api/intakes?status=APPROVED&active=true");
+      // Fetch all residents (both active and discharged) - DRAFT and APPROVED
+      // This allows uploading documents for discharged residents too
+      const response = await fetch("/api/intakes?status=DRAFT,APPROVED");
       if (response.ok) {
         const data = await response.json();
-        setResidents(data.intakes || []);
+        // Sort so active residents come first, then discharged
+        const sortedIntakes = (data.intakes || []).sort((a: Resident, b: Resident) => {
+          // Active residents first
+          if (!a.dischargedAt && b.dischargedAt) return -1;
+          if (a.dischargedAt && !b.dischargedAt) return 1;
+          // Then alphabetically by name
+          return a.residentName.localeCompare(b.residentName);
+        });
+        setResidents(sortedIntakes);
       }
     } catch (error) {
       console.error("Failed to fetch residents:", error);
@@ -640,6 +652,10 @@ export default function FacilityDocumentsPage() {
               <Settings className="h-4 w-4 mr-2" />
               Categories
             </Link>
+          </Button>
+          <Button variant="outline" onClick={() => setShowPsychEvalDialog(true)}>
+            <Brain className="h-4 w-4 mr-2" />
+            Upload Psych Eval (New Resident)
           </Button>
           <Button onClick={() => setShowNewDocDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -1191,10 +1207,18 @@ export default function FacilityDocumentsPage() {
                     {residents.map((res) => (
                       <SelectItem key={res.id} value={res.id}>
                         {res.residentName}
+                        {res.dischargedAt && (
+                          <span className="text-muted-foreground ml-1">(Discharged)</span>
+                        )}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {newDocIntakeId && residents.find(r => r.id === newDocIntakeId)?.dischargedAt && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Note: This resident is discharged. The document will be automatically archived.
+                  </p>
+                )}
               </div>
             )}
 
@@ -1376,10 +1400,18 @@ export default function FacilityDocumentsPage() {
                     {residents.map((res) => (
                       <SelectItem key={res.id} value={res.id}>
                         {res.residentName}
+                        {res.dischargedAt && (
+                          <span className="text-muted-foreground ml-1">(Discharged)</span>
+                        )}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {editIntakeId && residents.find(r => r.id === editIntakeId)?.dischargedAt && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Note: This resident is discharged. The document will be automatically archived.
+                  </p>
+                )}
               </div>
             )}
 
@@ -1398,6 +1430,12 @@ export default function FacilityDocumentsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Psych Eval Upload Dialog */}
+      <PsychEvalUploadDialog
+        open={showPsychEvalDialog}
+        onOpenChange={setShowPsychEvalDialog}
+      />
     </div>
   );
 }

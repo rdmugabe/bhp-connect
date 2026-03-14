@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -59,10 +60,20 @@ export function PRNFollowupDialog({
   const [loading, setLoading] = useState(false);
   const [effectiveness, setEffectiveness] = useState("");
   const [notes, setNotes] = useState("");
+  const [followupTime, setFollowupTime] = useState("");
+
+  // Set default time to now when dialog opens
+  useEffect(() => {
+    if (open) {
+      const now = new Date();
+      setFollowupTime(format(now, "HH:mm"));
+    }
+  }, [open]);
 
   const resetForm = () => {
     setEffectiveness("");
     setNotes("");
+    setFollowupTime(format(new Date(), "HH:mm"));
   };
 
   const handleSubmit = async () => {
@@ -75,7 +86,21 @@ export function PRNFollowupDialog({
       return;
     }
 
+    if (!followupTime) {
+      toast({
+        title: "Time Required",
+        description: "Please enter the time the follow-up was done",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
+
+    // Build the follow-up datetime using today's date and the entered time
+    const now = new Date();
+    const [hours, minutes] = followupTime.split(":").map(Number);
+    const followupDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
 
     try {
       const response = await fetch(
@@ -86,6 +111,7 @@ export function PRNFollowupDialog({
           body: JSON.stringify({
             prnEffectiveness: effectiveness,
             prnFollowupNotes: notes || "Follow-up completed",
+            followupTime: followupDateTime.toISOString(),
           }),
         }
       );
@@ -149,6 +175,20 @@ export function PRNFollowupDialog({
                 <strong>Reason:</strong> {administration.prnReasonGiven}
               </p>
             )}
+          </div>
+
+          {/* Follow-up Time */}
+          <div className="space-y-2">
+            <Label>Follow-up Time *</Label>
+            <Input
+              type="time"
+              value={followupTime}
+              onChange={(e) => setFollowupTime(e.target.value)}
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter the time when you assessed the medication effectiveness
+            </p>
           </div>
 
           {/* Effectiveness */}

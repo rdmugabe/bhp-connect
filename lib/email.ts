@@ -158,3 +158,79 @@ export async function sendEmployeeEmail({
     html: emailHtml,
   });
 }
+
+interface InvitationEmailParams {
+  to: string;
+  inviterName: string;
+  facilityName: string;
+  role: string;
+  inviteUrl: string;
+  expiresAt: Date;
+}
+
+export async function sendInvitationEmail({
+  to,
+  inviterName,
+  facilityName,
+  role,
+  inviteUrl,
+  expiresAt,
+}: InvitationEmailParams) {
+  const expiresIn = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+  const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You're Invited to Join ${facilityName}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px; margin-bottom: 20px;">
+    <h1 style="color: #1a1a1a; margin: 0 0 10px 0; font-size: 24px;">You're Invited!</h1>
+    <p style="color: #666; margin: 0; font-size: 14px;">Join ${facilityName} on BHP Connect</p>
+  </div>
+
+  <div style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
+    <p style="margin: 0 0 16px 0;">Hi,</p>
+    <p style="margin: 0 0 16px 0;">
+      <strong>${inviterName}</strong> has invited you to join <strong>${facilityName}</strong> as a <strong>${role}</strong> on BHP Connect.
+    </p>
+    <p style="margin: 0 0 24px 0;">
+      Click the button below to create your account and join the team:
+    </p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${inviteUrl}" style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600; font-size: 16px;">Accept Invitation</a>
+    </div>
+
+    <p style="margin: 16px 0 0 0; font-size: 14px; color: #666;">
+      This invitation expires in <strong>${expiresIn} days</strong>.
+    </p>
+  </div>
+
+  <div style="text-align: center; margin: 20px 0; padding: 16px; background-color: #fef3c7; border-radius: 6px;">
+    <p style="margin: 0; color: #92400e; font-size: 13px;">
+      If you did not expect this invitation, you can safely ignore this email.
+    </p>
+  </div>
+
+  <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px; text-align: center; color: #666; font-size: 12px;">
+    <p style="margin: 0 0 8px 0;">This email was sent from <strong>BHP Connect</strong></p>
+    <p style="margin: 0; color: #999; font-size: 11px;">
+      If the button doesn't work, copy and paste this link into your browser:<br>
+      <a href="${inviteUrl}" style="color: #2563eb; word-break: break-all;">${inviteUrl}</a>
+    </p>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  return getResendClient().emails.send({
+    from: `${facilityName} via BHP Connect <notifications@bhpconnekt.com>`,
+    to,
+    subject: `You're invited to join ${facilityName} on BHP Connect`,
+    html: emailHtml,
+  });
+}

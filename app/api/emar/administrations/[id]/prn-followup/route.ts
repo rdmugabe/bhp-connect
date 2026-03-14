@@ -71,13 +71,23 @@ export async function POST(
       return parseResult.error;
     }
 
-    const body = parseResult.data as { prnEffectiveness: string; prnFollowupNotes?: string };
+    const body = parseResult.data as {
+      prnEffectiveness: string;
+      prnFollowupNotes?: string;
+      followupTime?: string;
+    };
+
+    // Use provided follow-up time or default to now
+    const followupCompletedAt = body.followupTime
+      ? new Date(body.followupTime)
+      : new Date();
 
     const administration = await prisma.medicationAdministration.update({
       where: { id },
       data: {
         prnEffectiveness: body.prnEffectiveness,
         prnFollowupNotes: body.prnFollowupNotes,
+        prnFollowupCompletedAt: followupCompletedAt,
         prnFollowupById: session.user.id,
       },
     });
@@ -106,6 +116,7 @@ export async function POST(
         medicationName: existingAdmin.medicationOrder.medicationName,
         patientName: existingAdmin.medicationOrder.intake.residentName,
         effectiveness: body.prnEffectiveness,
+        followupTime: followupCompletedAt.toISOString(),
       },
     });
 

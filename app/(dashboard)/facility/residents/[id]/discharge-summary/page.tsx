@@ -268,6 +268,20 @@ export default async function DischargeSummaryPage({ params, searchParams }: Pag
                 reviewerSignature: dischargeSummary.reviewerSignature,
                 reviewerCredentials: dischargeSummary.reviewerCredentials,
                 reviewerSignatureDate: dischargeSummary.reviewerSignatureDate,
+                meetingInvitees: dischargeSummary.meetingInvitees as {
+                  bhp: boolean;
+                  caseManager: boolean;
+                  bhtAdmin: boolean;
+                  resident: boolean;
+                  nurse: boolean;
+                },
+                meetingAttendees: dischargeSummary.meetingAttendees as {
+                  bhp: boolean;
+                  caseManager: boolean;
+                  bhtAdmin: boolean;
+                  resident: boolean;
+                  nurse: boolean;
+                },
                 status: dischargeSummary.status,
               }
             : undefined

@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/use-toast";
 interface AvailableIntake {
   id: string;
   residentName: string;
+  status: string;
   dateOfBirth: string;
   sex: string | null;
   ethnicity: string | null;
@@ -202,8 +203,9 @@ export default function NewASAMPage() {
         <div>
           <p className="font-medium text-blue-800">ASAM Assessments are Linked to Intakes</p>
           <p className="text-sm text-blue-700">
-            Each ASAM assessment is associated with a completed intake. Patient information
-            from the intake will be pre-populated into the ASAM form.
+            Each ASAM assessment is associated with an intake. Patient information
+            from the intake will be pre-populated into the ASAM form. You can start
+            an ASAM assessment while the intake is still in draft to work on documentation in parallel.
           </p>
         </div>
       </div>
@@ -214,9 +216,9 @@ export default function NewASAMPage() {
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No Available Intakes</h3>
             <p className="text-muted-foreground mb-4">
-              There are no approved intakes available for ASAM assessment.
+              There are no intakes available for ASAM assessment.
               <br />
-              Complete and get approval for an intake first.
+              Create a new intake first.
             </p>
             <Link href="/facility/intakes/new">
               <Button>Create New Intake</Button>
@@ -240,10 +242,12 @@ export default function NewASAMPage() {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <UserCheck className="h-5 w-5 text-green-600" />
+                      <UserCheck className={`h-5 w-5 ${intake.status === "APPROVED" ? "text-green-600" : "text-amber-600"}`} />
                       <CardTitle className="text-lg">{intake.residentName}</CardTitle>
                     </div>
-                    <Badge className="bg-green-500">Approved</Badge>
+                    <Badge className={intake.status === "APPROVED" ? "bg-green-500" : "bg-amber-500"}>
+                      {intake.status === "APPROVED" ? "Approved" : "Draft"}
+                    </Badge>
                   </div>
                   <CardDescription className="flex items-center gap-4 mt-1">
                     <span className="flex items-center gap-1">

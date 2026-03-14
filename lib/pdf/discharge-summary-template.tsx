@@ -334,6 +334,22 @@ interface DischargeSummaryData {
   culturalPreferencesConsidered?: boolean;
   suicidePreventionEducation?: string;
 
+  // Meeting Participants
+  meetingInvitees?: {
+    bhp?: boolean;
+    caseManager?: boolean;
+    bhtAdmin?: boolean;
+    resident?: boolean;
+    nurse?: boolean;
+  };
+  meetingAttendees?: {
+    bhp?: boolean;
+    caseManager?: boolean;
+    bhtAdmin?: boolean;
+    resident?: boolean;
+    nurse?: boolean;
+  };
+
   // Signatures
   clientSignature?: string;
   clientSignatureDate?: string;
@@ -749,6 +765,59 @@ export function DischargeSummaryDocument({ data }: { data: DischargeSummaryData 
           <Text style={styles.textBlockValue}>
             {data.suicidePreventionEducation || "N/A"}
           </Text>
+        </View>
+
+        {/* Discharge Meeting Participants */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Discharge Meeting Participants</Text>
+          <View style={styles.twoColumn}>
+            <View style={styles.column}>
+              <Text style={styles.subSectionTitle}>Invited</Text>
+              <View style={styles.checklistItem}>
+                <Text style={styles.checklistLabel}>BHP:</Text>
+                <Text style={styles.checklistValue}>{data.meetingInvitees?.bhp ? "Yes" : "No"}</Text>
+              </View>
+              <View style={styles.checklistItem}>
+                <Text style={styles.checklistLabel}>Case Manager:</Text>
+                <Text style={styles.checklistValue}>{data.meetingInvitees?.caseManager ? "Yes" : "No"}</Text>
+              </View>
+              <View style={styles.checklistItem}>
+                <Text style={styles.checklistLabel}>BHT/Administrator:</Text>
+                <Text style={styles.checklistValue}>{data.meetingInvitees?.bhtAdmin ? "Yes" : "No"}</Text>
+              </View>
+              <View style={styles.checklistItem}>
+                <Text style={styles.checklistLabel}>Resident:</Text>
+                <Text style={styles.checklistValue}>{data.meetingInvitees?.resident ? "Yes" : "No"}</Text>
+              </View>
+              <View style={styles.checklistItem}>
+                <Text style={styles.checklistLabel}>Nurse:</Text>
+                <Text style={styles.checklistValue}>{data.meetingInvitees?.nurse ? "Yes" : "No"}</Text>
+              </View>
+            </View>
+            <View style={styles.column}>
+              <Text style={styles.subSectionTitle}>Attended</Text>
+              <View style={styles.checklistItem}>
+                <Text style={styles.checklistLabel}>BHP:</Text>
+                <Text style={styles.checklistValue}>{data.meetingAttendees?.bhp ? "Yes" : "No"}</Text>
+              </View>
+              <View style={styles.checklistItem}>
+                <Text style={styles.checklistLabel}>Case Manager:</Text>
+                <Text style={styles.checklistValue}>{data.meetingAttendees?.caseManager ? "Yes" : "No"}</Text>
+              </View>
+              <View style={styles.checklistItem}>
+                <Text style={styles.checklistLabel}>BHT/Administrator:</Text>
+                <Text style={styles.checklistValue}>{data.meetingAttendees?.bhtAdmin ? "Yes" : "No"}</Text>
+              </View>
+              <View style={styles.checklistItem}>
+                <Text style={styles.checklistLabel}>Resident:</Text>
+                <Text style={styles.checklistValue}>{data.meetingAttendees?.resident ? "Yes" : "No"}</Text>
+              </View>
+              <View style={styles.checklistItem}>
+                <Text style={styles.checklistLabel}>Nurse:</Text>
+                <Text style={styles.checklistValue}>{data.meetingAttendees?.nurse ? "Yes" : "No"}</Text>
+              </View>
+            </View>
+          </View>
         </View>
 
         {/* Signatures */}

@@ -109,6 +109,9 @@ export async function GET(
       specialInstructions: dischargeSummary.specialInstructions || undefined,
       culturalPreferencesConsidered: dischargeSummary.culturalPreferencesConsidered || false,
       suicidePreventionEducation: dischargeSummary.suicidePreventionEducation || undefined,
+      // Meeting Participants
+      meetingInvitees: (dischargeSummary.meetingInvitees as { bhp?: boolean; caseManager?: boolean; bhtAdmin?: boolean; resident?: boolean; nurse?: boolean }) || {},
+      meetingAttendees: (dischargeSummary.meetingAttendees as { bhp?: boolean; caseManager?: boolean; bhtAdmin?: boolean; resident?: boolean; nurse?: boolean }) || {},
       clientSignature: dischargeSummary.clientSignature || undefined,
       clientSignatureDate: dischargeSummary.clientSignatureDate?.toISOString() || undefined,
       staffSignature: dischargeSummary.staffSignature || undefined,
