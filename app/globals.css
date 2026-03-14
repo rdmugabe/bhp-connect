@@ -55,5 +55,33 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Prevent text scaling issues on mobile */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Better touch handling */
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Minimum font size for readability on mobile */
+  @media (max-width: 640px) {
+    html {
+      font-size: 16px;
+    }
+
+    /* Ensure form inputs are at least 16px to prevent iOS zoom */
+    input, select, textarea {
+      font-size: 16px;
+    }
+  }
+
+  /* Safe area padding for devices with notches */
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top);
   }
 }

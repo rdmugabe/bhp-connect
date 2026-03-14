@@ -90,8 +90,8 @@ export function SignaturePad({
             ref={sigCanvas}
             penColor="black"
             canvasProps={{
-              className: "w-full h-[150px] cursor-crosshair",
-              style: { width: "100%", height: "150px" },
+              className: "w-full h-[200px] md:h-[150px] cursor-crosshair",
+              style: { width: "100%" },
             }}
             onEnd={handleEnd}
           />

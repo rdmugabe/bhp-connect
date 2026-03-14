@@ -5,6 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   Building2,
@@ -23,6 +31,7 @@ import {
   AlertTriangle,
   Pill,
   CalendarDays,
+  Menu,
 } from "lucide-react";
 
 interface NavItem {
@@ -218,8 +227,64 @@ interface DashboardNavProps {
   role: string;
 }
 
+function NavItems({
+  navItems,
+  badgeCounts,
+  pathname,
+  onItemClick
+}: {
+  navItems: NavItem[];
+  badgeCounts: BadgeCounts;
+  pathname: string;
+  onItemClick?: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      {navItems.map((item) => {
+        const isActive =
+          pathname === item.href ||
+          (item.href !== "/bhp" &&
+            item.href !== "/facility" &&
+            item.href !== "/admin" &&
+            pathname.startsWith(item.href));
+
+        const badgeCount = item.showBadge ? badgeCounts[item.showBadge] : 0;
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onItemClick}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-3 md:py-2 text-base md:text-sm font-medium transition-colors relative",
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <item.icon className="h-5 w-5 md:h-4 md:w-4" />
+            <span className="flex-1">{item.title}</span>
+            {badgeCount > 0 && (
+              <Badge
+                variant={isActive ? "secondary" : "destructive"}
+                className={cn(
+                  "ml-auto h-5 min-w-[20px] px-1.5 text-xs font-bold",
+                  isActive && "bg-white text-primary"
+                )}
+              >
+                {badgeCount > 99 ? "99+" : badgeCount}
+              </Badge>
+            )}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 export function DashboardNav({ role }: DashboardNavProps) {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
   const [badgeCounts, setBadgeCounts] = useState<BadgeCounts>({
     messages: 0,
     applications: 0,
@@ -261,46 +326,42 @@ export function DashboardNav({ role }: DashboardNavProps) {
   }
 
   return (
-    <nav className="hidden md:flex w-64 flex-col border-r bg-white min-h-[calc(100vh-4rem)]">
-      <div className="flex flex-col gap-1 p-4">
-        {navItems.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== "/bhp" &&
-              item.href !== "/facility" &&
-              item.href !== "/admin" &&
-              pathname.startsWith(item.href));
-
-          const badgeCount = item.showBadge ? badgeCounts[item.showBadge] : 0;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors relative",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              <span className="flex-1">{item.title}</span>
-              {badgeCount > 0 && (
-                <Badge
-                  variant={isActive ? "secondary" : "destructive"}
-                  className={cn(
-                    "ml-auto h-5 min-w-[20px] px-1.5 text-xs font-bold",
-                    isActive && "bg-white text-primary"
-                  )}
-                >
-                  {badgeCount > 99 ? "99+" : badgeCount}
-                </Badge>
-              )}
-            </Link>
-          );
-        })}
+    <>
+      {/* Mobile Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t p-2 safe-area-pb">
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="lg" className="w-full h-12">
+              <Menu className="h-5 w-5 mr-2" />
+              Menu
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[280px] p-0">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle>Navigation</SheetTitle>
+            </SheetHeader>
+            <div className="overflow-y-auto h-[calc(100vh-5rem)] p-4">
+              <NavItems
+                navItems={navItems}
+                badgeCounts={badgeCounts}
+                pathname={pathname}
+                onItemClick={() => setIsOpen(false)}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
-    </nav>
+
+      {/* Desktop Navigation */}
+      <nav className="hidden md:flex w-64 flex-col border-r bg-white min-h-[calc(100vh-4rem)]">
+        <div className="flex flex-col gap-1 p-4">
+          <NavItems
+            navItems={navItems}
+            badgeCounts={badgeCounts}
+            pathname={pathname}
+          />
+        </div>
+      </nav>
+    </>
   );
 }
