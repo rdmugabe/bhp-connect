@@ -67,19 +67,17 @@ export default async function FacilityDashboardPage() {
 
   const { facility } = bhrfProfile;
 
-  // Calculate stats
-  const pendingIntakes = facility.intakes.filter(
-    (i) => i.status === "PENDING"
-  ).length;
-  const approvedIntakes = facility.intakes.filter(
-    (i) => i.status === "APPROVED"
-  ).length;
-  const conditionalIntakes = facility.intakes.filter(
-    (i) => i.status === "CONDITIONAL"
-  ).length;
-  const deniedIntakes = facility.intakes.filter(
-    (i) => i.status === "DENIED"
-  ).length;
+  // Get accurate intake counts (not limited by the take: 5 for recent intakes)
+  const intakeCounts = await prisma.intake.groupBy({
+    by: ['status'],
+    where: { facilityId: facility.id },
+    _count: true,
+  });
+
+  const pendingIntakes = intakeCounts.find(c => c.status === 'PENDING')?._count ?? 0;
+  const approvedIntakes = intakeCounts.find(c => c.status === 'APPROVED')?._count ?? 0;
+  const conditionalIntakes = intakeCounts.find(c => c.status === 'CONDITIONAL')?._count ?? 0;
+  const deniedIntakes = intakeCounts.find(c => c.status === 'DENIED')?._count ?? 0;
 
   // Get document stats
   const requestedDocuments = facility.documents.filter(
