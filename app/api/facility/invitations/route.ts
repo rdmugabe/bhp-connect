@@ -99,16 +99,8 @@ export async function POST(request: NextRequest) {
         facilityId: bhrfProfile.facilityId,
         email: validatedData.email.toLowerCase(),
         status: "PENDING",
-        expiresAt: { gt: new Date() },
       },
     });
-
-    if (existingInvitation) {
-      return NextResponse.json(
-        { error: "A pending invitation already exists for this email" },
-        { status: 400 }
-      );
-    }
 
     // Generate secure token
     const token = randomBytes(32).toString("hex");
@@ -117,17 +109,32 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    // Create the invitation
-    const invitation = await prisma.facilityInvitation.create({
-      data: {
-        facilityId: bhrfProfile.facilityId,
-        email: validatedData.email.toLowerCase(),
-        role: validatedData.role,
-        token,
-        expiresAt,
-        invitedById: session.user.id,
-      },
-    });
+    let invitation;
+
+    if (existingInvitation) {
+      // Update existing invitation with new token and expiration (resend)
+      invitation = await prisma.facilityInvitation.update({
+        where: { id: existingInvitation.id },
+        data: {
+          token,
+          expiresAt,
+          role: validatedData.role,
+          invitedById: session.user.id,
+        },
+      });
+    } else {
+      // Create new invitation
+      invitation = await prisma.facilityInvitation.create({
+        data: {
+          facilityId: bhrfProfile.facilityId,
+          email: validatedData.email.toLowerCase(),
+          role: validatedData.role,
+          token,
+          expiresAt,
+          invitedById: session.user.id,
+        },
+      });
+    }
 
     // Generate invite URL
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -164,6 +171,7 @@ export async function POST(request: NextRequest) {
         email: validatedData.email,
         role: validatedData.role,
         facilityName: bhrfProfile.facility.name,
+        resent: !!existingInvitation,
       },
     });
 
