@@ -3,8 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { startOfDay, endOfDay, subDays, subHours, format } from "date-fns";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { getAlertCounts } from "@/lib/emar/alerts";
 import { updateScheduleStatuses } from "@/lib/emar/schedule-generator";
+
+// Use consistent timezone for all facilities (Arizona)
+const FACILITY_TIMEZONE = "America/Phoenix";
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,9 +67,19 @@ export async function GET(request: NextRequest) {
     // Update schedule statuses
     await updateScheduleStatuses();
 
+    // Use facility timezone for consistent date calculations
     const now = new Date();
-    const todayStart = startOfDay(now);
-    const todayEnd = endOfDay(now);
+    const zonedNow = toZonedTime(now, FACILITY_TIMEZONE);
+
+    // Get start and end of day in facility timezone
+    const zonedStart = new Date(zonedNow);
+    zonedStart.setHours(0, 0, 0, 0);
+    const zonedEnd = new Date(zonedNow);
+    zonedEnd.setHours(23, 59, 59, 999);
+
+    // Convert back to UTC for database queries
+    const todayStart = fromZonedTime(zonedStart, FACILITY_TIMEZONE);
+    const todayEnd = fromZonedTime(zonedEnd, FACILITY_TIMEZONE);
 
     // Get facility info
     const facility = await prisma.facility.findUnique({
@@ -143,12 +157,20 @@ export async function GET(request: NextRequest) {
     // Get alert counts
     const alertCounts = await getAlertCounts(facilityId);
 
-    // Get 7-day adherence trend
+    // Get 7-day adherence trend (using facility timezone)
     const adherenceTrend = await Promise.all(
       Array.from({ length: 7 }, async (_, i) => {
-        const date = subDays(now, 6 - i);
-        const dayStart = startOfDay(date);
-        const dayEnd = endOfDay(date);
+        const date = subDays(zonedNow, 6 - i);
+
+        // Get start and end of day in facility timezone
+        const dayStartZoned = new Date(date);
+        dayStartZoned.setHours(0, 0, 0, 0);
+        const dayEndZoned = new Date(date);
+        dayEndZoned.setHours(23, 59, 59, 999);
+
+        // Convert to UTC for database queries
+        const dayStart = fromZonedTime(dayStartZoned, FACILITY_TIMEZONE);
+        const dayEnd = fromZonedTime(dayEndZoned, FACILITY_TIMEZONE);
 
         const [total, given] = await Promise.all([
           prisma.medicationSchedule.count({
