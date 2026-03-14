@@ -34,13 +34,14 @@ export async function GET(
             },
           },
         },
-        owner: {
+        staff: {
           include: {
             user: {
               select: {
                 id: true,
                 name: true,
                 email: true,
+                approvalStatus: true,
               },
             },
           },

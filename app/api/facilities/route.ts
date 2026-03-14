@@ -28,13 +28,14 @@ export async function GET() {
       facilities = await prisma.facility.findMany({
         where: { bhpId: bhpProfile.id },
         include: {
-          owner: {
+          staff: {
             include: {
               user: {
                 select: {
                   id: true,
                   name: true,
                   email: true,
+                  approvalStatus: true,
                 },
               },
             },

@@ -44,8 +44,10 @@ export async function POST(request: NextRequest) {
           // BHRF can read messages for their facility
           {
             facility: {
-              owner: {
-                userId: userId,
+              staff: {
+                some: {
+                  userId: userId,
+                },
               },
             },
           },

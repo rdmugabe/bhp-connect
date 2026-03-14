@@ -96,12 +96,13 @@ export default async function FacilitiesPage() {
   const facilities = await prisma.facility.findMany({
     where: { bhpId: bhpProfile.id },
     include: {
-      owner: {
+      staff: {
         include: {
           user: {
             select: {
               name: true,
               email: true,
+              approvalStatus: true,
             },
           },
         },
@@ -177,13 +178,13 @@ export default async function FacilitiesPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      {facility.owner ? (
+                      {facility.staff.length > 0 ? (
                         <div>
                           <p className="font-medium">
-                            {facility.owner.user.name}
+                            {facility.staff[0].user.name}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {facility.owner.user.email}
+                            {facility.staff[0].user.email}
                           </p>
                         </div>
                       ) : (

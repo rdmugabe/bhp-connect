@@ -73,7 +73,8 @@ export default withAuth(
           path.startsWith("/register") ||
           path.startsWith("/credentials/") ||
           path.startsWith("/api/auth") ||
-          path.startsWith("/api/bhps/available")
+          path.startsWith("/api/bhps/available") ||
+          path.startsWith("/api/facility/invitations/")
         ) {
           return true;
         }

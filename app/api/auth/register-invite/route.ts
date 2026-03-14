@@ -79,14 +79,15 @@ export async function POST(request: NextRequest) {
 
     // Create user and BHRF profile in a transaction
     const user = await prisma.$transaction(async (tx) => {
-      // Create the user as BHRF with PENDING approval status
+      // Create the user as BHRF with APPROVED status (invited staff are pre-approved)
       const newUser = await tx.user.create({
         data: {
           email: invitation.email,
           passwordHash,
           name: validatedData.name,
           role: "BHRF",
-          approvalStatus: "PENDING",
+          approvalStatus: "APPROVED",
+          approvedAt: new Date(),
         },
       });
 

@@ -90,12 +90,14 @@ export default async function BHPFacilityDetailPage({
       bhpId: bhpProfile.id,
     },
     include: {
-      owner: {
+      staff: {
         include: {
           user: {
             select: {
+              id: true,
               name: true,
               email: true,
+              approvalStatus: true,
             },
           },
         },
@@ -261,19 +263,23 @@ export default async function BHPFacilityDetailPage({
               </div>
             )}
             <div className="pt-2">
-              <p className="text-sm text-muted-foreground mb-2">Operator</p>
-              {facility.owner ? (
-                <div className="flex items-start gap-3">
-                  <Mail className="h-4 w-4 text-muted-foreground mt-1" />
-                  <div>
-                    <p className="font-medium">{facility.owner.user.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {facility.owner.user.email}
-                    </p>
-                  </div>
+              <p className="text-sm text-muted-foreground mb-2">Staff</p>
+              {facility.staff.filter(s => s.user.approvalStatus === "APPROVED").length > 0 ? (
+                <div className="space-y-2">
+                  {facility.staff.filter(s => s.user.approvalStatus === "APPROVED").map((staffMember) => (
+                    <div key={staffMember.id} className="flex items-start gap-3">
+                      <Mail className="h-4 w-4 text-muted-foreground mt-1" />
+                      <div>
+                        <p className="font-medium">{staffMember.user.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {staffMember.user.email}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <Badge variant="outline">Not Assigned</Badge>
+                <Badge variant="outline">No Staff Assigned</Badge>
               )}
             </div>
           </CardContent>
