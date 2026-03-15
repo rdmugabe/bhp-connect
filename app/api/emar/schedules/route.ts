@@ -64,19 +64,30 @@ export async function GET(request: NextRequest) {
     }
 
     // Parse date or use today, with timezone handling
-    const now = new Date();
-    const targetDate = dateStr ? parseISO(dateStr) : toZonedTime(now, FACILITY_TIMEZONE);
+    // The date string (e.g., "2026-03-14") represents a date in the facility timezone
+    let dayStart: Date;
+    let dayEnd: Date;
 
-    // Get start and end of day in facility timezone
-    const zonedDate = toZonedTime(targetDate, FACILITY_TIMEZONE);
-    const zonedStart = new Date(zonedDate);
-    zonedStart.setHours(0, 0, 0, 0);
-    const zonedEnd = new Date(zonedDate);
-    zonedEnd.setHours(23, 59, 59, 999);
-
-    // Convert back to UTC for database queries
-    const dayStart = fromZonedTime(zonedStart, FACILITY_TIMEZONE);
-    const dayEnd = fromZonedTime(zonedEnd, FACILITY_TIMEZONE);
+    if (dateStr) {
+      // Parse date string as facility timezone date (not UTC)
+      const [year, month, day] = dateStr.split("-").map(Number);
+      // Create start of day in facility timezone
+      const startInFacilityTz = new Date(year, month - 1, day, 0, 0, 0, 0);
+      const endInFacilityTz = new Date(year, month - 1, day, 23, 59, 59, 999);
+      // Convert to UTC for database queries
+      dayStart = fromZonedTime(startInFacilityTz, FACILITY_TIMEZONE);
+      dayEnd = fromZonedTime(endInFacilityTz, FACILITY_TIMEZONE);
+    } else {
+      // Use current time in facility timezone
+      const now = new Date();
+      const zonedNow = toZonedTime(now, FACILITY_TIMEZONE);
+      const zonedStart = new Date(zonedNow);
+      zonedStart.setHours(0, 0, 0, 0);
+      const zonedEnd = new Date(zonedNow);
+      zonedEnd.setHours(23, 59, 59, 999);
+      dayStart = fromZonedTime(zonedStart, FACILITY_TIMEZONE);
+      dayEnd = fromZonedTime(zonedEnd, FACILITY_TIMEZONE);
+    }
 
     const schedules = await prisma.medicationSchedule.findMany({
       where: {

@@ -8,18 +8,29 @@ import { toZonedTime, fromZonedTime } from "date-fns-tz";
 // Use consistent timezone for all facilities (Arizona)
 const FACILITY_TIMEZONE = "America/Phoenix";
 
-// Helper to get start of day in facility timezone
+// Helper to get start of day in facility timezone from a Date object
 function getStartOfDayUTC(date: Date): Date {
   const zonedDate = toZonedTime(date, FACILITY_TIMEZONE);
   zonedDate.setHours(0, 0, 0, 0);
   return fromZonedTime(zonedDate, FACILITY_TIMEZONE);
 }
 
-// Helper to get end of day in facility timezone
+// Helper to get end of day in facility timezone from a Date object
 function getEndOfDayUTC(date: Date): Date {
   const zonedDate = toZonedTime(date, FACILITY_TIMEZONE);
   zonedDate.setHours(23, 59, 59, 999);
   return fromZonedTime(zonedDate, FACILITY_TIMEZONE);
+}
+
+// Helper to parse a date string (YYYY-MM-DD) as a facility timezone date
+function parseDateStringToUTCRange(dateStr: string): { start: Date; end: Date } {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const startInFacilityTz = new Date(year, month - 1, day, 0, 0, 0, 0);
+  const endInFacilityTz = new Date(year, month - 1, day, 23, 59, 59, 999);
+  return {
+    start: fromZonedTime(startInFacilityTz, FACILITY_TIMEZONE),
+    end: fromZonedTime(endInFacilityTz, FACILITY_TIMEZONE),
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -91,15 +102,17 @@ export async function GET(request: NextRequest) {
         gte: getStartOfDayUTC(subDays(now, 30)),
       };
     } else if (dateStr) {
-      const targetDate = parseISO(dateStr);
+      const { start, end } = parseDateStringToUTCRange(dateStr);
       dateFilter = {
-        gte: getStartOfDayUTC(targetDate),
-        lte: getEndOfDayUTC(targetDate),
+        gte: start,
+        lte: end,
       };
     } else if (startDateStr && endDateStr) {
+      const startRange = parseDateStringToUTCRange(startDateStr);
+      const endRange = parseDateStringToUTCRange(endDateStr);
       dateFilter = {
-        gte: getStartOfDayUTC(parseISO(startDateStr)),
-        lte: getEndOfDayUTC(parseISO(endDateStr)),
+        gte: startRange.start,
+        lte: endRange.end,
       };
     } else {
       // Default to last 7 days
