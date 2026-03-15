@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { startOfDay, endOfDay, addDays, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
+
+// Use consistent timezone for all facilities (Arizona)
+const FACILITY_TIMEZONE = "America/Phoenix";
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,10 +63,20 @@ export async function GET(request: NextRequest) {
       queryFacilityId = facilityId;
     }
 
-    // Parse date or use today
-    const targetDate = dateStr ? parseISO(dateStr) : new Date();
-    const dayStart = startOfDay(targetDate);
-    const dayEnd = endOfDay(targetDate);
+    // Parse date or use today, with timezone handling
+    const now = new Date();
+    const targetDate = dateStr ? parseISO(dateStr) : toZonedTime(now, FACILITY_TIMEZONE);
+
+    // Get start and end of day in facility timezone
+    const zonedDate = toZonedTime(targetDate, FACILITY_TIMEZONE);
+    const zonedStart = new Date(zonedDate);
+    zonedStart.setHours(0, 0, 0, 0);
+    const zonedEnd = new Date(zonedDate);
+    zonedEnd.setHours(23, 59, 59, 999);
+
+    // Convert back to UTC for database queries
+    const dayStart = fromZonedTime(zonedStart, FACILITY_TIMEZONE);
+    const dayEnd = fromZonedTime(zonedEnd, FACILITY_TIMEZONE);
 
     const schedules = await prisma.medicationSchedule.findMany({
       where: {

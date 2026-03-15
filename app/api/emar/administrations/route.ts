@@ -2,7 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { startOfDay, endOfDay, parseISO, subDays } from "date-fns";
+import { parseISO, subDays } from "date-fns";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
+
+// Use consistent timezone for all facilities (Arizona)
+const FACILITY_TIMEZONE = "America/Phoenix";
+
+// Helper to get start of day in facility timezone
+function getStartOfDayUTC(date: Date): Date {
+  const zonedDate = toZonedTime(date, FACILITY_TIMEZONE);
+  zonedDate.setHours(0, 0, 0, 0);
+  return fromZonedTime(zonedDate, FACILITY_TIMEZONE);
+}
+
+// Helper to get end of day in facility timezone
+function getEndOfDayUTC(date: Date): Date {
+  const zonedDate = toZonedTime(date, FACILITY_TIMEZONE);
+  zonedDate.setHours(23, 59, 59, 999);
+  return fromZonedTime(zonedDate, FACILITY_TIMEZONE);
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,29 +81,30 @@ export async function GET(request: NextRequest) {
       queryFacilityId = facilityId;
     }
 
-    // Build date filter
+    // Build date filter with timezone handling
     let dateFilter: { gte?: Date; lte?: Date } = {};
+    const now = new Date();
 
     if (needsPRNFollowup) {
       // For PRN follow-up queries, look back further (30 days)
       dateFilter = {
-        gte: startOfDay(subDays(new Date(), 30)),
+        gte: getStartOfDayUTC(subDays(now, 30)),
       };
     } else if (dateStr) {
       const targetDate = parseISO(dateStr);
       dateFilter = {
-        gte: startOfDay(targetDate),
-        lte: endOfDay(targetDate),
+        gte: getStartOfDayUTC(targetDate),
+        lte: getEndOfDayUTC(targetDate),
       };
     } else if (startDateStr && endDateStr) {
       dateFilter = {
-        gte: startOfDay(parseISO(startDateStr)),
-        lte: endOfDay(parseISO(endDateStr)),
+        gte: getStartOfDayUTC(parseISO(startDateStr)),
+        lte: getEndOfDayUTC(parseISO(endDateStr)),
       };
     } else {
       // Default to last 7 days
       dateFilter = {
-        gte: startOfDay(subDays(new Date(), 7)),
+        gte: getStartOfDayUTC(subDays(now, 7)),
       };
     }
 
