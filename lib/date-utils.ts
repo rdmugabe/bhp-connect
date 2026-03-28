@@ -339,7 +339,7 @@ export function parseRequiredFutureDate(value: unknown, fieldName: string = "Dat
 }
 
 /**
- * Parse a signature date (must be past or today, within last year)
+ * Parse a signature date (must be past or today, within last 2 years)
  */
 export function parseSignatureDate(value: unknown): DateParseResult {
   const result = parseDateWithValidation(value);
@@ -355,10 +355,10 @@ export function parseSignatureDate(value: unknown): DateParseResult {
     return { success: false, error: "Signature date cannot be in the future" };
   }
 
-  const oneYearAgo = new Date();
-  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-  if (result.date < oneYearAgo) {
-    return { success: false, error: "Signature date is too far in the past (max 1 year)" };
+  const twoYearsAgo = new Date();
+  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+  if (result.date < twoYearsAgo) {
+    return { success: false, error: "Signature date is too far in the past (max 2 years)" };
   }
 
   return result;

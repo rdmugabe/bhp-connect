@@ -1759,6 +1759,9 @@ export const incidentReportSchema = z.object({
     notifiedBy: z.string().optional(),
   })).optional(),
 
+  // Resident Condition
+  residentConditionBeforeIncident: z.string().optional(),
+
   // Resident Status Post-Incident
   residentCurrentCondition: z.string().optional(),
   residentStatement: z.string().optional(),
@@ -1842,6 +1845,9 @@ export const incidentReportDraftSchema = z.object({
     method: z.string().optional(),
     notifiedBy: z.string().optional(),
   })).optional(),
+
+  // Resident Condition
+  residentConditionBeforeIncident: z.string().optional(),
 
   // Resident Status Post-Incident
   residentCurrentCondition: z.string().optional(),

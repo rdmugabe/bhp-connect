@@ -188,6 +188,7 @@ export async function POST(request: NextRequest) {
         otherIntervention: data.otherIntervention,
         actionsDescription: data.actionsDescription,
         notifications: data.notifications || undefined,
+        residentConditionBeforeIncident: data.residentConditionBeforeIncident,
         residentCurrentCondition: data.residentCurrentCondition,
         residentStatement: data.residentStatement,
         currentSupervisionLevel: data.currentSupervisionLevel,

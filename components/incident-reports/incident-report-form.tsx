@@ -95,6 +95,7 @@ export function IncidentReportForm({ reportId, initialData }: IncidentReportForm
       otherIntervention: initialData?.otherIntervention || "",
       actionsDescription: initialData?.actionsDescription || "",
       notifications: initialData?.notifications || [],
+      residentConditionBeforeIncident: initialData?.residentConditionBeforeIncident || "",
       residentCurrentCondition: initialData?.residentCurrentCondition || "",
       residentStatement: initialData?.residentStatement || "",
       currentSupervisionLevel: initialData?.currentSupervisionLevel || "",
@@ -509,6 +510,35 @@ export function IncidentReportForm({ reportId, initialData }: IncidentReportForm
                     <Textarea
                       placeholder="Provide a detailed description of the incident..."
                       className="min-h-[150px]"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Patient Condition Before Incident */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Patient Condition Before Incident</CardTitle>
+            <CardDescription>
+              Describe the patient&apos;s condition, behavior, or state immediately before the incident occurred
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="residentConditionBeforeIncident"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe the patient's condition before the incident..."
+                      className="min-h-[100px]"
                       {...field}
                       value={field.value || ""}
                     />

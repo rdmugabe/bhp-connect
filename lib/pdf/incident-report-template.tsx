@@ -195,6 +195,7 @@ interface IncidentReportData {
   otherIntervention: string | null;
   actionsDescription: string | null;
   notifications: { personEntity: string; name?: string; dateTime?: string; method?: string; notifiedBy?: string }[] | null;
+  residentConditionBeforeIncident: string | null;
   residentCurrentCondition: string | null;
   residentStatement: string | null;
   currentSupervisionLevel: string | null;
@@ -416,6 +417,16 @@ export function IncidentReportPDF({ data }: { data: IncidentReportData }) {
           </View>
         </View>
 
+        {/* Patient Condition Before Incident */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>PATIENT CONDITION BEFORE INCIDENT</Text>
+          <View style={styles.textBlock}>
+            <Text style={styles.textBlockValue}>
+              {data.residentConditionBeforeIncident || "Not documented"}
+            </Text>
+          </View>
+        </View>
+
         {/* Persons Involved */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>PERSONS INVOLVED</Text>
@@ -455,10 +466,13 @@ export function IncidentReportPDF({ data }: { data: IncidentReportData }) {
               ))}
             </View>
           )}
+        </View>
 
-          {data.witnesses && data.witnesses.length > 0 && (
+        {/* Witnesses */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>WITNESSES</Text>
+          {data.witnesses && data.witnesses.length > 0 ? (
             <View style={styles.table}>
-              <Text style={styles.textBlockLabel}>Witnesses:</Text>
               <View style={styles.tableHeader}>
                 <Text style={{ width: "30%" }}>Name</Text>
                 <Text style={{ width: "30%" }}>Title/Relationship</Text>
@@ -472,33 +486,17 @@ export function IncidentReportPDF({ data }: { data: IncidentReportData }) {
                 </View>
               ))}
             </View>
+          ) : (
+            <Text style={styles.textBlockValue}>No witnesses documented</Text>
           )}
         </View>
 
         {/* Injuries */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>INJURIES</Text>
-          <View style={styles.twoColumn}>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>Any Injuries:</Text>
-                <Text style={styles.value}>{data.anyInjuries ? "Yes" : "No"}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Medical Attention Required:</Text>
-                <Text style={styles.value}>{data.medicalAttentionRequired ? "Yes" : "No"}</Text>
-              </View>
-            </View>
-            <View style={styles.column}>
-              <View style={styles.row}>
-                <Text style={styles.label}>911 Called:</Text>
-                <Text style={styles.value}>{data.was911Called ? "Yes" : "No"}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Transported to Hospital:</Text>
-                <Text style={styles.value}>{data.wasTransportedToHospital ? "Yes" : "No"}</Text>
-              </View>
-            </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Any Injuries:</Text>
+            <Text style={styles.value}>{data.anyInjuries ? "Yes" : "No"}</Text>
           </View>
           {data.injuryDescription && (
             <View style={styles.textBlock}>
@@ -506,21 +504,52 @@ export function IncidentReportPDF({ data }: { data: IncidentReportData }) {
               <Text style={styles.textBlockValue}>{data.injuryDescription}</Text>
             </View>
           )}
+        </View>
+
+        {/* Medical Services Received */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>MEDICAL SERVICES RECEIVED</Text>
+          <View style={styles.twoColumn}>
+            <View style={styles.column}>
+              <View style={styles.row}>
+                <Text style={styles.label}>Medical Attention Required:</Text>
+                <Text style={styles.value}>{data.medicalAttentionRequired ? "Yes" : "No"}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Transported to Hospital:</Text>
+                <Text style={styles.value}>{data.wasTransportedToHospital ? "Yes" : "No"}</Text>
+              </View>
+            </View>
+            <View style={styles.column}>
+              {data.hospitalName && (
+                <View style={styles.row}>
+                  <Text style={styles.label}>Hospital Name:</Text>
+                  <Text style={styles.value}>{data.hospitalName}</Text>
+                </View>
+              )}
+            </View>
+          </View>
           {data.treatmentProvided && (
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>Treatment Provided:</Text>
               <Text style={styles.textBlockValue}>{data.treatmentProvided}</Text>
             </View>
           )}
-          {data.hospitalName && (
-            <View style={styles.row}>
-              <Text style={styles.label}>Hospital Name:</Text>
-              <Text style={styles.value}>{data.hospitalName}</Text>
-            </View>
+          {!data.medicalAttentionRequired && !data.wasTransportedToHospital && !data.treatmentProvided && (
+            <Text style={styles.textBlockValue}>No medical services required</Text>
           )}
         </View>
 
-        {/* Interventions */}
+        {/* Emergency Services (911) */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>EMERGENCY SERVICES (911)</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>911 Called:</Text>
+            <Text style={styles.value}>{data.was911Called ? "Yes" : "No"}</Text>
+          </View>
+        </View>
+
+        {/* Interventions and Actions Taken */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>INTERVENTIONS AND ACTIONS TAKEN</Text>
           {data.interventionsUsed.length > 0 && (
@@ -549,10 +578,10 @@ export function IncidentReportPDF({ data }: { data: IncidentReportData }) {
           )}
         </View>
 
-        {/* Notifications */}
+        {/* People Reported To */}
         {data.notifications && data.notifications.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>NOTIFICATIONS</Text>
+            <Text style={styles.sectionTitle}>PEOPLE REPORTED TO</Text>
             <View style={styles.table}>
               <View style={styles.tableHeader}>
                 <Text style={{ width: "25%" }}>Person/Entity</Text>
@@ -574,9 +603,9 @@ export function IncidentReportPDF({ data }: { data: IncidentReportData }) {
           </View>
         )}
 
-        {/* Resident Status Post-Incident */}
+        {/* Patient Condition After Incident */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>RESIDENT STATUS POST-INCIDENT</Text>
+          <Text style={styles.sectionTitle}>PATIENT CONDITION AFTER INCIDENT</Text>
           {data.residentCurrentCondition && (
             <View style={styles.textBlock}>
               <Text style={styles.textBlockLabel}>Current Condition:</Text>

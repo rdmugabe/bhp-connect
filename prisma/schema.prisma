@@ -1281,6 +1281,9 @@ model IncidentReport {
   // Notifications
   notifications          Json?  // [{personEntity, name, dateTime, method, notifiedBy}]
 
+  // Resident Condition
+  residentConditionBeforeIncident String? @db.Text
+
   // Resident Status Post-Incident
   residentCurrentCondition String? @db.Text
   residentStatement        String? @db.Text

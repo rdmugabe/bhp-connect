@@ -114,6 +114,7 @@ export async function GET(
       otherIntervention: report.otherIntervention,
       actionsDescription: safeText(report.actionsDescription),
       notifications: report.notifications as { personEntity: string; name?: string; dateTime?: string; method?: string; notifiedBy?: string }[] | null,
+      residentConditionBeforeIncident: safeText(report.residentConditionBeforeIncident),
       residentCurrentCondition: safeText(report.residentCurrentCondition),
       residentStatement: safeText(report.residentStatement),
       currentSupervisionLevel: report.currentSupervisionLevel,
