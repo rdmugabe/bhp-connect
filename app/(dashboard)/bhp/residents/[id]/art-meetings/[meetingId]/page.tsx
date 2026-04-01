@@ -11,9 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, SkipForward } from "lucide-react";
+import { ArrowLeft, SkipForward, Download } from "lucide-react";
 import { ARTMeetingForm } from "@/components/art-meetings/art-meeting-form";
 import { ARTMeetingBadge } from "@/components/art-meetings/art-meeting-badge";
+import { DownloadPDFButton } from "@/components/download-pdf-button";
 
 export default async function BHPViewARTMeetingPage({
   params,
@@ -75,26 +76,32 @@ export default async function BHPViewARTMeetingPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href={`/bhp/residents/${id}/art-meetings`}>
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold tracking-tight">
-              ART Meeting
-            </h1>
-            <ARTMeetingBadge
-              status={artMeeting.status}
-              isSkipped={artMeeting.isSkipped}
-            />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href={`/bhp/residents/${id}/art-meetings`}>
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl font-bold tracking-tight">
+                ART Meeting
+              </h1>
+              <ARTMeetingBadge
+                status={artMeeting.status}
+                isSkipped={artMeeting.isSkipped}
+              />
+            </div>
+            <p className="text-muted-foreground">
+              {artMeeting.intake.residentName} - {monthNames[artMeeting.meetingMonth - 1]} {artMeeting.meetingYear}
+            </p>
           </div>
-          <p className="text-muted-foreground">
-            {artMeeting.intake.residentName} - {monthNames[artMeeting.meetingMonth - 1]} {artMeeting.meetingYear}
-          </p>
         </div>
+        <DownloadPDFButton
+          url={`/api/art-meetings/${meetingId}/pdf`}
+          filename={`art_meeting_${artMeeting.intake.residentName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_${monthNames[artMeeting.meetingMonth - 1]}_${artMeeting.meetingYear}.pdf`}
+        />
       </div>
 
       {artMeeting.isSkipped ? (

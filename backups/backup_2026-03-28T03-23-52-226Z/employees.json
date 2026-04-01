@@ -1,0 +1,54 @@
+[
+  {
+    "id": "cmm2s6yna000jx6o36wdaqkeo",
+    "facilityId": "cmlv1gi3300087obts0c35wqi",
+    "firstName": "DORINE",
+    "lastName": "NIKUZE",
+    "email": "ndorine011@gmail.com",
+    "phone": "4807901411",
+    "position": "BHT",
+    "hireDate": "2026-01-15T00:00:00.000Z",
+    "isActive": true,
+    "createdAt": "2026-02-26T01:25:07.942Z",
+    "updatedAt": "2026-02-26T01:25:07.942Z"
+  },
+  {
+    "id": "cmlyi33ok0009ipawalpjhpyz",
+    "facilityId": "cmlv1gi3300087obts0c35wqi",
+    "firstName": "Dorine",
+    "lastName": "Nikuze",
+    "email": "ndorine011@gmail.com",
+    "phone": "4807901411",
+    "position": "BHT",
+    "hireDate": "2026-01-15T00:00:00.000Z",
+    "isActive": false,
+    "createdAt": "2026-02-23T01:31:06.981Z",
+    "updatedAt": "2026-02-27T20:17:07.075Z"
+  },
+  {
+    "id": "cmmhakdp3000tq07izt1sphle",
+    "facilityId": "cmlv1gi3300087obts0c35wqi",
+    "firstName": "Richard",
+    "lastName": "Mugabe",
+    "email": "rdmugabe@gmail.com",
+    "phone": "18643843082",
+    "position": "BHT",
+    "hireDate": "2026-01-01T00:00:00.000Z",
+    "isActive": true,
+    "createdAt": "2026-03-08T05:08:13.527Z",
+    "updatedAt": "2026-03-08T05:08:13.527Z"
+  },
+  {
+    "id": "cmmhcs7d20019q07i04whsma0",
+    "facilityId": "cmlv1gi3300087obts0c35wqi",
+    "firstName": "Josephine",
+    "lastName": "Anderson",
+    "email": null,
+    "phone": "",
+    "position": "BHT",
+    "hireDate": "2026-01-01T00:00:00.000Z",
+    "isActive": true,
+    "createdAt": "2026-03-08T06:10:17.798Z",
+    "updatedAt": "2026-03-08T06:10:17.798Z"
+  }
+]

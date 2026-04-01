@@ -119,7 +119,7 @@ export function ARTMeetingList({
                         View
                       </Button>
                     </Link>
-                    {!readOnly && !meeting.isSkipped && meeting.status !== "APPROVED" && (
+                    {!readOnly && !meeting.isSkipped && (
                       <>
                         <Link href={`${basePath}/${residentId}/art-meetings/${meeting.id}/edit`}>
                           <Button variant="outline" size="sm">
@@ -127,12 +127,14 @@ export function ARTMeetingList({
                             Edit
                           </Button>
                         </Link>
-                        <ARTMeetingSkipDialog
-                          meetingId={meeting.id}
-                          residentName={residentName}
-                          meetingMonth={meeting.meetingMonth}
-                          meetingYear={meeting.meetingYear}
-                        />
+                        {meeting.status !== "APPROVED" && (
+                          <ARTMeetingSkipDialog
+                            meetingId={meeting.id}
+                            residentName={residentName}
+                            meetingMonth={meeting.meetingMonth}
+                            meetingYear={meeting.meetingYear}
+                          />
+                        )}
                       </>
                     )}
                   </div>

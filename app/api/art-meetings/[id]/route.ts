@@ -148,6 +148,7 @@ export async function PATCH(
         progressIndicators: validatedData.progressIndicators,
         medicalIssues: validatedData.medicalIssues,
         plan: validatedData.plan,
+        summary: validatedData.summary,
         notesTakenBy: validatedData.notesTakenBy,
         meetingStartTime: validatedData.meetingStartTime,
         meetingEndTime: validatedData.meetingEndTime,
@@ -166,9 +167,20 @@ export async function PATCH(
       },
     });
 
+    // Determine the appropriate audit action
+    const wasAlreadySubmitted = existingMeeting.status === "APPROVED";
+    let auditAction;
+    if (isDraft) {
+      auditAction = AuditActions.ART_MEETING_UPDATED;
+    } else if (wasAlreadySubmitted) {
+      auditAction = AuditActions.ART_MEETING_RESUBMITTED;
+    } else {
+      auditAction = AuditActions.ART_MEETING_SUBMITTED;
+    }
+
     await createAuditLog({
       userId: session.user.id,
-      action: isDraft ? AuditActions.ART_MEETING_UPDATED : AuditActions.ART_MEETING_SUBMITTED,
+      action: auditAction,
       entityType: "ARTMeeting",
       entityId: artMeeting.id,
       details: {
@@ -176,6 +188,10 @@ export async function PATCH(
         meetingMonth: artMeeting.meetingMonth,
         meetingYear: artMeeting.meetingYear,
         isDraft,
+        ...(wasAlreadySubmitted && {
+          previousSubmissionDate: existingMeeting.submittedAt?.toISOString(),
+          editedAfterSubmission: true,
+        }),
       },
     });
 

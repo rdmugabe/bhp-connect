@@ -43,6 +43,7 @@ interface ARTMeetingData {
   progressIndicators?: string | null;
   medicalIssues?: string | null;
   plan?: string | null;
+  summary?: string | null;
   notesTakenBy?: string | null;
   meetingStartTime?: string | null;
   meetingEndTime?: string | null;
@@ -95,6 +96,7 @@ export function ARTMeetingForm({
     progressIndicators: initialData?.progressIndicators || "",
     medicalIssues: initialData?.medicalIssues || "",
     plan: initialData?.plan || "",
+    summary: initialData?.summary || "",
     notesTakenBy: initialData?.notesTakenBy || "",
     meetingStartTime: initialData?.meetingStartTime || "",
     meetingEndTime: initialData?.meetingEndTime || "",
@@ -554,6 +556,29 @@ export function ARTMeetingForm({
               disabled={readOnly}
               placeholder="Overall plan for the resident..."
               rows={3}
+              className="mt-1"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Meeting Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Meeting Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div>
+            <Label htmlFor="summary">Summary</Label>
+            <Textarea
+              id="summary"
+              value={formData.summary}
+              onChange={(e) =>
+                setFormData({ ...formData, summary: e.target.value })
+              }
+              disabled={readOnly}
+              placeholder="Provide a text explanation/summary of the meeting..."
+              rows={5}
               className="mt-1"
             />
           </div>

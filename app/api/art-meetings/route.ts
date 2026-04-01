@@ -211,6 +211,7 @@ export async function POST(request: NextRequest) {
         progressIndicators: validatedData.progressIndicators,
         medicalIssues: validatedData.medicalIssues,
         plan: validatedData.plan,
+        summary: validatedData.summary,
         notesTakenBy: validatedData.notesTakenBy,
         meetingStartTime: validatedData.meetingStartTime,
         meetingEndTime: validatedData.meetingEndTime,

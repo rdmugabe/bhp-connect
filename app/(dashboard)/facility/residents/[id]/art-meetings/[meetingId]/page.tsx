@@ -12,9 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Edit, SkipForward } from "lucide-react";
+import { ArrowLeft, Edit, SkipForward, Download } from "lucide-react";
 import { ARTMeetingForm } from "@/components/art-meetings/art-meeting-form";
 import { ARTMeetingBadge } from "@/components/art-meetings/art-meeting-badge";
+import { DownloadPDFButton } from "@/components/download-pdf-button";
 
 export default async function ViewARTMeetingPage({
   params,
@@ -92,14 +93,20 @@ export default async function ViewARTMeetingPage({
             </p>
           </div>
         </div>
-        {!artMeeting.isSkipped && artMeeting.status !== "APPROVED" && (
-          <Link href={`/facility/residents/${id}/art-meetings/${meetingId}/edit`}>
-            <Button>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Meeting
-            </Button>
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          <DownloadPDFButton
+            url={`/api/art-meetings/${meetingId}/pdf`}
+            filename={`art_meeting_${artMeeting.intake.residentName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_${monthNames[artMeeting.meetingMonth - 1]}_${artMeeting.meetingYear}.pdf`}
+          />
+          {!artMeeting.isSkipped && (
+            <Link href={`/facility/residents/${id}/art-meetings/${meetingId}/edit`}>
+              <Button>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Meeting
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {artMeeting.isSkipped ? (

@@ -1,0 +1,39 @@
+[
+  {
+    "id": "cmmw9euq4000114aajwd0jtqg",
+    "intakeId": "cmly9dn9q0002qzgpkzigd48u",
+    "facilityId": "cmlv1gi3300087obts0c35wqi",
+    "meetingMonth": 3,
+    "meetingYear": 2026,
+    "meetingDate": "2026-03-18T00:00:00.000Z",
+    "isSkipped": false,
+    "skipReason": null,
+    "dxCodes": "- F10.20 – Alcohol Use Disorder, Severe\n- F15.10 – Stimulant Use Disorder (Methamphetamine), Mild to Moderate - F41.1 – Generalized Anxiety Disorder\n- F33.1 – Major Depressive Disorder, Recurrent, Moderate (provisional)\n- F31.81 – Rule Out Bipolar II Disorder (provisional)\n- F51.01 – Insomnia Disorder",
+    "presentDuringMeeting": [
+      "Resident",
+      "Case Manager",
+      "BHP",
+      "BHT/Administrator"
+    ],
+    "absentDuringMeeting": [],
+    "focusOfMeeting": "Amber's Progress Regarding\n- Therapy\n- Medication",
+    "resolutions": "- Schedule re-evaluation with Psych provider for monthly re-evaluation and review of Amber's medication prescriptions. ",
+    "strengths": "- Motivated for sobriety and treatment \n- Communication of her needs - ie Medication re-evaluation",
+    "barriers": "- Resident's engagement/Activity\n- Depression signs with low mood & decreased motivation",
+    "whatHasWorked": "- More encouragement for engagement\n- Variety of activities and group therapy topics",
+    "whatHasNotWorked": "N/A",
+    "goals": "GOAL 1: SELF-HARM PREVENTION --> Achieved\nGOAL 2: COPING SKILLS DEVELOPMENT --> Partially Achieved\nGOAL 3: SUBSTANCE AND ALCOHOL ABUSE RECOVERY -->  Partially Achieved\nGOAL 4: PERSONAL HYGIENE & CLEAN LIVING-SPACE -->  Partially Achieved\nGOAL 5: COUNSELING FOR BEHAVIORAL ISSUES --> Partially Achieved\nGOAL 6: INDEPENDENT LIVING SKILLS --> Partially Achieved\nGOAL 7: ANXIETY & DEPRESSION MANAGEMENT --> Partially Achieved\nGOAL 8: SLEEP HYGIENE --> Partially Achieved\nGOAL 9: ADJUSTMENT TO BHRF PROGRAM --> Achieved",
+    "concreteSteps": "Goal 1: Self-Harm Prevention (Achieved): Maintain safety checks, reinforce their crisis plan, and don't pull back support too quickly just because they're stable.\nGoal 2: Coping Skills Development: Teach grounding techniques, breathing exercises, and journaling. Practice during calm moments so they're usable during crisis. Include physical outlets like walks or exercise.\nGoal 3: Substance & Alcohol Abuse Recovery: Continue therapy and education on recovery. Increase activities and encourage engagement in hobbies, outings, and social interactions to keep them busy and preoccupied.\nGoal 4: Personal Hygiene & Clean Living Space: Daily checklist in their room. Staff prompts that gradually fade as habits build. Weekly room checks framed positively, not punitively.\nGoal 5: Counseling for Behavioral Issues: Keep therapy sessions consistent. Staff document behavioral incidents with context so the therapist has real data to work with between sessions.\nGoal 6: Independent Living Skills: Focus on one skill per week — cooking, budgeting, transit, appointments. Real-world practice beats classroom teaching.\nGoal 7: Anxiety & Depression Management: Medication compliance, daily routine with structure, physical activity, and teaching them to recognize early warning signs of a dip.\nGoal 8: Sleep Hygiene: Consistent sleep/wake times, no screens before bed, limit caffeine after noon, and a wind-down routine. Flag persistent issues to the prescriber.\nGoal 9: Adjustment to BHRF Program (Achieved): Keep reinforcing structure and start introducing discharge planning conversations so the transition out feels as supported as the transition in.",
+    "progressIndicators": "Goal 1: Self-Harm Prevention\nNo incidents reported, resident voluntarily uses crisis plan, and can verbally identify coping strategies when asked.\nGoal 2: Coping Skills Development\nResident uses techniques independently without staff prompting. Fewer emotional escalations over time. Staff observe them applying skills in real situations.\nGoal 3: Substance & Alcohol Abuse Recovery\nConsistent attendance in therapy and activities. Resident voluntarily participates rather than needing encouragement. Clean drug screens if applicable. Positive peer interactions.\nGoal 4: Personal Hygiene & Clean Living Space\nFewer staff prompts needed over time. Room passes weekly checks consistently. Resident maintains routine without reminders.\nGoal 5: Counseling for Behavioral Issues\nDecrease in documented behavioral incidents. Resident can articulate what triggered an episode and what they could do differently. Therapist reports engagement and progress.\nGoal 6: Independent Living Skills\nResident completes tasks with less supervision each week. Can demonstrate skills without guidance — cooking a meal, making an appointment, managing a basic budget.\nGoal 7: Anxiety & Depression Management\nSelf-reported mood improvements. Takes medication consistently without reminders. Maintains daily routine. Engages socially rather than isolating. Prescriber confirms stable presentation.\nGoal 8: Sleep Hygiene\nResident falls asleep and wakes at consistent times. Fewer complaints about fatigue or insomnia. Staff observe adherence to the wind-down routine.\nGoal 9: Adjustment to BHRF Program\nFollows house rules with minimal redirection. Positive relationships with staff and peers. Actively participates in programming and engages in discharge planning conversations.",
+    "medicalIssues": "Resident reports that she does not need prescribed medication anymore. \n",
+    "plan": "Monitor closed and report any observations to provider. ",
+    "notesTakenBy": "Richard Mugabe, BHT",
+    "meetingStartTime": "09:00",
+    "meetingEndTime": "09:30",
+    "status": "APPROVED",
+    "submittedAt": "2026-03-28T03:14:32.903Z",
+    "submittedBy": "cmlv1fer100017obt8d5ftmf8",
+    "createdAt": "2026-03-18T16:32:28.685Z",
+    "updatedAt": "2026-03-28T03:14:32.904Z"
+  }
+]

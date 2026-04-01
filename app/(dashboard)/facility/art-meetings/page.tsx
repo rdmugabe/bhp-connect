@@ -205,7 +205,7 @@ export default async function FacilityARTMeetingsPage() {
                           View
                         </Button>
                       </Link>
-                      {!meeting.isSkipped && meeting.status !== "APPROVED" && (
+                      {!meeting.isSkipped && (
                         <>
                           <Link
                             href={`/facility/residents/${meeting.intakeId}/art-meetings/${meeting.id}/edit`}
@@ -215,12 +215,14 @@ export default async function FacilityARTMeetingsPage() {
                               Edit
                             </Button>
                           </Link>
-                          <ARTMeetingSkipDialog
-                            meetingId={meeting.id}
-                            residentName={meeting.intake.residentName}
-                            meetingMonth={meeting.meetingMonth}
-                            meetingYear={meeting.meetingYear}
-                          />
+                          {meeting.status !== "APPROVED" && (
+                            <ARTMeetingSkipDialog
+                              meetingId={meeting.id}
+                              residentName={meeting.intake.residentName}
+                              meetingMonth={meeting.meetingMonth}
+                              meetingYear={meeting.meetingYear}
+                            />
+                          )}
                         </>
                       )}
                     </div>

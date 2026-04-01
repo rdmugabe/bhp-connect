@@ -1,0 +1,316 @@
+[
+  {
+    "id": "cmlyjzh6e0009ocmtddgyomws",
+    "intakeId": "cmlv1abyc00015low6x6n4pif",
+    "facilityId": "cmlv1gi3300087obts0c35wqi",
+    "dischargeDate": "2026-02-22T00:00:00.000Z",
+    "dischargeStartTime": "18:18",
+    "dischargeEndTime": "19:18",
+    "enrolledProgram": "PHP (Partial Hospitalization)",
+    "dischargeType": "Transfer to Higher Level of Care",
+    "recommendedLevelOfCare": "Inpatient hospitalization",
+    "contactPhoneAfterDischarge": "6028312698",
+    "contactAddressAfterDischarge": "7171 51st Ave, Laveen Village AZ 85339",
+    "diagnoses": null,
+    "allergies": null,
+    "asamLevelOfCare": null,
+    "presentingIssuesAtAdmission": "• Severe Opioid Use Disorder (fentanyl) - 19-year history, last use 3 days prior to admission\n• Severe Stimulant Use Disorder (methamphetamine) - 19-year history, last use day before admission\n• Severe Alcohol Use Disorder - 32-year history beginning at age 12\n• Major Depressive Disorder - rated 7/10 at worst\n• Generalized Anxiety Disorder - rated 10/10 at worst\n• Post-Traumatic Stress Disorder - related to physical abuse history and loss of child • Insomnia Disorder - chronic sleep disturbances\n• Homelessness - approximately 5 years without stable housing\n• Limited coping skills and emotional dysregulation\n• Multiple previous treatment attempts with limited completion (1 of 4 rehab programs completed)\n• Lack of support system and social connections\n• Iron deficiency and chronic back pain (4/10)",
+    "treatmentSummary": null,
+    "objectivesAttained": [],
+    "objectiveNarratives": {
+      "notAttained": "",
+      "fullyAttained": "",
+      "partiallyAttained": ""
+    },
+    "relapsePreventionPlan": null,
+    "crisisResources": null,
+    "patientEducationProvided": null,
+    "specialInstructions": null,
+    "completedServices": [
+      "Group Therapy",
+      "Individual Therapy",
+      "Housing Assistance",
+      "Peer Support",
+      "Transportation Assistance",
+      "Medication Management"
+    ],
+    "actualDischargeDate": null,
+    "dischargeSummaryNarrative": "The resident reported difficulty sleeping the night prior to presentation. The following day, she endorsed decreased energy levels, reduced appetite, and later experienced episodes of heart palpitations.\n\nDue to these symptoms, a staff member transported the resident to the Emergency Department at Dignity Health Arizona General Hospital, where care was transferred to the receiving nurse for further medical evaluation.\n\nHospital staff later informed Lucid Behavioral Health personnel that the resident was found to have a significantly low blood count requiring a blood transfusion. Following treatment and stabilization, the resident will be cleared for discharge.",
+    "dischargingTo": "Dignity Health Arizona General Hospital: Emergency Room",
+    "personalItemsReceived": false,
+    "personalItemsStoredDays": 0,
+    "itemsRemainAtFacility": true,
+    "dischargeMedications": [
+      {
+        "dosage": "25MG",
+        "frequency": "1 tablet/day",
+        "medication": "Sertraline",
+        "prescriber": "Dr. Adebukola Aladesanmi"
+      },
+      {
+        "dosage": "50MG",
+        "frequency": "1 tablet 1 time at bedtime",
+        "medication": "Trazodone",
+        "prescriber": "Dr. Adebukola Aladesanmi"
+      },
+      {
+        "dosage": "50MG",
+        "frequency": "1 capsule/6hours as needed",
+        "medication": "Hydroxyzine Pamoate",
+        "prescriber": "Dr. Adebukola Aladesanmi"
+      }
+    ],
+    "serviceReferrals": [],
+    "clinicalRecommendations": "Inpatient hospitalization until resident re-establishes stability.",
+    "culturalPreferencesConsidered": true,
+    "suicidePreventionEducation": "Crisis Resources\n• 988 Suicide & Crisis Lifeline: Call or text 988\n• Crisis Text Line: Text \"NATIVE\" or \"HOME\" to 741741 • Native American Crisis Line: 1-800-273-8255\n• Emergency: Call 911\n• BHRF Staff: Available 24/7",
+    "meetingInvitees": null,
+    "meetingAttendees": null,
+    "clientSignature": "N/A",
+    "clientSignatureDate": "2026-02-22T00:00:00.000Z",
+    "staffSignature": "Richard Mugabe",
+    "staffCredentials": "BHT",
+    "staffSignatureDate": "2026-02-22T00:00:00.000Z",
+    "reviewerSignature": "Dr. Chris Azode",
+    "reviewerCredentials": "DNP, PMHNP-BC, MBA",
+    "reviewerSignatureDate": "2026-02-22T00:00:00.000Z",
+    "status": "APPROVED",
+    "submittedAt": "2026-02-23T02:35:13.048Z",
+    "submittedBy": "cmlv1fer100017obt8d5ftmf8",
+    "createdAt": "2026-02-23T02:24:17.079Z",
+    "updatedAt": "2026-02-23T02:35:13.049Z"
+  },
+  {
+    "id": "cmmo9bsuy000173pc6z56998a",
+    "intakeId": "cmmjx7wc60004ovde5judao4f",
+    "facilityId": "cmlv1gi3300087obts0c35wqi",
+    "dischargeDate": "2026-03-11T00:00:00.000Z",
+    "dischargeStartTime": "",
+    "dischargeEndTime": "",
+    "enrolledProgram": "Residential",
+    "dischargeType": "AMA (Against Medical Advice)",
+    "recommendedLevelOfCare": "Residential treatment",
+    "contactPhoneAfterDischarge": "602-731-4725",
+    "contactAddressAfterDischarge": "NA",
+    "diagnoses": "F11.20 - Opioid Use Disorder, Moderate\nF15.20 - Stimulant Use Disorder, Moderate\nF33.1 - Major Depressive Disorder, Recurrent, Moderate\nF41.1 - Generalized Anxiety Disorder\nF51.01 - Primary Insomnia",
+    "allergies": "NKA (No Known Allergies)",
+    "asamLevelOfCare": "3.1 - Clinically Managed Low-Intensity Residential Services",
+    "presentingIssuesAtAdmission": "Patient presented with polysubstance use disorder involving opioids and stimulants, with co-occurring depression and anxiety. Patient reported history of trauma and difficulty managing cravings and emotional regulation.",
+    "treatmentSummary": "During her one day stay, the resident participated in comprehensive treatment addressing opioid and stimulant use disorders along with co-occurring depression and anxiety. Treatment focused on the following goals:\n1. Substance Use: Resident engaged in daily group therapy focusing on addiction recovery. Demostrated effort for treatment but was sleepy and not actively participant.",
+    "objectivesAttained": [
+      {
+        "attained": "Not Attained",
+        "objective": "Identify and demonstrate healthy coping mechanisms to manage stress and cravings without the use of substances"
+      },
+      {
+        "attained": "Not Attained",
+        "objective": "Demonstrate improved decision-making skills related to avoiding high-risk situations"
+      },
+      {
+        "attained": "Not Attained",
+        "objective": "Develop and verbalize a personalized relapse prevention plan"
+      },
+      {
+        "attained": "Not Attained",
+        "objective": "Participate actively in therapeutic programming and case management services"
+      },
+      {
+        "attained": "Not Attained",
+        "objective": "Demonstrate improved symptoms of mental health diagnoses through reported decreased frequency and intensity"
+      }
+    ],
+    "objectiveNarratives": {
+      "notAttained": "Patient did not complete sufficient time in treatment to develop and demonstrate coping mechanisms. Brief introduction to coping skills was provided during initial group sessions.\n\nPatient was unable to demonstrate improved decision-making as evidenced by AMA discharge before completing treatment recommendations.\n\nInitial relapse prevention planning was started but not completed due to early discharge.\n\nPatient attended limited programming during her 2-day stay but did not complete recommended treatment course.\n\nInsufficient time in treatment to assess improvement in mental health symptoms.",
+      "fullyAttained": "",
+      "partiallyAttained": ""
+    },
+    "relapsePreventionPlan": "1. Continue Suboxone (MAT) treatment as prescribed with outpatient provider\n2. Attend NA/AA meetings minimum 3x per week\n3. Identify and avoid high-risk triggers including people, places, and things associated with past use\n4. Utilize crisis hotline numbers when experiencing cravings or urges\n5. Re-engage with outpatient behavioral health services for ongoing therapy\n6. Build sober support network through community recovery resources",
+    "crisisResources": "National Suicide Prevention Lifeline: 1-800-273-8255 (24/7)\nSAMHSA National Helpline: 1-800-662-4357 (24/7)\nLocal Crisis Line: 480-784-1500\nCrisis Text Line: Text HOME to 741741",
+    "patientEducationProvided": "Patient was provided with education regarding:\n- Overdose prevention and Narcan use\n- Medication compliance importance\n- Recognizing relapse warning signs\n- Community recovery resources",
+    "specialInstructions": "Patient strongly encouraged to re-engage with residential treatment when ready. Bed will be held for 48 hours pending patient decision to return. Follow up with outpatient prescriber within 7 days for MAT continuation.",
+    "completedServices": [
+      "Group Therapy",
+      "Housing Assistance",
+      "Peer Support",
+      "Transportation Assistance"
+    ],
+    "actualDischargeDate": null,
+    "dischargeSummaryNarrative": "Juliane Lebron was admitted to Odeum Arizona BHRF on March 9, 2026 for residential treatment of polysubstance use disorder and co-occurring mental health conditions. Patient requested to visit her mom on the reservation. A staff member safely transported her to her mom's house and dropped her off on March 10, 2026. Ms. Lebron did not returned to the facility and all efforts to reach out to her or to contact her failed. Patient was previously advised of the risks of leaving treatment early including increased risk of relapse and overdose. Patient encouraged to return to treatment when ready.\n",
+    "dischargingTo": "Community (patient's own residence)",
+    "personalItemsReceived": true,
+    "personalItemsStoredDays": 0,
+    "itemsRemainAtFacility": false,
+    "dischargeMedications": [],
+    "serviceReferrals": [],
+    "clinicalRecommendations": "1. Continue MAT treatment with Suboxone\n2. Re-engage with residential treatment at earliest opportunity\n3. Attend outpatient behavioral health services\n4. Participate in peer support/12-step programming\n5. Follow up with psychiatry for medication management",
+    "culturalPreferencesConsidered": true,
+    "suicidePreventionEducation": "Patient provided with suicide prevention resources and safety planning. Crisis hotline numbers provided.",
+    "meetingInvitees": {
+      "bhp": true,
+      "nurse": false,
+      "bhtAdmin": true,
+      "resident": true,
+      "caseManager": false
+    },
+    "meetingAttendees": {
+      "bhp": true,
+      "nurse": false,
+      "bhtAdmin": true,
+      "resident": true,
+      "caseManager": false
+    },
+    "clientSignature": "N/A",
+    "clientSignatureDate": "2026-03-11T00:00:00.000Z",
+    "staffSignature": "Richard Mugabe",
+    "staffCredentials": "BHT",
+    "staffSignatureDate": "2026-03-11T00:00:00.000Z",
+    "reviewerSignature": "Chris Azode",
+    "reviewerCredentials": "DNP, PMHNP-BC, MBA",
+    "reviewerSignatureDate": "2026-03-11T00:00:00.000Z",
+    "status": "APPROVED",
+    "submittedAt": "2026-03-13T02:32:59.207Z",
+    "submittedBy": null,
+    "createdAt": "2026-03-13T02:07:56.890Z",
+    "updatedAt": "2026-03-13T02:32:59.208Z"
+  },
+  {
+    "id": "cmn3ky8i900014fo6jz61dxs2",
+    "intakeId": "cmmgv45lj0004hrcmzjqa0qec",
+    "facilityId": "cmlv1gi3300087obts0c35wqi",
+    "dischargeDate": "2026-03-23T00:00:00.000Z",
+    "dischargeStartTime": "09:30",
+    "dischargeEndTime": "5:00 PM",
+    "enrolledProgram": "Residential",
+    "dischargeType": "Transfer to Higher Level of Care",
+    "recommendedLevelOfCare": "Medical detox",
+    "contactPhoneAfterDischarge": "623-777-2400",
+    "contactAddressAfterDischarge": "Virtue Recovery Center, 13952 W Meeker Blvd, Sun City West, AZ 85375",
+    "diagnoses": "F11.20 Opioid Use Disorder, Severe; F15.20 Stimulant Use Disorder, Severe; F10.20 Alcohol Use Disorder, Severe; F33.1 Major Depressive Disorder, Recurrent, Moderate; F41.1 Generalized Anxiety Disorder; F43.10 Post-Traumatic Stress Disorder; F51.01 Primary Insomnia",
+    "allergies": "No Known Drug Allergies (NKDA)",
+    "asamLevelOfCare": "3.5 - Clinically Managed High-Intensity Residential",
+    "presentingIssuesAtAdmission": "Resident presented with polysubstance use disorder (opioids, stimulants, alcohol), co-occurring major depressive disorder, generalized anxiety disorder, PTSD, and insomnia. History of trauma and substance use as coping mechanism.",
+    "treatmentSummary": "Genevieve Begay was admitted on March 6, 2026 for residential substance use treatment. During her 17-day stay, she participated in individual therapy, group therapy, medication management, and skills training. She demonstrated initial engagement with treatment and compliance with her medication regimen. However, the resident recently experienced the loss of a cousin, which appears to have significantly impacted her emotional state and contributed to her relapse.\n\nOn March 23, 2026, the resident relapsed by consuming alcohol (a shot glass of liquor that she had secretly brought into the facility) after taking her morning medications. Following the alcohol consumption, the resident exhibited signs of intoxication and initially attempted to leave the facility. Staff engaged in verbal de-escalation and briefly convinced her to stay, but she subsequently changed her mind and expressed intent to leave Against Medical Advice (AMA).\n\nGiven the relapse and the need for medical detoxification, the treatment team arranged for the resident to be transferred to Virtue Recovery Center for their Detox program. This transfer represents a step-up to a higher level of care appropriate for her current clinical needs.",
+    "objectivesAttained": [
+      {
+        "attained": "Not Attained",
+        "objective": "Maintain sobriety from all substances"
+      },
+      {
+        "attained": "Partially Attained",
+        "objective": "Attend all scheduled therapy sessions"
+      },
+      {
+        "attained": "Partially Attained",
+        "objective": "Develop healthy coping mechanisms"
+      },
+      {
+        "attained": "Partially Attained",
+        "objective": "Engage in medication management"
+      },
+      {
+        "attained": "Partially Attained",
+        "objective": "Address trauma-related symptoms"
+      }
+    ],
+    "objectiveNarratives": {
+      "notAttained": "Resident experienced a relapse on March 23, 2026, consuming alcohol while at the facility. This represents a setback in the primary sobriety objective. Resident is being transferred to Virtue Recovery Center Detox program for stabilization.",
+      "fullyAttained": "",
+      "partiallyAttained": "Resident demonstrated initial progress in therapy engagement, medication compliance, and developing coping skills. However, treatment was interrupted by relapse incident and subsequent transfer to higher level of care."
+    },
+    "relapsePreventionPlan": "1. Complete detox program at Virtue Recovery Center\n2. Address grief and bereavement issues related to recent loss of cousin\n3. Identify triggers associated with grief and emotional distress\n4. Develop alternative coping strategies for managing grief without substances\n5. Increase engagement with support system\n6. Consider grief counseling or bereavement support services\n7. Regular check-ins with treatment team post-detox",
+    "crisisResources": "Crisis Text Line: Text HOME to 741741\nNational Suicide Prevention Lifeline: 988\nSAMHSA National Helpline: 1-800-662-4357\nVirtue Recovery Center (receiving facility): 13952 W Meeker Blvd, Sun City West, AZ 85375\nLocal Emergency Services: 911",
+    "patientEducationProvided": "Resident was educated on:\n- Signs and symptoms of alcohol withdrawal\n- Importance of completing detox under medical supervision\n- Medication information and compliance\n- Grief and its impact on recovery\n- Relapse as part of recovery process, not failure\n- Importance of continuing treatment after detox",
+    "specialInstructions": "Resident is being transported directly to Virtue Recovery Center for Detox program admission. Medical records and medication list have been sent to receiving facility. Resident should not consume any alcohol or substances during transport. Monitor for signs of withdrawal during transport.",
+    "completedServices": [
+      "Individual Therapy",
+      "Group Therapy",
+      "Medication Management",
+      "Skills Training",
+      "Crisis Intervention",
+      "Peer Support"
+    ],
+    "actualDischargeDate": "2026-03-23T00:00:00.000Z",
+    "dischargeSummaryNarrative": "Genevieve Begay, a 44-year-old female, is being discharged from Lucid Recovery residential treatment on March 23, 2026, following a relapse incident. The resident had been making progress in her treatment for polysubstance use disorder and co-occurring mental health conditions when she experienced the loss of a family member (cousin) approximately one week prior to the incident.\n\nOn the morning of March 23, the resident consumed alcohol that she had secretly brought into the facility. Staff observed signs of intoxication and engaged the resident in de-escalation. While initially agreeing to stay, the resident subsequently expressed intent to leave AMA and stated she was going to a nearby convenience store.\n\nGiven the clinical presentation and need for medical detoxification, the treatment team has arranged for transfer to Virtue Recovery Center Detox program. This represents an appropriate step-up in care to address the immediate need for medically supervised detox.\n\nThe resident is discharged in stable condition with arrangements for continuity of care at Virtue Recovery Center. Medication list and relevant clinical documentation have been provided to the receiving facility.",
+    "dischargingTo": "Virtue Recovery Center - Detox Program\n13952 W Meeker Blvd\nSun City West, AZ 85375",
+    "personalItemsReceived": true,
+    "personalItemsStoredDays": 0,
+    "itemsRemainAtFacility": false,
+    "dischargeMedications": [
+      {
+        "dosage": "1 TABLET/324MG",
+        "frequency": "DAILY",
+        "medication": "FERROUS SULF",
+        "prescriber": ""
+      },
+      {
+        "dosage": "1 TABLET/40MG",
+        "frequency": "BID",
+        "medication": "PANTOPRAZOLE",
+        "prescriber": "Adebukola Aladesanmi, PMHNP-BC"
+      },
+      {
+        "dosage": "1 TABLET/50MG",
+        "frequency": "QHS (at bedtime)",
+        "medication": "TRAZODONE",
+        "prescriber": "Adebukola Aladesanmi, PMHNP-BC"
+      },
+      {
+        "dosage": "1 TABLET/25MG",
+        "frequency": "DAILY",
+        "medication": "SERTRALINE",
+        "prescriber": "Adebukola Aladesanmi, PMHNP-BC"
+      },
+      {
+        "dosage": "1 TABLET/50MG",
+        "frequency": "PRN (as needed for anxiety)",
+        "medication": "HYDROXYZINE PAMOATE",
+        "prescriber": "Adebukola Aladesanmi, PMHNP-BC"
+      },
+      {
+        "dosage": "1 TABLET/500MG",
+        "frequency": "DAILY",
+        "medication": "Vitamin C",
+        "prescriber": "Adebukola Aladesanmi, PMHNP-BC"
+      }
+    ],
+    "serviceReferrals": [
+      {
+        "phone": "",
+        "address": "13952 W Meeker Blvd, Sun City West, AZ 85375",
+        "service": "Detox Program",
+        "provider": "Virtue Recovery Center",
+        "appointmentDate": "2026-03-23"
+      }
+    ],
+    "clinicalRecommendations": "1. Complete medical detox program at Virtue Recovery Center\n2. Upon completion of detox, recommend return to residential treatment or step-down to appropriate level of care\n3. Address grief/bereavement issues through individual therapy\n4. Continue current psychiatric medications as prescribed\n5. Consider medication adjustment for depression/anxiety if symptoms worsen\n6. Engage family/support system in treatment when appropriate\n7. Develop comprehensive relapse prevention plan addressing grief triggers",
+    "culturalPreferencesConsidered": true,
+    "suicidePreventionEducation": "Resident was provided education on recognizing warning signs of suicidal ideation, crisis resources, and importance of reaching out for help. Crisis hotline numbers provided. Resident denied current suicidal ideation at time of discharge.",
+    "meetingInvitees": {
+      "bhp": true,
+      "nurse": false,
+      "bhtAdmin": true,
+      "resident": true,
+      "caseManager": false
+    },
+    "meetingAttendees": {
+      "bhp": true,
+      "nurse": false,
+      "bhtAdmin": true,
+      "resident": false,
+      "caseManager": false
+    },
+    "clientSignature": "N/A",
+    "clientSignatureDate": null,
+    "staffSignature": "Richard Mugabe",
+    "staffCredentials": "BHT",
+    "staffSignatureDate": "2026-03-23T00:00:00.000Z",
+    "reviewerSignature": "Dr. Chris Azode",
+    "reviewerCredentials": "DNP, PMHNP-BC, MBA",
+    "reviewerSignatureDate": "2026-03-23T00:00:00.000Z",
+    "status": "APPROVED",
+    "submittedAt": "2026-03-23T21:37:18.954Z",
+    "submittedBy": null,
+    "createdAt": "2026-03-23T19:29:52.017Z",
+    "updatedAt": "2026-03-23T21:37:18.955Z"
+  }
+]

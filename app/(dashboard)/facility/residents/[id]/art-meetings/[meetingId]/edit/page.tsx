@@ -55,8 +55,8 @@ export default async function EditARTMeetingPage({
     notFound();
   }
 
-  // Cannot edit skipped or approved meetings
-  if (artMeeting.isSkipped || artMeeting.status === "APPROVED") {
+  // Cannot edit skipped meetings
+  if (artMeeting.isSkipped) {
     redirect(`/facility/residents/${id}/art-meetings/${meetingId}`);
   }
 

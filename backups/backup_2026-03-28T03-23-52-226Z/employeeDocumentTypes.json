@@ -1,0 +1,93 @@
+[
+  {
+    "id": "sys_cpr_cert",
+    "facilityId": null,
+    "name": "CPR Certification",
+    "description": "Current CPR certification from an approved provider (American Heart Association, Red Cross, etc.)",
+    "expirationRequired": true,
+    "expirationMonths": 24,
+    "isDefault": true,
+    "isRequired": true,
+    "isActive": true,
+    "createdAt": "2026-02-27T20:05:41.940Z",
+    "updatedAt": "2026-03-08T06:30:29.372Z"
+  },
+  {
+    "id": "sys_first_aid",
+    "facilityId": null,
+    "name": "First Aid Certification",
+    "description": "Current First Aid certification from an approved provider",
+    "expirationRequired": true,
+    "expirationMonths": 24,
+    "isDefault": true,
+    "isRequired": true,
+    "isActive": true,
+    "createdAt": "2026-02-27T20:05:42.482Z",
+    "updatedAt": "2026-03-08T06:30:29.492Z"
+  },
+  {
+    "id": "sys_fingerprint",
+    "facilityId": null,
+    "name": "Fingerprint Clearance Card",
+    "description": "Valid Arizona DPS Fingerprint Clearance Card",
+    "expirationRequired": true,
+    "expirationMonths": 72,
+    "isDefault": true,
+    "isRequired": true,
+    "isActive": true,
+    "createdAt": "2026-02-27T20:05:42.748Z",
+    "updatedAt": "2026-03-08T06:30:29.551Z"
+  },
+  {
+    "id": "sys_tb_test",
+    "facilityId": null,
+    "name": "TB Test Results",
+    "description": "Current tuberculosis test results (Mantoux skin test or written statement from medical practitioner)",
+    "expirationRequired": true,
+    "expirationMonths": 12,
+    "isDefault": true,
+    "isRequired": true,
+    "isActive": true,
+    "createdAt": "2026-02-27T20:05:42.988Z",
+    "updatedAt": "2026-03-08T06:30:29.611Z"
+  },
+  {
+    "id": "sys_tb_training",
+    "facilityId": null,
+    "name": "TB Training Documentation",
+    "description": "Tuberculosis infection control training documentation",
+    "expirationRequired": true,
+    "expirationMonths": 12,
+    "isDefault": true,
+    "isRequired": true,
+    "isActive": true,
+    "createdAt": "2026-02-27T20:05:43.245Z",
+    "updatedAt": "2026-03-08T06:30:29.670Z"
+  },
+  {
+    "id": "sys_fall_prevention",
+    "facilityId": null,
+    "name": "Fall Prevention Training",
+    "description": "Fall prevention and recovery training documentation",
+    "expirationRequired": true,
+    "expirationMonths": 12,
+    "isDefault": true,
+    "isRequired": true,
+    "isActive": true,
+    "createdAt": "2026-02-27T20:05:43.536Z",
+    "updatedAt": "2026-03-08T06:30:29.730Z"
+  },
+  {
+    "id": "sys_medication_training",
+    "facilityId": null,
+    "name": "Medication Training",
+    "description": "Medication administration training documentation including proper handling, storage, and dispensing of medications",
+    "expirationRequired": true,
+    "expirationMonths": 12,
+    "isDefault": true,
+    "isRequired": true,
+    "isActive": true,
+    "createdAt": "2026-03-08T06:30:29.790Z",
+    "updatedAt": "2026-03-08T06:30:29.790Z"
+  }
+]

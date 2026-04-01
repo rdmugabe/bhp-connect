@@ -1111,6 +1111,7 @@ model ARTMeeting {
   progressIndicators   String?  @db.Text
   medicalIssues        String?  @db.Text
   plan                 String?  @db.Text
+  summary              String?  @db.Text  // Summary/explanation of the meeting
   notesTakenBy         String?
   meetingStartTime     String?
   meetingEndTime       String?
