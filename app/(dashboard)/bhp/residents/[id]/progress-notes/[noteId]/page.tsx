@@ -111,8 +111,6 @@ export default async function BHPViewProgressNotePage({
           residentResponse: progressNote.residentResponse,
           notableEvents: progressNote.notableEvents,
           additionalNotes: progressNote.additionalNotes,
-          generatedNote: progressNote.generatedNote,
-          riskFlagsDetected: progressNote.riskFlagsDetected,
           status: progressNote.status,
           bhtSignature: progressNote.bhtSignature,
           bhtCredentials: progressNote.bhtCredentials,

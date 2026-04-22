@@ -21,10 +21,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { RiskFlagBanner } from "./risk-flag-banner";
 import { formatDate } from "@/lib/utils";
 import { PROGRESS_NOTE_SHIFTS } from "@/lib/validations";
-import { Sparkles, Loader2, Save, CheckCircle } from "lucide-react";
+import { Loader2, Save, CheckCircle } from "lucide-react";
 
 interface ResidentInfo {
   id: string;
@@ -52,8 +51,6 @@ interface ProgressNoteData {
   residentResponse?: string | null;
   notableEvents?: string | null;
   additionalNotes?: string | null;
-  generatedNote?: string | null;
-  riskFlagsDetected?: string[];
   status?: string;
   // Signature fields
   bhtSignature?: string | null;
@@ -78,7 +75,6 @@ export function ProgressNoteForm({
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const [formData, setFormData] = useState({
     noteDate: initialData?.noteDate
@@ -109,13 +105,6 @@ export function ProgressNoteForm({
       : "",
   });
 
-  const [generatedNote, setGeneratedNote] = useState(
-    initialData?.generatedNote || ""
-  );
-  const [riskFlags, setRiskFlags] = useState<string[]>(
-    initialData?.riskFlagsDetected || []
-  );
-
   async function handleSave(isDraft: boolean = true) {
     if (isDraft) {
       setIsSavingDraft(true);
@@ -137,19 +126,8 @@ export function ProgressNoteForm({
         isDraft,
       };
 
-      // Include generated note and risk flags if they exist
-      if (mode === "edit" && generatedNote) {
-        payload.generatedNote = generatedNote;
-        payload.riskFlagsDetected = riskFlags;
-      }
-
-      // If finalizing, include the generated note
       if (!isDraft) {
         payload.status = "FINAL";
-        if (generatedNote) {
-          payload.generatedNote = generatedNote;
-          payload.riskFlagsDetected = riskFlags;
-        }
       }
 
       const response = await fetch(url, {
@@ -185,98 +163,8 @@ export function ProgressNoteForm({
     }
   }
 
-  async function handleGenerate() {
-    // First save the current data
-    if (mode === "create") {
-      // Need to create the note first
-      setIsSavingDraft(true);
-      try {
-        const response = await fetch("/api/progress-notes", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...formData,
-            intakeId: resident.id,
-            isDraft: true,
-          }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "Failed to save progress note");
-        }
-
-        const data = await response.json();
-        // Now generate with the new ID
-        await generateNote(data.progressNote.id);
-
-        // Redirect to edit page
-        router.push(`/facility/residents/${resident.id}/progress-notes/${data.progressNote.id}`);
-        router.refresh();
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description:
-            error instanceof Error ? error.message : "Failed to create progress note",
-        });
-      } finally {
-        setIsSavingDraft(false);
-      }
-    } else if (initialData?.id) {
-      // Save current changes first
-      setIsSavingDraft(true);
-      try {
-        await fetch(`/api/progress-notes/${initialData.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-      } catch {
-        // Continue with generation even if save fails
-      }
-      setIsSavingDraft(false);
-      await generateNote(initialData.id);
-    }
-  }
-
-  async function generateNote(noteId: string) {
-    setIsGenerating(true);
-    try {
-      const response = await fetch(`/api/progress-notes/${noteId}/generate`, {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to generate note");
-      }
-
-      const data = await response.json();
-      setGeneratedNote(data.generatedNote);
-      setRiskFlags(data.riskFlags || []);
-
-      toast({
-        title: "Note Generated",
-        description: "AI has generated a professional clinical note",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Generation Failed",
-        description:
-          error instanceof Error ? error.message : "Failed to generate note",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  }
-
   return (
     <div className="space-y-6">
-      {/* Risk Flag Banner */}
-      {riskFlags.length > 0 && <RiskFlagBanner riskFlags={riskFlags} />}
-
       {/* Resident Information */}
       <Card>
         <CardHeader>
@@ -387,7 +275,7 @@ export function ProgressNoteForm({
         <CardHeader>
           <CardTitle>Staff Observations</CardTitle>
           <CardDescription>
-            Enter brief observations. AI will convert these into professional clinical documentation.
+            Document what you observed during your shift. Keep it simple and factual.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -603,58 +491,6 @@ export function ProgressNoteForm({
         </CardContent>
       </Card>
 
-      {/* Generated Note */}
-      {(generatedNote || !readOnly) && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-purple-500" />
-                  AI-Generated Clinical Note
-                </CardTitle>
-                <CardDescription>
-                  Professional clinical documentation ready for audit
-                </CardDescription>
-              </div>
-              {!readOnly && !initialData?.status?.includes("FINAL") && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleGenerate}
-                  disabled={isGenerating || !formData.authorName}
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      {generatedNote ? "Regenerate" : "Generate Note"}
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {generatedNote ? (
-              <div className="bg-muted/50 p-4 rounded-lg whitespace-pre-wrap">
-                {generatedNote}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Fill in the observation fields above, then click &quot;Generate Note&quot;</p>
-                <p className="text-sm">AI will convert your observations into professional clinical documentation</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
       {/* BHT Signature Section */}
       <Card>
         <CardHeader>
@@ -730,7 +566,7 @@ export function ProgressNoteForm({
           <Button
             type="button"
             variant="secondary"
-            disabled={isSavingDraft || isLoading || isGenerating}
+            disabled={isSavingDraft || isLoading}
             onClick={() => handleSave(true)}
           >
             {isSavingDraft ? (
@@ -745,26 +581,24 @@ export function ProgressNoteForm({
               </>
             )}
           </Button>
-          {generatedNote && (
-            <Button
-              type="button"
-              disabled={isLoading || isSavingDraft || isGenerating || !formData.bhtSignature || !formData.bhtSignatureDate}
-              onClick={() => handleSave(false)}
-              title={!formData.bhtSignature || !formData.bhtSignatureDate ? "Signature required to finalize" : ""}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Finalizing...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Finalize Note
-                </>
-              )}
-            </Button>
-          )}
+          <Button
+            type="button"
+            disabled={isLoading || isSavingDraft || !formData.bhtSignature || !formData.bhtSignatureDate}
+            onClick={() => handleSave(false)}
+            title={!formData.bhtSignature || !formData.bhtSignatureDate ? "Signature required to finalize" : ""}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Finalizing...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Finalize Note
+              </>
+            )}
+          </Button>
         </div>
       )}
     </div>

@@ -378,7 +378,7 @@ export default async function BHPResidentDetailPage({
                 )}
               </CardTitle>
               <CardDescription>
-                AI-powered daily progress notes
+                Daily progress notes
               </CardDescription>
             </div>
             <Link href={`/bhp/residents/${resident.id}/progress-notes`}>
@@ -415,11 +415,6 @@ export default async function BHPResidentDetailPage({
                     <Badge variant={note.status === "FINAL" ? "default" : "secondary"}>
                       {note.status === "FINAL" ? "Final" : "Draft"}
                     </Badge>
-                    {note.riskFlagsDetected && note.riskFlagsDetected.length > 0 && (
-                      <Badge variant="destructive" className="ml-2">
-                        Risk
-                      </Badge>
-                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">

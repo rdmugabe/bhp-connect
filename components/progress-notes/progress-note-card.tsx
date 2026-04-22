@@ -10,9 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RiskFlagBadge } from "./risk-flag-banner";
 import { formatDate } from "@/lib/utils";
-import { Eye, Edit, FileText, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Eye, Edit, FileText, Clock, CheckCircle2 } from "lucide-react";
 
 interface ProgressNote {
   id: string;
@@ -21,8 +20,6 @@ interface ProgressNote {
   authorName: string;
   authorTitle: string | null;
   status: string;
-  riskFlagsDetected: string[];
-  generatedNote: string | null;
   createdAt: Date | string;
   intake: {
     id: string;
@@ -45,28 +42,17 @@ export function ProgressNoteCard({
   showActions = true,
   readOnly = false,
 }: ProgressNoteCardProps) {
-  const hasRiskFlags = note.riskFlagsDetected && note.riskFlagsDetected.length > 0;
-  const hasCriticalFlags = note.riskFlagsDetected?.some(
-    (f) => f === "SUICIDAL_IDEATION" || f === "HOMICIDAL_IDEATION" || f === "SELF_HARM"
-  );
-
   return (
-    <Card className={hasCriticalFlags ? "border-red-300 bg-red-50/30" : ""}>
+    <Card>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div
               className={`p-2 rounded-full ${
-                hasCriticalFlags
-                  ? "bg-red-100"
-                  : note.status === "FINAL"
-                  ? "bg-green-100"
-                  : "bg-yellow-100"
+                note.status === "FINAL" ? "bg-green-100" : "bg-yellow-100"
               }`}
             >
-              {hasCriticalFlags ? (
-                <AlertTriangle className="h-5 w-5 text-red-600" />
-              ) : note.status === "FINAL" ? (
+              {note.status === "FINAL" ? (
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
               ) : (
                 <Clock className="h-5 w-5 text-yellow-600" />
@@ -96,24 +82,6 @@ export function ProgressNoteCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Risk Flags */}
-        {hasRiskFlags && (
-          <div className="flex flex-wrap gap-2">
-            {note.riskFlagsDetected.map((flag) => (
-              <RiskFlagBadge key={flag} flag={flag} size="sm" />
-            ))}
-          </div>
-        )}
-
-        {/* Preview */}
-        {note.generatedNote && (
-          <div className="bg-muted/50 p-3 rounded-lg">
-            <p className="text-sm text-muted-foreground line-clamp-3">
-              {note.generatedNote}
-            </p>
-          </div>
-        )}
-
         {/* Actions */}
         {showActions && (
           <div className="flex gap-2 pt-2">

@@ -55,20 +55,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     color: "#1a365d",
-    marginBottom: 4,
+    marginBottom: 6,
+    lineHeight: 1.2,
   },
   title: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#1a365d",
-    marginBottom: 4,
+    marginBottom: 6,
     textAlign: "center",
+    lineHeight: 1.2,
   },
   subtitle: {
     fontSize: 11,
     color: "#4a5568",
     textAlign: "center",
     marginBottom: 8,
+    lineHeight: 1.2,
   },
   confidentialBanner: {
     backgroundColor: "#fed7d7",
@@ -439,7 +442,6 @@ function SignatureSection({ data }: { data: ProgressNoteData }) {
 }
 
 export function ProgressNotePDF({ data }: { data: ProgressNoteData }) {
-  const hasRiskFlags = data.riskFlagsDetected && data.riskFlagsDetected.length > 0;
   const hasObservations = data.residentStatus || data.observedBehaviors ||
     data.moodAffect || data.activityParticipation || data.staffInteractions ||
     data.peerInteractions || data.medicationCompliance || data.hygieneAdl ||
@@ -466,20 +468,6 @@ export function ProgressNotePDF({ data }: { data: ProgressNoteData }) {
           </View>
         </View>
 
-        {/* Risk Flags Banner */}
-        {hasRiskFlags && (
-          <View style={styles.riskBanner}>
-            <Text style={styles.riskTitle}>RISK INDICATORS DETECTED</Text>
-            <Text style={styles.riskFlags}>
-              {data.riskFlagsDetected?.map(flag => RISK_FLAG_LABELS[flag] || flag).join(" | ")}
-            </Text>
-            <Text style={styles.riskWarning}>
-              Staff should continue to monitor the resident closely and follow facility
-              protocol by notifying appropriate clinical personnel.
-            </Text>
-          </View>
-        )}
-
         {/* Resident Information */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Resident Information</Text>
@@ -502,14 +490,6 @@ export function ProgressNotePDF({ data }: { data: ProgressNoteData }) {
             </View>
           </View>
         </View>
-
-        {/* AI Generated Clinical Note */}
-        {data.generatedNote && (
-          <View style={styles.generatedNoteSection} wrap={false}>
-            <Text style={styles.generatedNoteTitle}>Clinical Progress Note</Text>
-            <Text style={styles.generatedNoteContent}>{data.generatedNote}</Text>
-          </View>
-        )}
 
         {/* Staff Observations */}
         {hasObservations && (

@@ -100,7 +100,7 @@ export default async function BHPResidentProgressNotesPage({
             Daily Progress Notes
           </CardTitle>
           <CardDescription>
-            AI-powered clinical documentation for this resident
+            Daily progress notes for this resident
           </CardDescription>
         </CardHeader>
         <CardContent>
