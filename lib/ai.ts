@@ -174,7 +174,7 @@ export async function generateProgressNote(
   const userMessage = formatInputsForAI(inputs);
 
   const response = await client.messages.create({
-    model: "claude-3-haiku-20240307",
+    model: "claude-haiku-4-5",
     max_tokens: 1024,
     system: CLINICAL_SYSTEM_PROMPT,
     messages: [
@@ -419,7 +419,7 @@ export async function generateDischargeSummary(
   const userMessage = formatDischargeSummaryInputs(inputs);
 
   const response = await client.messages.create({
-    model: "claude-3-haiku-20240307",
+    model: "claude-haiku-4-5",
     max_tokens: 2048,
     system: DISCHARGE_SYSTEM_PROMPT,
     messages: [
@@ -573,7 +573,7 @@ export async function generateCareCoordinationSummary(
   const userMessage = formatCareCoordinationInputs(inputs);
 
   const response = await client.messages.create({
-    model: "claude-3-haiku-20240307",
+    model: "claude-haiku-4-5",
     max_tokens: 1024,
     system: CARE_COORDINATION_SYSTEM_PROMPT,
     messages: [
