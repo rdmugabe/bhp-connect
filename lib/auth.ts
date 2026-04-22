@@ -43,6 +43,11 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid email or password");
         }
 
+        // Block deactivated users
+        if (!user.isActive) {
+          throw new Error("Account has been deactivated. Please contact your facility admin.");
+        }
+
         // Check MFA if enabled
         if (user.mfaEnabled && user.mfaSecret) {
           if (!credentials.mfaCode) {

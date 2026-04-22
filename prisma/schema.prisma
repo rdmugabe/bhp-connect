@@ -142,12 +142,16 @@ model User {
   approvedBy      String?
   approvedAt      DateTime?
   rejectionReason String?        @db.Text
+  isActive        Boolean        @default(true)
+  deactivatedAt   DateTime?
+  deactivatedBy   String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
   // Relations
   bhpProfile          BHPProfile?
   bhrfProfile         BHRFProfile?
+  employee            Employee?
   auditLogs           AuditLog[]
   sentMessages        Message[]            @relation("SentMessages")
   facilityApplication FacilityApplication?
@@ -155,6 +159,7 @@ model User {
 
   @@index([email])
   @@index([approvalStatus])
+  @@index([isActive])
 }
 
 model BHPProfile {
@@ -216,14 +221,16 @@ model Facility {
 }
 
 model BHRFProfile {
-  id         String   @id @default(cuid())
-  userId     String   @unique
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  facilityId String
-  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facilityId      String
+  facility        Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  isFacilityAdmin Boolean  @default(false)
 
   @@index([userId])
   @@index([facilityId])
+  @@index([isFacilityAdmin])
 }
 
 model FacilityApplication {
@@ -689,6 +696,8 @@ model Employee {
   id         String    @id @default(cuid())
   facilityId String
   facility   Facility  @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  userId     String?   @unique
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   firstName  String
   lastName   String
   email      String?
@@ -704,6 +713,7 @@ model Employee {
 
   @@index([facilityId])
   @@index([isActive])
+  @@index([userId])
 }
 
 // Documents submitted by employees

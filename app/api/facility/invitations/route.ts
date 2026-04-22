@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 import { sendInvitationEmail } from "@/lib/email";
+import { requireFacilityAdmin, FacilityAdminError } from "@/lib/facility-admin";
 import { z } from "zod";
 
 const invitationSchema = z.object({
@@ -59,23 +60,14 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== "BHRF") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const bhrfProfile = await prisma.bHRFProfile.findUnique({
-      where: { userId: session.user.id },
-      include: {
-        facility: true,
-        user: true,
-      },
-    });
-
-    if (!bhrfProfile) {
-      return NextResponse.json(
-        { error: "BHRF profile not found" },
-        { status: 404 }
-      );
+    let bhrfProfile;
+    try {
+      bhrfProfile = await requireFacilityAdmin(session);
+    } catch (err) {
+      if (err instanceof FacilityAdminError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
 
     const body = await request.json();
@@ -119,7 +111,7 @@ export async function POST(request: NextRequest) {
           token,
           expiresAt,
           role: validatedData.role,
-          invitedById: session.user.id,
+          invitedById: bhrfProfile.userId,
         },
       });
     } else {
@@ -131,7 +123,7 @@ export async function POST(request: NextRequest) {
           role: validatedData.role,
           token,
           expiresAt,
-          invitedById: session.user.id,
+          invitedById: bhrfProfile.userId,
         },
       });
     }
@@ -163,7 +155,7 @@ export async function POST(request: NextRequest) {
     }
 
     await createAuditLog({
-      userId: session.user.id,
+      userId: bhrfProfile.userId,
       action: AuditActions.INVITATION_SENT,
       entityType: "FacilityInvitation",
       entityId: invitation.id,

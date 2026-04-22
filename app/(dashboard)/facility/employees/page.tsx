@@ -23,11 +23,18 @@ import { useToast } from "@/components/ui/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Users, Settings, Eye, Mail, RotateCcw } from "lucide-react";
+import { Plus, Search, Users, Settings, Eye, Mail, RotateCcw, UserCog } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { EmployeeComplianceBadge } from "@/components/employees/employee-compliance-badge";
 import { EmployeeEmailDialog } from "@/components/employees/employee-email-dialog";
+import { StaffList } from "@/components/staff/staff-list";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 interface Employee {
   id: string;
@@ -229,6 +236,20 @@ export default function FacilityEmployeesPage() {
         </Card>
       </div>
 
+      <Tabs defaultValue="employees" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="employees" className="gap-2">
+            <Users className="h-4 w-4" />
+            Employees (Compliance)
+          </TabsTrigger>
+          <TabsTrigger value="staff-logins" className="gap-2">
+            <UserCog className="h-4 w-4" />
+            Staff Logins
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="employees" className="space-y-4">
+
       {/* Employee List */}
       <Card>
         <CardHeader>
@@ -370,6 +391,12 @@ export default function FacilityEmployeesPage() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="staff-logins">
+          <StaffList />
+        </TabsContent>
+      </Tabs>
 
       <EmployeeFormDialog
         open={showAddDialog || !!editingEmployee}

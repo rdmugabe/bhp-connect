@@ -77,8 +77,8 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await bcrypt.hash(validatedData.password, 12);
 
-    // Create user and BHRF profile in a transaction
-    const user = await prisma.$transaction(async (tx) => {
+    // Create user, BHRF profile, and link/create Employee record in a transaction
+    const { user, employee } = await prisma.$transaction(async (tx) => {
       // Create the user as BHRF with APPROVED status (invited staff are pre-approved)
       const newUser = await tx.user.create({
         data: {
@@ -109,7 +109,45 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return newUser;
+      // Link to existing Employee (by email+facility) or create a new one
+      // so this login is tracked in the compliance system.
+      const existingEmployee = await tx.employee.findFirst({
+        where: {
+          facilityId: invitation.facilityId,
+          email: invitation.email,
+          userId: null,
+        },
+      });
+
+      let linkedEmployee;
+      if (existingEmployee) {
+        linkedEmployee = await tx.employee.update({
+          where: { id: existingEmployee.id },
+          data: {
+            userId: newUser.id,
+            isActive: true,
+          },
+        });
+      } else {
+        // Split name into first/last for the Employee record
+        const nameParts = validatedData.name.trim().split(/\s+/);
+        const firstName = nameParts[0] || validatedData.name;
+        const lastName = nameParts.slice(1).join(" ") || "";
+
+        linkedEmployee = await tx.employee.create({
+          data: {
+            facilityId: invitation.facilityId,
+            userId: newUser.id,
+            firstName,
+            lastName,
+            email: invitation.email,
+            position: invitation.role,
+            isActive: true,
+          },
+        });
+      }
+
+      return { user: newUser, employee: linkedEmployee };
     });
 
     // Create audit logs
@@ -137,6 +175,7 @@ export async function POST(request: NextRequest) {
         email: invitation.email,
         role: invitation.role,
         facilityName: invitation.facility.name,
+        linkedEmployeeId: employee.id,
       },
     });
 
