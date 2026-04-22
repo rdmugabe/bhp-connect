@@ -42,6 +42,7 @@ export async function GET(
             dateOfBirth: true,
             admissionDate: true,
             policyNumber: true,
+            diagnosis: true,
           },
         },
       },

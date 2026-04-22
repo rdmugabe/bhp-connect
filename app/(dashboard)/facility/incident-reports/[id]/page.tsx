@@ -72,6 +72,7 @@ interface IncidentReport {
     dateOfBirth: string;
     admissionDate: string | null;
     policyNumber: string | null;
+    diagnosis: string | null;
   } | null;
 }
 
@@ -287,6 +288,12 @@ export default function ViewIncidentReportPage() {
               <p className="font-medium">{residentAhcccs || "N/A"}</p>
             </div>
           </div>
+          {report.intake?.diagnosis && (
+            <div className="mt-4">
+              <p className="text-sm text-muted-foreground">Diagnosis</p>
+              <p className="font-medium">{report.intake.diagnosis}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

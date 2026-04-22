@@ -178,6 +178,7 @@ interface IncidentReportData {
   residentDOB: string | null;
   residentAdmissionDate: string | null;
   residentAhcccsId: string | null;
+  residentDiagnosis: string | null;
   incidentTypes: string[];
   otherIncidentType: string | null;
   incidentDescription: string;
@@ -389,6 +390,12 @@ export function IncidentReportPDF({ data }: { data: IncidentReportData }) {
               </View>
             </View>
           </View>
+          {data.residentDiagnosis && (
+            <View style={styles.textBlock}>
+              <Text style={styles.textBlockLabel}>Diagnosis:</Text>
+              <Text style={styles.textBlockValue}>{data.residentDiagnosis}</Text>
+            </View>
+          )}
         </View>
 
         {/* Incident Type */}
