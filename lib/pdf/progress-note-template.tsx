@@ -398,7 +398,7 @@ function PageFooter({ facilityName }: { facilityName: string }) {
 function ObservationBlock({ label, value }: { label: string; value?: string }) {
   if (!value) return null;
   return (
-    <View style={styles.observationBlock}>
+    <View style={styles.observationBlock} wrap={false}>
       <Text style={styles.observationLabel}>{label}</Text>
       <Text style={styles.observationValue}>{value}</Text>
     </View>
@@ -448,8 +448,9 @@ export function ProgressNotePDF({ data }: { data: ProgressNoteData }) {
 
   return (
     <Document>
-      <Page size="LETTER" style={styles.page}>
+      <Page size="LETTER" style={styles.page} wrap>
         <PageHeader data={data} />
+        <PageFooter facilityName={data.facilityName} />
 
         {/* Header */}
         <View style={styles.header}>
@@ -504,25 +505,14 @@ export function ProgressNotePDF({ data }: { data: ProgressNoteData }) {
 
         {/* AI Generated Clinical Note */}
         {data.generatedNote && (
-          <View style={styles.generatedNoteSection}>
+          <View style={styles.generatedNoteSection} wrap={false}>
             <Text style={styles.generatedNoteTitle}>Clinical Progress Note</Text>
             <Text style={styles.generatedNoteContent}>{data.generatedNote}</Text>
           </View>
         )}
 
-        {/* Signature on page 1 if no observations */}
-        {!hasObservations && data.bhtSignature && (
-          <SignatureSection data={data} />
-        )}
-
-        <PageFooter facilityName={data.facilityName} />
-      </Page>
-
-      {/* Page 2: Staff Observations (if any) */}
-      {hasObservations && (
-        <Page size="LETTER" style={styles.page}>
-          <PageHeader data={data} />
-
+        {/* Staff Observations */}
+        {hasObservations && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Staff Observations</Text>
 
@@ -537,25 +527,24 @@ export function ProgressNotePDF({ data }: { data: ProgressNoteData }) {
             <ObservationBlock label="Meals / Appetite" value={data.mealsAppetite} />
             <ObservationBlock label="Sleep Pattern" value={data.sleepPattern} />
           </View>
+        )}
 
-          {(data.staffInterventions || data.residentResponse || data.notableEvents || data.additionalNotes) && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Interventions & Events</Text>
-              <ObservationBlock label="Staff Interventions" value={data.staffInterventions} />
-              <ObservationBlock label="Resident Response" value={data.residentResponse} />
-              <ObservationBlock label="Notable Events" value={data.notableEvents} />
-              <ObservationBlock label="Additional Notes" value={data.additionalNotes} />
-            </View>
-          )}
+        {/* Interventions & Events */}
+        {hasObservations && (data.staffInterventions || data.residentResponse || data.notableEvents || data.additionalNotes) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Interventions & Events</Text>
+            <ObservationBlock label="Staff Interventions" value={data.staffInterventions} />
+            <ObservationBlock label="Resident Response" value={data.residentResponse} />
+            <ObservationBlock label="Notable Events" value={data.notableEvents} />
+            <ObservationBlock label="Additional Notes" value={data.additionalNotes} />
+          </View>
+        )}
 
-          {/* Signature on page 2 */}
-          {data.bhtSignature && (
-            <SignatureSection data={data} />
-          )}
-
-          <PageFooter facilityName={data.facilityName} />
-        </Page>
-      )}
+        {/* Signature */}
+        {data.bhtSignature && (
+          <SignatureSection data={data} />
+        )}
+      </Page>
     </Document>
   );
 }
