@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCurrentBiWeekInfo } from "@/lib/utils";
 import { getCurrentArizonaMonthAndYear } from "@/lib/date-utils";
+import { getReEvaluationState } from "@/lib/evaluation-cycles";
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,6 +27,8 @@ export async function GET(request: NextRequest) {
     let certificationIssues = 0;
     let calendar = 0;
     let emar = 0;
+    let evaluationsOverdue = 0;
+    let evaluationsDueSoon = 0;
 
     if (role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
@@ -93,6 +96,22 @@ export async function GET(request: NextRequest) {
         });
 
         emar = unacknowledgedAlerts + prnFollowupsNeeded;
+
+        // Re-Evaluation Countdown counts across all BHP facilities
+        const bhpResidents = await prisma.intake.findMany({
+          where: {
+            status: "APPROVED",
+            dischargedAt: null,
+            facility: { bhpId: bhpProfile.id },
+          },
+          select: { nextReEvaluationDueDate: true },
+        });
+        const bhpEvalToday = new Date();
+        for (const r of bhpResidents) {
+          const s = getReEvaluationState(r.nextReEvaluationDueDate, bhpEvalToday);
+          if (s.status === "OVERDUE") evaluationsOverdue++;
+          else if (s.status === "DUE_SOON") evaluationsDueSoon++;
+        }
       }
     } else if (role === "BHRF") {
       const bhrfProfile = await prisma.bHRFProfile.findUnique({
@@ -234,6 +253,22 @@ export async function GET(request: NextRequest) {
           return !meeting || (meeting.status === "DRAFT" && !meeting.isSkipped);
         }).length;
 
+        // Count 30-day evaluation cycles that are overdue or in the action window
+        const activeWithAdmission = await prisma.intake.findMany({
+          where: {
+            facilityId: bhrfProfile.facilityId,
+            status: "APPROVED",
+            dischargedAt: null,
+          },
+          select: { nextReEvaluationDueDate: true },
+        });
+        const evalToday = new Date();
+        for (const r of activeWithAdmission) {
+          const s = getReEvaluationState(r.nextReEvaluationDueDate, evalToday);
+          if (s.status === "OVERDUE") evaluationsOverdue++;
+          else if (s.status === "DUE_SOON") evaluationsDueSoon++;
+        }
+
         // Count active calendar reminders that are due
         calendar = await prisma.calendarReminder.count({
           where: {
@@ -337,6 +372,8 @@ export async function GET(request: NextRequest) {
       certificationIssues,
       calendar,
       emar,
+      evaluationsOverdue,
+      evaluationsDueSoon,
     });
   } catch (error) {
     console.error("Get notification counts error:", error);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getReEvaluationState } from "@/lib/evaluation-cycles";
 
 interface UrgentNotification {
   id: string;
@@ -195,6 +196,42 @@ export async function GET(request: NextRequest) {
             message: `${pendingArtMeetings} resident${pendingArtMeetings > 1 ? "s" : ""} need${pendingArtMeetings === 1 ? "s" : ""} an ART meeting this month.`,
             link: "/facility/art-meetings",
             linkText: "View",
+          });
+        }
+
+        // Re-Evaluation Countdown: surface overdue + due-soon residents
+        const evalResidents = await prisma.intake.findMany({
+          where: {
+            facilityId: bhrfProfile.facilityId,
+            status: "APPROVED",
+            dischargedAt: null,
+          },
+          select: { nextReEvaluationDueDate: true },
+        });
+        let overdueCount = 0;
+        let dueSoonCount = 0;
+        const evalToday = new Date();
+        for (const r of evalResidents) {
+          const s = getReEvaluationState(r.nextReEvaluationDueDate, evalToday);
+          if (s.status === "OVERDUE") overdueCount++;
+          else if (s.status === "DUE_SOON") dueSoonCount++;
+        }
+        if (overdueCount > 0) {
+          notifications.push({
+            id: "overdue-reevaluations",
+            type: "urgent",
+            message: `${overdueCount} resident${overdueCount > 1 ? "s" : ""} ${overdueCount === 1 ? "has" : "have"} an overdue re-evaluation.`,
+            link: "/facility",
+            linkText: "Review",
+          });
+        }
+        if (dueSoonCount > 0) {
+          notifications.push({
+            id: "due-soon-reevaluations",
+            type: "warning",
+            message: `${dueSoonCount} resident${dueSoonCount > 1 ? "s" : ""} ${dueSoonCount === 1 ? "has" : "have"} a re-evaluation due within 4 days.`,
+            link: "/facility",
+            linkText: "Review",
           });
         }
       }

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft, FileText, Activity, Download, Eye, Edit, ClipboardList, Sparkles } from "lucide-react";
 import { ARTMeetingBadge } from "@/components/art-meetings/art-meeting-badge";
+import { ResidentEvaluationsTab } from "@/components/evaluations/resident-evaluations-tab";
 import { formatDate } from "@/lib/utils";
 
 const getStatusBadge = (status: string) => {
@@ -362,6 +363,13 @@ export default async function BHPResidentDetailPage({
           </Table>
         </CardContent>
       </Card>
+
+      {/* 30-Day Evaluations (read-only) */}
+      <ResidentEvaluationsTab
+        intakeId={resident.id}
+        residentName={resident.residentName}
+        readOnly
+      />
 
       {/* Progress Notes */}
       <Card>

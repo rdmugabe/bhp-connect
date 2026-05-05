@@ -23,6 +23,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { InviteStaffButton } from "@/components/facility/invite-staff-button";
+import { EvaluationGrid } from "@/components/evaluations/evaluation-grid";
 import { formatDate, getExpirationStatus, getCurrentBiWeekInfo } from "@/lib/utils";
 
 export default async function FacilityDashboardPage() {
@@ -300,6 +301,24 @@ export default async function FacilityDashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Re-Evaluation Countdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ClipboardList className="h-5 w-5" />
+            Re-Evaluation Countdown
+          </CardTitle>
+          <CardDescription>
+            Each resident&apos;s tile counts down to their next re-evaluation due
+            date. Set or update the date with &quot;Edit date,&quot; or upload the signed
+            re-evaluation PDF to advance the countdown automatically.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EvaluationGrid />
+        </CardContent>
+      </Card>
 
       {/* Recent Activity */}
       <div className="grid gap-4 md:grid-cols-2">

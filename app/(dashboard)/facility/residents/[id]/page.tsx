@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft, FileText, Activity, Download, Eye, Edit, Plus, ClipboardList, LogOut, Sparkles, CalendarDays } from "lucide-react";
 import { ARTMeetingBadge } from "@/components/art-meetings/art-meeting-badge";
+import { ResidentEvaluationsTab } from "@/components/evaluations/resident-evaluations-tab";
 import { formatDate } from "@/lib/utils";
 import { ResidentActions } from "@/components/residents/resident-actions";
 import { AdmissionHistory } from "@/components/residents/admission-history";
@@ -453,6 +454,12 @@ export default async function FacilityResidentDetailPage({
           </Table>
         </CardContent>
       </Card>
+
+      {/* 30-Day Evaluations */}
+      <ResidentEvaluationsTab
+        intakeId={resident.id}
+        residentName={resident.residentName}
+      />
 
       {/* Progress Notes */}
       <Card>

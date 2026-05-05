@@ -213,6 +213,7 @@ model Facility {
   medicationOrders      MedicationOrder[]
   medicationAlerts      MedicationAlert[]
   progressNotes         ProgressNote[]
+  residentEvaluations   ResidentEvaluation[]
   calendarEvents        CalendarEvent[]
   facilityInvitations   FacilityInvitation[]
   careCoordinationEntries CareCoordinationEntry[]
@@ -520,6 +521,8 @@ model Intake {
   medicationOrders MedicationOrder[]
   medicationAlerts MedicationAlert[]
   progressNotes    ProgressNote[]
+  residentEvaluations ResidentEvaluation[]
+  nextReEvaluationDueDate DateTime? @db.Date  // drives the Re-Evaluation Countdown
   calendarEvents   CalendarEvent[]
   careCoordinationEntries CareCoordinationEntry[]
 
@@ -1556,6 +1559,33 @@ model ProgressNote {
   @@index([facilityId])
   @@index([noteDate])
   @@index([status])
+}
+
+// 30-day evaluation cycle record. One row per completed cycle per resident.
+// Cycle 1 = days 1-30 from admissionDate, cycle 2 = days 31-60, etc.
+// Evaluation + treatment plan must be uploaded within days 27-30 of each cycle.
+model ResidentEvaluation {
+  id              String   @id @default(cuid())
+  intakeId        String
+  facilityId      String
+  cycleNumber     Int                // 1, 2, 3, ... counted from admissionDate
+  cycleStartDate  DateTime @db.Date  // admissionDate + (cycleNumber - 1) * 30 days
+  cycleEndDate    DateTime @db.Date  // cycleStartDate + 29 days
+  completedDate   DateTime @db.Date  // date the PDF was signed/uploaded
+  fileUrl         String             // S3 key
+  fileName        String
+  fileSize        Int
+  uploadedBy      String             // User id
+  notes           String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  intake   Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  @@unique([intakeId, cycleNumber])
+  @@index([facilityId])
+  @@index([intakeId])
 }
 
 // Calendar Event - Appointments and events for residents
