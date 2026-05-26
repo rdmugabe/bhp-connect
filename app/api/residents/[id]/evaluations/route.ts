@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession, type Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadToS3, generateFileKey } from "@/lib/s3";
@@ -14,7 +14,7 @@ type RouteParams = { params: Promise<{ id: string }> };
  * Verify the caller can act on this resident.
  */
 async function authorize(
-  session: Awaited<ReturnType<typeof getServerSession>>,
+  session: Session | null,
   intakeId: string,
   requireWrite: boolean
 ) {
