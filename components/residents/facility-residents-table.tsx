@@ -22,6 +22,7 @@ interface Resident {
   residentName: string;
   dateOfBirth: Date;
   createdAt: Date;
+  policyNumber: string | null;
   asamAssessments: {
     id: string;
     status: string;
@@ -92,6 +93,10 @@ export function FacilityResidentsTable({ residents, bhpEmail }: FacilityResident
                     <span className="text-muted-foreground">Admitted:</span>{" "}
                     <span className="font-medium">{formatDate(resident.createdAt)}</span>
                   </div>
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">AHCCCS ID:</span>{" "}
+                    <span className="font-medium">{resident.policyNumber || "—"}</span>
+                  </div>
                 </div>
 
                 {missingShifts.length > 0 && (
@@ -148,6 +153,7 @@ export function FacilityResidentsTable({ residents, bhpEmail }: FacilityResident
               <TableHead>Name</TableHead>
               <TableHead>Date of Birth</TableHead>
               <TableHead>Admission Date</TableHead>
+              <TableHead>AHCCCS ID</TableHead>
               <TableHead>Today&apos;s Progress Notes</TableHead>
               <TableHead className="w-[250px]">Actions</TableHead>
             </TableRow>
@@ -169,6 +175,7 @@ export function FacilityResidentsTable({ residents, bhpEmail }: FacilityResident
                   </TableCell>
                   <TableCell>{formatDate(resident.dateOfBirth)}</TableCell>
                   <TableCell>{formatDate(resident.createdAt)}</TableCell>
+                  <TableCell>{resident.policyNumber || "—"}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
@@ -229,7 +236,7 @@ export function FacilityResidentsTable({ residents, bhpEmail }: FacilityResident
             })}
             {residents.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   No residents found. Create an intake to add a resident.
                 </TableCell>
               </TableRow>
