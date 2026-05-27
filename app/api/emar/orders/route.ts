@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const isPRN = searchParams.get("isPRN");
 
-    let queryFacilityId: string | undefined;
+    // Facility scope is ALWAYS derived from the caller's role/ownership —
+    // never left unset, or a BHP/ADMIN could read medication orders across
+    // every facility (cross-facility PHI leak).
+    let facilityScope: Record<string, unknown>;
 
     if (session.user.role === "BHRF") {
       const bhrfProfile = await prisma.bHRFProfile.findUnique({
@@ -34,7 +37,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ orders: [] });
       }
 
-      queryFacilityId = bhrfProfile.facilityId;
+      facilityScope = { facilityId: bhrfProfile.facilityId };
     } else if (session.user.role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
         where: { userId: session.user.id },
@@ -44,26 +47,31 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ orders: [] });
       }
 
-      // BHP can view orders for any of their facilities
       if (facilityId) {
+        // A specific facility was requested — confirm the BHP manages it.
         const facility = await prisma.facility.findFirst({
-          where: {
-            id: facilityId,
-            bhpId: bhpProfile.id,
-          },
+          where: { id: facilityId, bhpId: bhpProfile.id },
         });
 
         if (!facility) {
           return NextResponse.json({ error: "Facility not found" }, { status: 404 });
         }
 
-        queryFacilityId = facilityId;
+        facilityScope = { facilityId };
+      } else {
+        // No facility specified — scope to ALL facilities this BHP manages.
+        facilityScope = { facility: { bhpId: bhpProfile.id } };
       }
+    } else if (session.user.role === "ADMIN") {
+      // Admins may optionally narrow to a facility; otherwise all facilities.
+      facilityScope = facilityId ? { facilityId } : {};
+    } else {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const orders = await prisma.medicationOrder.findMany({
       where: {
-        ...(queryFacilityId && { facilityId: queryFacilityId }),
+        ...facilityScope,
         ...(intakeId && { intakeId }),
         ...(status && { status: status as "ACTIVE" | "DISCONTINUED" | "COMPLETED" | "ON_HOLD" }),
         ...(isPRN !== null && { isPRN: isPRN === "true" }),
