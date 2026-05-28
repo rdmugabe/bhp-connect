@@ -45,23 +45,6 @@ export default withAuth(
       }
     }
 
-    // Enforce MFA enrollment for approved PHI-handling roles. Users who
-    // haven't enabled MFA are routed to /mfa-setup before they can reach any
-    // PHI. /api/auth/* (MFA generate/verify, session refresh, sign-out) and
-    // the setup page itself stay reachable so enrollment can complete.
-    const PHI_ROLES = ["BHRF", "BHP", "ADMIN"];
-    if (
-      token &&
-      token.approvalStatus === "APPROVED" &&
-      PHI_ROLES.includes(token.role as string) &&
-      !token.mfaEnabled &&
-      path !== "/mfa-setup" &&
-      path !== "/unauthorized" &&
-      !path.startsWith("/api/auth")
-    ) {
-      return NextResponse.redirect(new URL("/mfa-setup", req.url));
-    }
-
     // Admin routes - ADMIN role only
     if (path.startsWith("/admin") && token?.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
@@ -89,7 +72,6 @@ export default withAuth(
           path.startsWith("/login") ||
           path.startsWith("/register") ||
           path.startsWith("/credentials/") ||
-          path === "/api/health" ||
           path.startsWith("/api/auth") ||
           path.startsWith("/api/bhps/available") ||
           path.startsWith("/api/facility/invitations/")

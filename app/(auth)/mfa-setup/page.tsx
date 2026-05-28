@@ -179,10 +179,15 @@ export default function MfaSetupPage() {
             </form>
           </Form>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Two-factor authentication is required to access protected health
-            information.
-          </p>
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={() =>
+              router.push(session?.user.role === "BHP" ? "/bhp" : "/facility")
+            }
+          >
+            Skip for now
+          </Button>
         </CardContent>
       </Card>
     </div>

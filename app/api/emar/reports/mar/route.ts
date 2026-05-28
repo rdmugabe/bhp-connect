@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getFacilityScope } from "@/lib/facility-scope";
-import { createAuditLog, AuditActions } from "@/lib/audit";
 import { startOfDay, endOfDay, parseISO, eachDayOfInterval, format } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
@@ -64,15 +63,6 @@ export async function GET(request: NextRequest) {
     if (!intake) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
-
-    // HIPAA access logging — record who viewed this resident's MAR.
-    await createAuditLog({
-      userId: session.user.id,
-      action: AuditActions.EMAR_MAR_VIEWED,
-      entityType: "Intake",
-      entityId: intake.id,
-      details: { startDate: startDateStr, endDate: endDateStr },
-    });
 
     // Parse dates - these are simple date strings like "2026-03-11"
     // We need to interpret them as Arizona timezone dates
