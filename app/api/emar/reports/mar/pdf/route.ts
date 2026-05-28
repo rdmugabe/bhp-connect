@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getFacilityScope } from "@/lib/facility-scope";
+import { createAuditLog, AuditActions } from "@/lib/audit";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { EmarReportTemplate } from "@/lib/pdf/emar-report-template";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO } from "date-fns";
@@ -302,6 +303,15 @@ export async function POST(request: NextRequest) {
 
     // Generate PDF
     const pdfBuffer = await renderToBuffer(EmarReportTemplate({ data: pdfData }));
+
+    // HIPAA access logging — record who exported this resident's MAR PDF.
+    await createAuditLog({
+      userId: session.user.id,
+      action: AuditActions.EMAR_MAR_REPORT_GENERATED,
+      entityType: "Intake",
+      entityId: intake.id,
+      details: { startDate, endDate },
+    });
 
     // Return PDF response
     const fileName = `eMAR-${intake.residentName.replace(/\s+/g, "-")}-${format(new Date(startDate), "yyyy-MM")}.pdf`;

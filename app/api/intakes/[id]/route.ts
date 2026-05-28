@@ -57,6 +57,15 @@ export async function GET(
       }
     }
 
+    // HIPAA access logging — record who read this resident's record.
+    await createAuditLog({
+      userId: session.user.id,
+      action: AuditActions.INTAKE_VIEWED,
+      entityType: "Intake",
+      entityId: intake.id,
+      details: { facilityId: intake.facilityId },
+    });
+
     return NextResponse.json({ intake });
   } catch (error) {
     console.error("Get intake error:", error);

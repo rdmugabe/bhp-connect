@@ -81,7 +81,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -90,6 +90,18 @@ export const authOptions: NextAuthOptions = {
         token.bhpProfileId = user.bhpProfileId;
         token.bhrfProfileId = user.bhrfProfileId;
         token.facilityId = user.facilityId;
+      } else if (trigger === "update" && token.id) {
+        // Refresh volatile claims from the DB (e.g. after the user enrolls in
+        // MFA, gets approved, or is deactivated) so the MFA enrollment gate
+        // and approval checks see current state without requiring re-login.
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { mfaEnabled: true, approvalStatus: true, isActive: true },
+        });
+        if (dbUser) {
+          token.mfaEnabled = dbUser.mfaEnabled;
+          token.approvalStatus = dbUser.approvalStatus;
+        }
       }
       return token;
     },
