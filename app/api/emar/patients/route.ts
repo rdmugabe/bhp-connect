@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getFacilityScope } from "@/lib/facility-scope";
 
 // GET - List patients for eMAR (matches Residents page logic)
 export async function GET(request: NextRequest) {
@@ -15,42 +16,21 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const showDischarged = searchParams.get("discharged") === "true";
 
-    let facilityId: string | null = null;
-
-    // Get facility ID based on user role
-    if (session.user.role === "BHRF") {
-      const bhrfProfile = await prisma.bHRFProfile.findUnique({
-        where: { userId: session.user.id },
-      });
-      if (!bhrfProfile) {
-        return NextResponse.json({ patients: [] });
-      }
-      facilityId = bhrfProfile.facilityId;
-    } else if (session.user.role === "BHP") {
-      const bhpProfile = await prisma.bHPProfile.findUnique({
-        where: { userId: session.user.id },
-      });
-      if (!bhpProfile) {
-        return NextResponse.json({ patients: [] });
-      }
-      // BHP can see all facilities under their oversight
-      const requestedFacilityId = searchParams.get("facilityId");
-      if (requestedFacilityId) {
-        facilityId = requestedFacilityId;
-      }
-    } else if (session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // Always derive facility scope from the caller — never leave it unset.
+    const scope = await getFacilityScope(
+      session,
+      searchParams.get("facilityId")
+    );
+    if (!scope.ok) {
+      return NextResponse.json({ error: scope.error }, { status: scope.status });
     }
 
     // Build where clause matching Residents page logic
     const whereClause: any = {
+      ...scope.where,
       // Exclude drafts
       status: { not: "DRAFT" },
     };
-
-    if (facilityId) {
-      whereClause.facilityId = facilityId;
-    }
 
     if (showDischarged) {
       // Show only discharged residents

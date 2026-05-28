@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getFacilityScope } from "@/lib/facility-scope";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { EmarReportTemplate } from "@/lib/pdf/emar-report-template";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO } from "date-fns";
@@ -28,9 +29,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get patient information
-    const intake = await prisma.intake.findUnique({
-      where: { id: intakeId },
+    // Scope the patient lookup to the caller's facility/facilities so a user
+    // can't generate an eMAR PDF for a resident outside their access.
+    const scope = await getFacilityScope(session);
+    if (!scope.ok) {
+      return NextResponse.json({ error: scope.error }, { status: scope.status });
+    }
+
+    // Get patient information (must belong to a facility the caller can access)
+    const intake = await prisma.intake.findFirst({
+      where: { id: intakeId, ...scope.where },
       include: {
         facility: true,
       },

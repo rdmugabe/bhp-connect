@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { getDueSchedules, updateScheduleStatuses } from "@/lib/emar/schedule-generator";
+import { getFacilityScope } from "@/lib/facility-scope";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,51 +17,18 @@ export async function GET(request: NextRequest) {
     const includeUpcoming = searchParams.get("includeUpcoming") === "true";
     const hoursAhead = parseInt(searchParams.get("hoursAhead") || "2", 10);
 
-    let facilityId: string | undefined;
-
-    if (session.user.role === "BHRF") {
-      const bhrfProfile = await prisma.bHRFProfile.findUnique({
-        where: { userId: session.user.id },
-      });
-
-      if (!bhrfProfile) {
-        return NextResponse.json({ schedules: [] });
-      }
-
-      facilityId = bhrfProfile.facilityId;
-    } else if (session.user.role === "BHP") {
-      // BHP needs to specify a facility
-      facilityId = searchParams.get("facilityId") || undefined;
-
-      if (facilityId) {
-        const bhpProfile = await prisma.bHPProfile.findUnique({
-          where: { userId: session.user.id },
-        });
-
-        if (!bhpProfile) {
-          return NextResponse.json({ schedules: [] });
-        }
-
-        // Verify the facility belongs to this BHP
-        const facility = await prisma.facility.findFirst({
-          where: {
-            id: facilityId,
-            bhpId: bhpProfile.id,
-          },
-        });
-
-        if (!facility) {
-          return NextResponse.json({ error: "Facility not found" }, { status: 404 });
-        }
-      }
+    // Always derive facility scope from the caller — never leave it unset.
+    const scope = await getFacilityScope(session, searchParams.get("facilityId"));
+    if (!scope.ok) {
+      return NextResponse.json({ error: scope.error }, { status: scope.status });
     }
 
     // First, update schedule statuses
     await updateScheduleStatuses();
 
-    // Get due schedules
+    // Get due schedules (scoped to facilities the caller can access)
     const schedules = await getDueSchedules({
-      facilityId,
+      facilityScope: scope.where,
       intakeId: intakeId || undefined,
       includeUpcoming,
       hoursAhead,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getFacilityScope } from "@/lib/facility-scope";
 import { parseISO } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
@@ -21,46 +22,10 @@ export async function GET(request: NextRequest) {
     const intakeId = searchParams.get("intakeId");
     const status = searchParams.get("status");
 
-    let queryFacilityId: string | undefined;
-
-    if (session.user.role === "BHRF") {
-      const bhrfProfile = await prisma.bHRFProfile.findUnique({
-        where: { userId: session.user.id },
-      });
-
-      if (!bhrfProfile) {
-        return NextResponse.json({ schedules: [] });
-      }
-
-      queryFacilityId = bhrfProfile.facilityId;
-    } else if (session.user.role === "BHP") {
-      const facilityId = searchParams.get("facilityId");
-
-      if (!facilityId) {
-        return NextResponse.json({ schedules: [] });
-      }
-
-      const bhpProfile = await prisma.bHPProfile.findUnique({
-        where: { userId: session.user.id },
-      });
-
-      if (!bhpProfile) {
-        return NextResponse.json({ schedules: [] });
-      }
-
-      // Verify the facility belongs to this BHP
-      const facility = await prisma.facility.findFirst({
-        where: {
-          id: facilityId,
-          bhpId: bhpProfile.id,
-        },
-      });
-
-      if (!facility) {
-        return NextResponse.json({ error: "Facility not found" }, { status: 404 });
-      }
-
-      queryFacilityId = facilityId;
+    // Always derive facility scope from the caller — never leave it unset.
+    const scope = await getFacilityScope(session, searchParams.get("facilityId"));
+    if (!scope.ok) {
+      return NextResponse.json({ error: scope.error }, { status: scope.status });
     }
 
     // Parse date or use today, with timezone handling
@@ -96,7 +61,7 @@ export async function GET(request: NextRequest) {
           lte: dayEnd,
         },
         medicationOrder: {
-          ...(queryFacilityId && { facilityId: queryFacilityId }),
+          ...scope.where,
           ...(intakeId && { intakeId }),
           status: "ACTIVE",
         },

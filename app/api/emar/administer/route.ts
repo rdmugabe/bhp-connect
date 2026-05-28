@@ -62,6 +62,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // If a schedule was provided, verify it belongs to THIS (facility-scoped)
+    // order — otherwise a caller could read/overwrite another facility's
+    // schedule by passing its id.
+    let verifiedSchedule: { id: string; scheduledDateTime: Date } | null = null;
+    if (validatedData.scheduleId) {
+      verifiedSchedule = await prisma.medicationSchedule.findFirst({
+        where: { id: validatedData.scheduleId, medicationOrderId: order.id },
+        select: { id: true, scheduledDateTime: true },
+      });
+
+      if (!verifiedSchedule) {
+        return NextResponse.json(
+          { error: "Schedule not found for this medication order" },
+          { status: 404 }
+        );
+      }
+    }
+
     // For PRN medications, check min interval and max daily doses
     if (order.isPRN) {
       const now = new Date();
@@ -129,11 +147,7 @@ export async function POST(request: NextRequest) {
     const administration = await prisma.medicationAdministration.create({
       data: {
         medicationOrderId: order.id,
-        scheduledDateTime: validatedData.scheduleId
-          ? (await prisma.medicationSchedule.findUnique({
-              where: { id: validatedData.scheduleId },
-            }))?.scheduledDateTime
-          : null,
+        scheduledDateTime: verifiedSchedule?.scheduledDateTime ?? null,
         administeredAt: new Date(validatedData.administeredAt),
         administeredById: session.user.id,
         administeredBy: session.user.name,
@@ -159,10 +173,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update the schedule if one was provided
-    if (validatedData.scheduleId) {
+    // Update the schedule if one was provided (verified to belong to this order)
+    if (verifiedSchedule) {
       await prisma.medicationSchedule.update({
-        where: { id: validatedData.scheduleId },
+        where: { id: verifiedSchedule.id },
         data: {
           status: validatedData.status as AdministrationStatus,
           administrationId: administration.id,
@@ -170,7 +184,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Deactivate any alerts for this schedule
-      await deactivateScheduleAlerts(validatedData.scheduleId);
+      await deactivateScheduleAlerts(verifiedSchedule.id);
     }
 
     await createAuditLog({

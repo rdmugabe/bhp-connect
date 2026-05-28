@@ -241,12 +241,20 @@ export async function updateScheduleStatuses(): Promise<{
  */
 export async function getDueSchedules(options: {
   facilityId?: string;
+  /**
+   * Prisma where-fragment scoping the medicationOrder to facilities the caller
+   * may access (from getFacilityScope). Use this instead of facilityId when
+   * the caller spans multiple facilities (e.g. a BHP). Always pass one of
+   * facilityId / facilityScope to avoid an unscoped, cross-facility query.
+   */
+  facilityScope?: Record<string, unknown>;
   intakeId?: string;
   includeUpcoming?: boolean;
   hoursAhead?: number;
 }) {
   const {
     facilityId,
+    facilityScope,
     intakeId,
     includeUpcoming = false,
     hoursAhead = 2,
@@ -263,7 +271,7 @@ export async function getDueSchedules(options: {
       windowStartTime: { lte: upcoming },
       medicationOrder: {
         status: "ACTIVE",
-        ...(facilityId && { facilityId }),
+        ...(facilityScope ?? (facilityId ? { facilityId } : {})),
         ...(intakeId && { intakeId }),
       },
     },

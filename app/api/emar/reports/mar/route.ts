@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getFacilityScope } from "@/lib/facility-scope";
 import { startOfDay, endOfDay, parseISO, eachDayOfInterval, format } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
@@ -28,41 +29,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let facilityId: string | undefined;
-
-    if (session.user.role === "BHRF") {
-      const bhrfProfile = await prisma.bHRFProfile.findUnique({
-        where: { userId: session.user.id },
-      });
-
-      if (!bhrfProfile) {
-        return NextResponse.json({ error: "Facility not assigned" }, { status: 400 });
-      }
-
-      facilityId = bhrfProfile.facilityId;
-    } else if (session.user.role === "BHP") {
-      // BHP can view any intake under their facilities
-      const bhpProfile = await prisma.bHPProfile.findUnique({
-        where: { userId: session.user.id },
-      });
-
-      if (!bhpProfile) {
-        return NextResponse.json({ error: "Profile not found" }, { status: 400 });
-      }
+    // Always derive facility scope from the caller — never leave it unset.
+    const scope = await getFacilityScope(session);
+    if (!scope.ok) {
+      return NextResponse.json({ error: scope.error }, { status: scope.status });
     }
 
-    // Verify the intake exists and belongs to the facility
+    // Verify the intake exists and belongs to a facility the caller can access
     const intake = await prisma.intake.findFirst({
       where: {
         id: intakeId,
-        ...(facilityId && { facilityId }),
-        ...(session.user.role === "BHP" && {
-          facility: {
-            bhp: {
-              userId: session.user.id,
-            },
-          },
-        }),
+        ...scope.where,
       },
       select: {
         id: true,
