@@ -12,14 +12,11 @@ import { z } from "zod";
 const requiredSchema = z.object({
   DATABASE_URL: z.string().url("DATABASE_URL must be a valid connection URL"),
   NEXTAUTH_SECRET: z.string().min(1, "NEXTAUTH_SECRET is required"),
+  NEXTAUTH_URL: z.string().url("NEXTAUTH_URL must be a valid URL"),
 });
 
-// Optional / inferable — warn if missing, don't crash.
-// NEXTAUTH_URL is intentionally optional: NextAuth infers it from request
-// headers on most hosts (incl. Amplify), so requiring it would break
-// deployments that legitimately don't set it.
+// Optional integrations — warn if missing, don't crash.
 const OPTIONAL_VARS = [
-  "NEXTAUTH_URL",
   "RESEND_API_KEY",
   "RESEND_FROM_EMAIL",
   "ANTHROPIC_API_KEY",

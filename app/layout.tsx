@@ -5,13 +5,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { validateEnv } from "@/lib/env";
 
-// Fail fast on misconfiguration at RUNTIME (server start / first request),
-// memoized. Skipped during `next build` — build environments don't always
-// have runtime secrets present, and a missing runtime var must never break
-// the production build.
-if (process.env.NEXT_PHASE !== "phase-production-build") {
-  validateEnv();
-}
+// Fail fast on misconfiguration: validate required env vars when this server
+// module first loads (memoized). Throws a clear, aggregated error listing any
+// missing/invalid vars instead of failing deep inside a later request.
+validateEnv();
 
 const inter = Inter({ subsets: ["latin"] });
 
