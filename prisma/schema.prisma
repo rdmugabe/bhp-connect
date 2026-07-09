@@ -217,6 +217,7 @@ model Facility {
   calendarEvents        CalendarEvent[]
   facilityInvitations   FacilityInvitation[]
   careCoordinationEntries CareCoordinationEntry[]
+  groupTherapyMaterials GroupTherapyMaterial[]
 
   @@index([bhpId])
 }
@@ -1788,4 +1789,29 @@ model CareCoordinationProgressNoteLink {
 
   @@unique([entryId, progressNoteId])
   @@index([progressNoteId])
+}
+
+/// AI-generated group therapy material for a specific date at a facility.
+/// One record per (facility, sessionDate); regenerating replaces the row.
+model GroupTherapyMaterial {
+  id                String   @id @default(cuid())
+  facilityId        String
+  facility          Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  sessionDate       DateTime @db.Date
+  topic             String
+  facilitatorGuide  String   @db.Text
+  handoutMarkdown   String   @db.Text
+  /// Array of {url, title, channelTitle, thumbnail, publishedAt, query}
+  videos            Json
+
+  /// Optional seed phrase the user asked to steer the topic ("boundaries", etc.).
+  themeSeed         String?
+  generatedBy       String   // user id who clicked Generate
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([facilityId, sessionDate])
+  @@index([facilityId])
+  @@index([sessionDate])
 }

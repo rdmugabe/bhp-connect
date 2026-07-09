@@ -32,6 +32,7 @@ import {
   Pill,
   CalendarDays,
   Menu,
+  NotebookPen,
 } from "lucide-react";
 
 interface NavItem {
@@ -155,6 +156,11 @@ const bhrfNavItems: NavItem[] = [
     title: "Incident Reports",
     href: "/facility/incident-reports",
     icon: AlertTriangle,
+  },
+  {
+    title: "Group Therapy",
+    href: "/facility/group-notes",
+    icon: NotebookPen,
   },
   {
     title: "eMAR",
