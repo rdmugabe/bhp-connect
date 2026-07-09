@@ -219,7 +219,7 @@ export default function BHPFacilityEmployeesPage() {
               Loading employees...
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
@@ -288,7 +288,7 @@ export default function BHPFacilityEmployeesPage() {
                   </TableRow>
                 )}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

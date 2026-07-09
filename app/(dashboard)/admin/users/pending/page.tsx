@@ -71,7 +71,7 @@ export default async function PendingUsersPage() {
         </CardHeader>
         <CardContent>
           {pendingUsers.length > 0 ? (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
@@ -105,7 +105,7 @@ export default async function PendingUsersPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">

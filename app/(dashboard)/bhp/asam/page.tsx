@@ -82,7 +82,7 @@ export default async function BHPASAMPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Patient</TableHead>
@@ -142,7 +142,7 @@ export default async function BHPASAMPage() {
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
     </div>

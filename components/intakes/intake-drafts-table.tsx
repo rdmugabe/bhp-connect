@@ -63,7 +63,7 @@ export function IntakeDraftsTable({ drafts }: IntakeDraftsTableProps) {
   }
 
   return (
-    <Table>
+    <div className="overflow-x-auto"><Table>
       <TableHeader>
         <TableRow>
           <TableHead>Resident</TableHead>
@@ -133,6 +133,6 @@ export function IntakeDraftsTable({ drafts }: IntakeDraftsTableProps) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+    </Table></div>
   );
 }

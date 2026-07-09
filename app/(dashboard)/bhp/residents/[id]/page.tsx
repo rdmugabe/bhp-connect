@@ -169,7 +169,7 @@ export default async function BHPResidentDetailPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Document</TableHead>
@@ -211,7 +211,7 @@ export default async function BHPResidentDetailPage({
                 </TableCell>
               </TableRow>
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 
@@ -232,7 +232,7 @@ export default async function BHPResidentDetailPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Assessment</TableHead>
@@ -287,7 +287,7 @@ export default async function BHPResidentDetailPage({
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 
@@ -317,7 +317,7 @@ export default async function BHPResidentDetailPage({
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Month/Year</TableHead>
@@ -360,7 +360,7 @@ export default async function BHPResidentDetailPage({
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 
@@ -397,7 +397,7 @@ export default async function BHPResidentDetailPage({
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
@@ -450,7 +450,7 @@ export default async function BHPResidentDetailPage({
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
     </div>

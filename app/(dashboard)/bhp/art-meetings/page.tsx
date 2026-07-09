@@ -97,7 +97,7 @@ export default async function BHPARTMeetingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Resident</TableHead>
@@ -159,7 +159,7 @@ export default async function BHPARTMeetingsPage() {
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
     </div>

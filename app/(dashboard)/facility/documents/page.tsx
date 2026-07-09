@@ -888,7 +888,7 @@ export default function FacilityDocumentsPage() {
 
                         {/* Documents List */}
                         {isExpanded && (
-                          <div className="border-t">
+                          <div className="border-t overflow-x-auto">
                             <Table>
                               <TableHeader>
                                 <TableRow>
@@ -933,7 +933,7 @@ export default function FacilityDocumentsPage() {
                                       {getStatusBadge(doc.status, doc.expiresAt)}
                                     </TableCell>
                                     <TableCell>
-                                      <div className="flex items-center gap-1">
+                                      <div className="flex items-center gap-0.5 md:gap-1">
                                         {doc.fileUrl && (
                                           <Button
                                             variant="ghost"
@@ -1053,7 +1053,7 @@ export default function FacilityDocumentsPage() {
 
                         {/* Documents List */}
                         {isExpanded && (
-                          <div className="border-t">
+                          <div className="border-t overflow-x-auto">
                             <Table>
                               <TableHeader>
                                 <TableRow>
@@ -1124,7 +1124,7 @@ export default function FacilityDocumentsPage() {
 
       {/* New Document Upload Dialog */}
       <Dialog open={showNewDocDialog} onOpenChange={setShowNewDocDialog}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg w-[calc(100vw-2rem)]">
           <DialogHeader>
             <DialogTitle>Upload New Document</DialogTitle>
             <DialogDescription>
@@ -1314,7 +1314,7 @@ export default function FacilityDocumentsPage() {
 
       {/* Edit Assignment Dialog */}
       <Dialog open={!!editingDoc} onOpenChange={(open) => !open && setEditingDoc(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md w-[calc(100vw-2rem)]">
           <DialogHeader>
             <DialogTitle>Edit Document Assignment</DialogTitle>
             <DialogDescription>

@@ -215,7 +215,7 @@ export default function DocumentTypesSettingsPage() {
               Loading...
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
@@ -246,7 +246,7 @@ export default function DocumentTypesSettingsPage() {
                   </TableRow>
                 )}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>
@@ -260,7 +260,7 @@ export default function DocumentTypesSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -314,7 +314,7 @@ export default function DocumentTypesSettingsPage() {
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 

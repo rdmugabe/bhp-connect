@@ -149,7 +149,7 @@ export default async function FacilitiesPage() {
       {facilities.length > 0 ? (
         <Card>
           <CardContent className="p-0">
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Facility</TableHead>
@@ -246,7 +246,7 @@ export default async function FacilitiesPage() {
                   );
                 })}
               </TableBody>
-            </Table>
+            </Table></div>
           </CardContent>
         </Card>
       ) : (

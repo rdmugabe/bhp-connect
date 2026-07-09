@@ -62,7 +62,7 @@ export function ArchivedIntakesTable({ intakes }: ArchivedIntakesTableProps) {
   }
 
   return (
-    <Table>
+    <div className="overflow-x-auto"><Table>
       <TableHeader>
         <TableRow>
           <TableHead>Resident</TableHead>
@@ -122,6 +122,6 @@ export function ArchivedIntakesTable({ intakes }: ArchivedIntakesTableProps) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+    </Table></div>
   );
 }

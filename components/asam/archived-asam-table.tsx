@@ -67,7 +67,7 @@ export function ArchivedASAMTable({ assessments }: ArchivedASAMTableProps) {
   }
 
   return (
-    <Table>
+    <div className="overflow-x-auto"><Table>
       <TableHeader>
         <TableRow>
           <TableHead>Patient</TableHead>
@@ -136,6 +136,6 @@ export function ArchivedASAMTable({ assessments }: ArchivedASAMTableProps) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+    </Table></div>
   );
 }

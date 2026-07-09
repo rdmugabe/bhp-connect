@@ -468,7 +468,7 @@ export default function BHPDocumentsPage() {
       {/* Documents Table */}
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Document</TableHead>
@@ -548,7 +548,7 @@ export default function BHPDocumentsPage() {
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 

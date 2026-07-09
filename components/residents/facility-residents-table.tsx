@@ -147,7 +147,7 @@ export function FacilityResidentsTable({ residents, bhpEmail }: FacilityResident
 
       {/* Desktop Table View */}
       <div className="hidden md:block">
-        <Table>
+        <div className="overflow-x-auto"><Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -242,7 +242,7 @@ export function FacilityResidentsTable({ residents, bhpEmail }: FacilityResident
               </TableRow>
             )}
           </TableBody>
-        </Table>
+        </Table></div>
       </div>
 
       {selectedResident && (

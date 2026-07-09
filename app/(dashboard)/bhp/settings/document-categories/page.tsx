@@ -225,7 +225,7 @@ export default function BHPDocumentCategoriesPage() {
               Loading...
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Category Name</TableHead>
@@ -287,7 +287,7 @@ export default function BHPDocumentCategoriesPage() {
                   </TableRow>
                 )}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

@@ -266,7 +266,7 @@ export function PRNAdministrationDialog({
         {/* Status Selection */}
         <div className="space-y-3">
           <Label>Administration Status</Label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
               { value: "GIVEN", label: "Given", icon: CheckCircle, color: "text-green-600" },
               { value: "REFUSED", label: "Refused", icon: XCircle, color: "text-red-600" },

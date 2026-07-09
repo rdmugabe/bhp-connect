@@ -55,7 +55,7 @@ export function DischargedResidentsTable({ residents }: DischargedResidentsTable
 
   return (
     <>
-      <Table>
+      <div className="overflow-x-auto"><Table>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
@@ -130,7 +130,7 @@ export function DischargedResidentsTable({ residents }: DischargedResidentsTable
             </TableRow>
           )}
         </TableBody>
-      </Table>
+      </Table></div>
 
       {selectedResident && (
         <ReadmitDialog

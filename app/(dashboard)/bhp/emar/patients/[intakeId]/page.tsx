@@ -297,7 +297,7 @@ export default function BhpPatientEmarPage() {
                   No active medications
                 </p>
               ) : (
-                <Table>
+                <div className="overflow-x-auto"><Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Medication</TableHead>
@@ -344,7 +344,7 @@ export default function BhpPatientEmarPage() {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </Table></div>
               )}
             </CardContent>
           </Card>
@@ -358,7 +358,7 @@ export default function BhpPatientEmarPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
+                <div className="overflow-x-auto"><Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Medication</TableHead>
@@ -389,7 +389,7 @@ export default function BhpPatientEmarPage() {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </Table></div>
               </CardContent>
             </Card>
           )}

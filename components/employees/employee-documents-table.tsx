@@ -191,7 +191,7 @@ export function EmployeeDocumentsTable({
 
       {/* Desktop Table View */}
       <div className="hidden md:block">
-        <Table>
+        <div className="overflow-x-auto"><Table>
           <TableHeader>
             <TableRow>
               <TableHead>Document Type</TableHead>
@@ -250,7 +250,7 @@ export function EmployeeDocumentsTable({
               </TableRow>
             ))}
           </TableBody>
-        </Table>
+        </Table></div>
       </div>
 
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>

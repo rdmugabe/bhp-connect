@@ -181,7 +181,7 @@ export function EmarDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1 md:gap-2">
           <Link href="/facility/emar/patients">
             <Button variant="outline" size="sm">
               <Users className="h-4 w-4 mr-2" />

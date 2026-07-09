@@ -379,7 +379,7 @@ export default function AlertsPage() {
               </p>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Severity</TableHead>
@@ -456,7 +456,7 @@ export default function AlertsPage() {
                   );
                 })}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

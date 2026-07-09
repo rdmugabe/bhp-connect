@@ -233,7 +233,7 @@ export function StaffList() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -351,7 +351,7 @@ export function StaffList() {
                 );
               })}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 
@@ -364,7 +364,7 @@ export function StaffList() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Email</TableHead>
@@ -403,7 +403,7 @@ export function StaffList() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           </CardContent>
         </Card>
       )}

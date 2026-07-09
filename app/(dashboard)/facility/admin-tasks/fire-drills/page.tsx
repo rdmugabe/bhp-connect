@@ -314,7 +314,7 @@ export default function FireDrillsPage() {
               </Link>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Month</TableHead>
@@ -369,7 +369,7 @@ export default function FireDrillsPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

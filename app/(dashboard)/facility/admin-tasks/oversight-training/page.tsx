@@ -192,7 +192,7 @@ export default async function OversightTrainingPage() {
               </Link>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Bi-Week</TableHead>
@@ -244,7 +244,7 @@ export default async function OversightTrainingPage() {
                   );
                 })}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

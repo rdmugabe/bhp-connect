@@ -141,7 +141,7 @@ export default function BHPIncidentReportsPage() {
               </p>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Report #</TableHead>
@@ -206,7 +206,7 @@ export default function BHPIncidentReportsPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

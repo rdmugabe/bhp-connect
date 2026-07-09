@@ -64,7 +64,7 @@ export default async function BHPIntakesPage() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Resident</TableHead>
@@ -109,7 +109,7 @@ export default async function BHPIntakesPage() {
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
     </div>

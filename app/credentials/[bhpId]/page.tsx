@@ -113,7 +113,7 @@ export default async function PublicCredentialsPage({
           </CardHeader>
           <CardContent>
             {bhpProfile.credentials.length > 0 ? (
-              <Table>
+              <div className="overflow-x-auto"><Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Credential</TableHead>
@@ -171,7 +171,7 @@ export default async function PublicCredentialsPage({
                     );
                   })}
                 </TableBody>
-              </Table>
+              </Table></div>
             ) : (
               <p className="text-center text-muted-foreground py-8">
                 No public credentials available

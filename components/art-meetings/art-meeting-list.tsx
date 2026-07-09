@@ -80,7 +80,7 @@ export function ARTMeetingList({
         </div>
       )}
 
-      <Table>
+      <div className="overflow-x-auto"><Table>
         <TableHeader>
           <TableRow>
             <TableHead>Month/Year</TableHead>
@@ -161,7 +161,7 @@ export function ARTMeetingList({
             </TableRow>
           )}
         </TableBody>
-      </Table>
+      </Table></div>
     </div>
   );
 }

@@ -120,7 +120,7 @@ export function MedicationScheduleTable({
     <>
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Time</TableHead>
@@ -221,7 +221,7 @@ export function MedicationScheduleTable({
                 );
               })}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 

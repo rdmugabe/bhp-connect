@@ -128,7 +128,7 @@ export default function EmarPatientsPage() {
               No patients found
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Patient Name</TableHead>
@@ -181,7 +181,7 @@ export default function EmarPatientsPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

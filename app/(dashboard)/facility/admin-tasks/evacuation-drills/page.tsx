@@ -388,7 +388,7 @@ export default function EvacuationDrillsPage() {
               </Link>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Type</TableHead>
@@ -451,7 +451,7 @@ export default function EvacuationDrillsPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

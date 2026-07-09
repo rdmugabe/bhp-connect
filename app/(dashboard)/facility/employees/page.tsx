@@ -289,6 +289,7 @@ export default function FacilityEmployeesPage() {
               Loading employees...
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -388,6 +389,7 @@ export default function FacilityEmployeesPage() {
                 )}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

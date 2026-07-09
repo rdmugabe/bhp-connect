@@ -224,6 +224,7 @@ export function MedicationHistoryTable({
 
   return (
     <>
+      <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -322,10 +323,11 @@ export function MedicationHistoryTable({
           ))}
         </TableBody>
       </Table>
+      </div>
 
       {/* Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg w-[calc(100vw-2rem)]">
           <DialogHeader>
             <DialogTitle>Administration Details</DialogTitle>
           </DialogHeader>

@@ -63,7 +63,7 @@ export default async function FacilityApplicationsPage() {
   const rejectedApplications = applications.filter((a) => a.status === "REJECTED");
 
   const ApplicationTable = ({ items }: { items: typeof applications }) => (
-    <Table>
+    <div className="overflow-x-auto"><Table>
       <TableHeader>
         <TableRow>
           <TableHead>Applicant</TableHead>
@@ -118,7 +118,7 @@ export default async function FacilityApplicationsPage() {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+    </Table></div>
   );
 
   const EmptyState = ({ message }: { message: string }) => (

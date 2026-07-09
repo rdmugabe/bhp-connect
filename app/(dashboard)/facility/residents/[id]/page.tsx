@@ -249,7 +249,7 @@ export default async function FacilityResidentDetailPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Document</TableHead>
@@ -289,7 +289,7 @@ export default async function FacilityResidentDetailPage({
                 </TableCell>
               </TableRow>
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 
@@ -310,7 +310,7 @@ export default async function FacilityResidentDetailPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Assessment</TableHead>
@@ -366,7 +366,7 @@ export default async function FacilityResidentDetailPage({
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 
@@ -401,7 +401,7 @@ export default async function FacilityResidentDetailPage({
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Month/Year</TableHead>
@@ -451,7 +451,7 @@ export default async function FacilityResidentDetailPage({
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 
@@ -487,7 +487,7 @@ export default async function FacilityResidentDetailPage({
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
@@ -545,7 +545,7 @@ export default async function FacilityResidentDetailPage({
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 
@@ -582,7 +582,7 @@ export default async function FacilityResidentDetailPage({
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Event</TableHead>
@@ -633,7 +633,7 @@ export default async function FacilityResidentDetailPage({
                   </TableRow>
                 )}
               </TableBody>
-            </Table>
+            </Table></div>
           </CardContent>
         </Card>
       )}
@@ -664,7 +664,7 @@ export default async function FacilityResidentDetailPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Document</TableHead>
@@ -723,7 +723,7 @@ export default async function FacilityResidentDetailPage({
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
 

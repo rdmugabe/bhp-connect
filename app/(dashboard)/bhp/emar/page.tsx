@@ -133,7 +133,7 @@ export default function BhpEmarPage() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -233,7 +233,7 @@ export default function BhpEmarPage() {
                       {facility.medicationStats?.totalActive || 0}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 pt-2 border-t">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-2 border-t">
                     <div className="text-center">
                       <p className="text-lg font-bold text-green-600">
                         {facility.medicationStats?.givenToday || 0}
@@ -292,7 +292,7 @@ export default function BhpEmarPage() {
 
           <Card>
             <CardContent className="p-0">
-              <Table>
+              <div className="overflow-x-auto"><Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Patient Name</TableHead>
@@ -349,7 +349,7 @@ export default function BhpEmarPage() {
                     </TableRow>
                   )}
                 </TableBody>
-              </Table>
+              </Table></div>
             </CardContent>
           </Card>
         </>

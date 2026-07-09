@@ -126,7 +126,7 @@ export function ResidentsTable({ residents, bhpEmail }: ResidentsTableProps) {
 
       {/* Desktop Table View */}
       <div className="hidden md:block">
-        <Table>
+        <div className="overflow-x-auto"><Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -193,7 +193,7 @@ export function ResidentsTable({ residents, bhpEmail }: ResidentsTableProps) {
               </TableRow>
             )}
           </TableBody>
-        </Table>
+        </Table></div>
       </div>
 
       {selectedResident && (

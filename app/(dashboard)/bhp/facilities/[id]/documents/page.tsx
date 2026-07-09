@@ -149,7 +149,7 @@ export default async function BHPFacilityDocumentsPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Document</TableHead>
@@ -202,7 +202,7 @@ export default async function BHPFacilityDocumentsPage({
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </Table></div>
         </CardContent>
       </Card>
     </div>

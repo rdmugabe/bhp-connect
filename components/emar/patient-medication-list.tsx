@@ -245,7 +245,7 @@ export function PatientMedicationList({
               No active medications
             </p>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Medication</TableHead>
@@ -354,7 +354,7 @@ export function PatientMedicationList({
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>
@@ -368,7 +368,7 @@ export function PatientMedicationList({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Medication</TableHead>
@@ -399,7 +399,7 @@ export function PatientMedicationList({
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           </CardContent>
         </Card>
       )}

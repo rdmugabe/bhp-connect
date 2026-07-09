@@ -193,6 +193,7 @@ export default function IncidentReportsPage() {
               </Button>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -233,7 +234,7 @@ export default function IncidentReportsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-0.5 md:gap-2">
                         <Button variant="ghost" size="icon" asChild>
                           <Link href={`/facility/incident-reports/${report.id}`}>
                             <Eye className="h-4 w-4" />
@@ -295,6 +296,7 @@ export default function IncidentReportsPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

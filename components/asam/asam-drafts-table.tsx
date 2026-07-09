@@ -67,7 +67,7 @@ export function ASAMDraftsTable({ drafts }: ASAMDraftsTableProps) {
   }
 
   return (
-    <Table>
+    <div className="overflow-x-auto"><Table>
       <TableHeader>
         <TableRow>
           <TableHead>Patient</TableHead>
@@ -146,6 +146,6 @@ export function ASAMDraftsTable({ drafts }: ASAMDraftsTableProps) {
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+    </Table></div>
   );
 }

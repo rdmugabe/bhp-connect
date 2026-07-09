@@ -145,7 +145,7 @@ export function ResidentEvaluationsTab({ intakeId, residentName, readOnly }: Pro
               No re-evaluations have been uploaded yet.
             </p>
           ) : (
-            <Table>
+            <div className="overflow-x-auto"><Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">#</TableHead>
@@ -188,7 +188,7 @@ export function ResidentEvaluationsTab({ intakeId, residentName, readOnly }: Pro
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>
