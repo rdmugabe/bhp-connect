@@ -32,11 +32,11 @@ function readAnthropicKey(): string {
   return process.env.ANTHROPIC_API_KEY || "";
 }
 
-// Haiku 4.5 fits the Amplify SSR 30-second Lambda timeout comfortably (Sonnet
-// 4.5 clocked ~50s and timed out in prod). Haiku produces clinically usable
-// facilitator guides / handouts for this format at 3-5x the throughput.
+// Haiku 4.5 + a modest max_tokens keeps us well under Amplify SSR's ~30s
+// end-to-end ceiling (Lambda + CloudFront). Sonnet 4.5 at 8000 tokens clocked
+// ~50s and timed out; Haiku at 4000 tokens completes in ~10-15s.
 const MODEL = "claude-haiku-4-5-20251001";
-const MAX_TOKENS = 8000;
+const MAX_TOKENS = 4000;
 
 const SYSTEM_PROMPT = `You are a licensed behavioral health clinician preparing a single group therapy session for adult residents in a Behavioral Health Residential Facility (BHRF). Residents commonly present with substance use disorders (alcohol, methamphetamine, cannabis) and co-occurring mental health conditions (MDD, GAD, PTSD, insomnia).
 
@@ -49,13 +49,13 @@ Constraints:
 - Handout must be usable by residents with an 8th-grade reading level and possible cognitive symptoms of early recovery.
 - Do NOT hallucinate specific YouTube URLs — you only produce SEARCH QUERIES; a separate step resolves them to real videos.
 
-Return ONLY strict JSON matching this schema:
+Return ONLY strict JSON matching this schema. Keep prose tight — this must fit under a strict 25-second generation window in production.
 {
   "topic": "short punchy title (3-8 words)",
   "topic_summary": "1-2 sentence description of what the session covers",
-  "facilitator_guide": "markdown with sections: **Objectives** (bullets), **Opening (5 min)**, **Main Content (30 min)** (numbered steps with talking points), **Group Activity (15 min)**, **Closing (10 min)**, **Watch-outs** (trauma triggers, disclosure guidance, when to redirect)",
-  "handout_markdown": "markdown handout for participants — includes a title, why this matters, 3-5 key concepts explained simply, a fill-in-the-blank reflection section, one skill they can practice this week, and a 'notes' area at the bottom. Keep to one page when printed.",
-  "video_queries": ["4 to 5 specific YouTube search phrases", "each phrase should be tight enough to surface a short (<15 min) clinically relevant video", "include duration hint when useful (e.g. '5 minute')"]
+  "facilitator_guide": "markdown with sections: **Objectives** (2-3 bullets), **Opening (5 min)** (1-2 sentences), **Main Content (30 min)** (3-4 numbered steps, one-line talking points each), **Group Activity (15 min)** (brief), **Closing (10 min)** (brief), **Watch-outs** (2-3 bullets max)",
+  "handout_markdown": "markdown handout for participants — title, 1-sentence 'why this matters', 3 key concepts explained in 1-2 sentences each, a short fill-in-the-blank reflection, one skill to practice this week, and a small 'notes' area. Fits on one page.",
+  "video_queries": ["exactly 3 specific YouTube search phrases", "each tight enough to surface a short (<15 min) clinically relevant video", "include duration hint when useful (e.g. '5 minute')"]
 }
 No prose before or after the JSON. No markdown code fences.`;
 
@@ -122,7 +122,9 @@ export async function generateGroupTherapyMaterial(
     );
   }
 
-  const queries = (parsed.video_queries || []).filter(q => typeof q === "string" && q.trim()).slice(0, 5);
+  // Cap at 3 — each YouTube API call is a ~500ms roundtrip. 3 balances
+  // usefulness with staying under the CloudFront ~30s timeout on Amplify.
+  const queries = (parsed.video_queries || []).filter(q => typeof q === "string" && q.trim()).slice(0, 3);
   if (!parsed.topic || !parsed.facilitator_guide || !parsed.handout_markdown) {
     throw new Error("Claude output missing required fields (topic / facilitator_guide / handout_markdown)");
   }
