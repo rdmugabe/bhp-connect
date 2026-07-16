@@ -32,9 +32,10 @@ function readAnthropicKey(): string {
   return process.env.ANTHROPIC_API_KEY || "";
 }
 
-const MODEL = "claude-sonnet-4-5";
-// Bumped from 3000 — a full facilitator guide + participant handout + 5 video
-// queries in strict JSON needs headroom. Sonnet 4.5 handles up to 64K output.
+// Haiku 4.5 fits the Amplify SSR 30-second Lambda timeout comfortably (Sonnet
+// 4.5 clocked ~50s and timed out in prod). Haiku produces clinically usable
+// facilitator guides / handouts for this format at 3-5x the throughput.
+const MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOKENS = 8000;
 
 const SYSTEM_PROMPT = `You are a licensed behavioral health clinician preparing a single group therapy session for adult residents in a Behavioral Health Residential Facility (BHRF). Residents commonly present with substance use disorders (alcohol, methamphetamine, cannabis) and co-occurring mental health conditions (MDD, GAD, PTSD, insomnia).

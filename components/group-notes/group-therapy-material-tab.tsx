@@ -108,12 +108,25 @@ export function GroupTherapyMaterialTab() {
           themeSeed: themeSeed.trim() || null,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || `Generate failed (${res.status})`);
-      setMaterial(data.material);
+      // Read raw body first so we can surface non-JSON errors (empty body from
+      // Lambda timeout, HTML gateway error page, etc.) instead of a cryptic
+      // "Failed to execute 'json' on 'Response'" message.
+      const rawText = await res.text();
+      let data: { material?: MaterialRecord; error?: string } | null = null;
+      if (rawText) {
+        try { data = JSON.parse(rawText); } catch { /* fall through */ }
+      }
+      if (!res.ok || !data) {
+        const fallback =
+          !rawText
+            ? `Server returned no body (${res.status}). This usually means the request timed out.`
+            : `Generate failed (${res.status}): ${rawText.slice(0, 200)}`;
+        throw new Error(data?.error || fallback);
+      }
+      setMaterial(data.material ?? null);
       toast({
         title: material ? "Regenerated" : "Material ready",
-        description: `Topic: ${data.material.topic}`,
+        description: data.material ? `Topic: ${data.material.topic}` : undefined,
       });
     } catch (err) {
       toast({
