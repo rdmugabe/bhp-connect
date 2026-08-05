@@ -42,28 +42,57 @@ const MAX_TOKENS = 6000;
 
 const SYSTEM_PROMPT = `You are a licensed behavioral health clinician preparing a single group therapy session for adult residents in a Behavioral Health Residential Facility (BHRF). Residents commonly present with substance use disorders (alcohol, methamphetamine, cannabis) and co-occurring mental health conditions (MDD, GAD, PTSD, insomnia).
 
-Your job is to draft ONE cohesive group therapy session — topic, facilitator guide, participant handout, and video search queries — that a BHT-level staff member can run with minimal prep.
+Your job is to draft ONE cohesive group therapy session that a BHT-level staff member can run with minimal prep. Use the "emit_session_material" tool to return your work.
 
 Constraints:
 - Trauma-informed and non-shaming language throughout.
 - Skills-based, evidence-informed (CBT, DBT, motivational interviewing, ACT, mindfulness, 12-step-compatible where appropriate).
 - Avoid content that could re-traumatize (no explicit descriptions of substance use, violence, or self-harm).
 - Handout must be usable by residents with an 8th-grade reading level and possible cognitive symptoms of early recovery.
-- Do NOT hallucinate specific YouTube URLs — you only produce SEARCH QUERIES; a separate step resolves them to real videos.
+- The facilitator guide is a cheat sheet, keep it tight.
+- The participant handout must be rich enough to carry a full 60-minute group. Include Why This Matters, 5-6 Key Concepts (each with a heading, 3-4 sentences, and a relatable example), 4-6 Self-Reflection prompts with write-in blanks, a Try This Week skill broken into 3-4 concrete steps, 3 Discussion Questions, and a Notes area.
+- Do NOT invent specific YouTube URLs. Return exactly 3 short SEARCH QUERIES; a separate step resolves them to real videos.`;
 
-Return ONLY strict JSON matching this schema. The facilitator guide stays tight (it's a cheat sheet). The participant handout must be rich enough to carry a full 60-minute group — residents read it, discuss it, write on it, and take it home.
-
-{
-  "topic": "short punchy title (3-8 words)",
-  "topic_summary": "1-2 sentence description of what the session covers",
-
-  "facilitator_guide": "markdown cheat sheet with sections: **Objectives** (2-3 bullets), **Opening (5 min)** (1-2 sentences), **Main Content (30 min)** (3-4 numbered steps, one-line talking points each), **Group Activity (15 min)** (brief), **Closing (10 min)** (brief), **Watch-outs** (2-3 bullets max)",
-
-  "handout_markdown": "markdown handout for participants, 3-4 pages when printed. Include ALL of the following sections, each with real substance — not one-liners:\n\n1. **Title + one-line subtitle**\n2. **Why This Matters** — 2-3 sentences connecting the topic to early recovery.\n3. **Key Concepts** — 5-6 concepts, each with:\n   - a bold heading\n   - 3-4 sentences of explanation in plain language (8th-grade reading level)\n   - one concrete example a resident might relate to\n4. **Self-Reflection** — 4-6 open-ended prompts with a blank line after each for the resident to write in (use markdown like '____________________' or 'My answer: _______'). Prompts should invite honest self-inquiry, not yes/no.\n5. **Try This Week** — a specific skill or exercise to practice, broken into 3-4 concrete steps with a short 'how it helps' sentence.\n6. **Discussion Questions** — 3 questions the resident can bring to their sponsor, therapist, or the next group.\n7. **Notes** — a labeled space with 3-4 lines for freehand notes.\n\nKeep language non-shaming, trauma-informed, and readable to someone in early recovery who may have cognitive fog. Prefer short paragraphs and bullet points over dense prose.",
-
-  "video_queries": ["exactly 3 specific YouTube search phrases", "each tight enough to surface a short (<15 min) clinically relevant video", "include duration hint when useful (e.g. '5 minute')"]
-}
-No prose before or after the JSON. No markdown code fences.`;
+// Tool definition passed to Anthropic — the model fills this schema and we
+// receive a native object, so no JSON parsing on our side. Removes the entire
+// class of "unescaped quote in a JSON string" failures we were hitting on
+// production.
+const EMIT_TOOL = {
+  name: "emit_session_material",
+  description: "Return the full group therapy session material as structured data.",
+  input_schema: {
+    type: "object" as const,
+    properties: {
+      topic: {
+        type: "string",
+        description: "Short punchy title, 3-8 words.",
+      },
+      topic_summary: {
+        type: "string",
+        description: "1-2 sentence description of what the session covers.",
+      },
+      facilitator_guide: {
+        type: "string",
+        description:
+          "Markdown cheat sheet with sections: **Objectives** (2-3 bullets), **Opening (5 min)** (1-2 sentences), **Main Content (30 min)** (3-4 numbered steps, one-line talking points each), **Group Activity (15 min)** (brief), **Closing (10 min)** (brief), **Watch-outs** (2-3 bullets max).",
+      },
+      handout_markdown: {
+        type: "string",
+        description:
+          "Markdown handout for participants, 3-4 pages when printed. Include all of the following sections with real substance: Title + one-line subtitle; Why This Matters (2-3 sentences); Key Concepts (5-6 concepts, each with a bold heading, 3-4 sentences of plain-language explanation, and one concrete relatable example); Self-Reflection (4-6 open-ended prompts with write-in blanks); Try This Week (a specific skill broken into 3-4 concrete steps with a short how-it-helps sentence); Discussion Questions (3 questions to bring to sponsor, therapist, or next group); Notes (a labeled space with 3-4 lines).",
+      },
+      video_queries: {
+        type: "array",
+        items: { type: "string" },
+        minItems: 3,
+        maxItems: 3,
+        description:
+          "Exactly 3 specific YouTube search phrases, each tight enough to surface a short (<15 min) clinically relevant video. Include duration hint when useful.",
+      },
+    },
+    required: ["topic", "topic_summary", "facilitator_guide", "handout_markdown", "video_queries"],
+  },
+};
 
 let anthropic: Anthropic | null = null;
 function client(): Anthropic {
@@ -98,35 +127,30 @@ export async function generateGroupTherapyMaterial(
     model: MODEL,
     max_tokens: MAX_TOKENS,
     system: SYSTEM_PROMPT,
+    tools: [EMIT_TOOL],
+    tool_choice: { type: "tool", name: EMIT_TOOL.name },
     messages: [{ role: "user", content: userMsg }],
   });
 
-  const text = response.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map(b => b.text)
-    .join("\n")
-    .trim();
-
-  // Strip stray fences even though the prompt says no fences
-  const cleaned = text
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/```\s*$/i, "")
-    .trim();
-
-  let parsed: {
+  // With tool_choice forced, Claude MUST emit a tool_use block. Grab it and
+  // treat its input as our structured payload — no JSON string parsing.
+  const toolUse = response.content.find(
+    (b): b is Anthropic.ToolUseBlock =>
+      b.type === "tool_use" && b.name === EMIT_TOOL.name
+  );
+  if (!toolUse) {
+    throw new Error(
+      "Claude did not emit the expected tool_use block (stop_reason: " +
+        response.stop_reason + ")"
+    );
+  }
+  const parsed = toolUse.input as {
     topic?: string;
     topic_summary?: string;
     facilitator_guide?: string;
     handout_markdown?: string;
     video_queries?: string[];
   };
-  try {
-    parsed = JSON.parse(cleaned);
-  } catch (err) {
-    throw new Error(
-      `Claude returned non-JSON output: ${err instanceof Error ? err.message : String(err)}`
-    );
-  }
 
   // Cap at 3 — each YouTube API call is a ~500ms roundtrip. 3 balances
   // usefulness with staying under the CloudFront ~30s timeout on Amplify.
