@@ -32,13 +32,13 @@ function readAnthropicKey(): string {
   return process.env.ANTHROPIC_API_KEY || "";
 }
 
-// Haiku 4.5 + moderate max_tokens keeps us under Amplify SSR's ~30s
-// end-to-end ceiling (Lambda + CloudFront). 6000 tokens is enough for a
-// full participant handout (5-6 concepts with real depth + reflection
-// prompts + practice skill) plus a tight facilitator guide, and Haiku
-// finishes in ~15-20s.
+// Haiku 4.5 + trimmed max_tokens to stay comfortably under Amplify SSR's
+// hard 30s CloudFront ceiling. 6000 tokens produced ~28s Lambda runs that
+// then 504'd through CloudFront; 4000 tokens should finish in ~15-18s.
+// Handout depth stays useful but slightly leaner (4 concepts instead of
+// 5-6, tighter self-reflection block).
 const MODEL = "claude-haiku-4-5-20251001";
-const MAX_TOKENS = 6000;
+const MAX_TOKENS = 4000;
 
 const SYSTEM_PROMPT = `You are a licensed behavioral health clinician preparing a single group therapy session for adult residents in a Behavioral Health Residential Facility (BHRF). Residents commonly present with substance use disorders (alcohol, methamphetamine, cannabis) and co-occurring mental health conditions (MDD, GAD, PTSD, insomnia).
 
@@ -79,7 +79,7 @@ const EMIT_TOOL = {
       handout_markdown: {
         type: "string",
         description:
-          "Markdown handout for participants, 3-4 pages when printed. Include all of the following sections with real substance: Title + one-line subtitle; Why This Matters (2-3 sentences); Key Concepts (5-6 concepts, each with a bold heading, 3-4 sentences of plain-language explanation, and one concrete relatable example); Self-Reflection (4-6 open-ended prompts with write-in blanks); Try This Week (a specific skill broken into 3-4 concrete steps with a short how-it-helps sentence); Discussion Questions (3 questions to bring to sponsor, therapist, or next group); Notes (a labeled space with 3-4 lines).",
+          "Markdown handout for participants, 2-3 pages when printed. Include all sections with real substance but keep prose tight: Title + one-line subtitle; Why This Matters (2 sentences); Key Concepts (4 concepts, each with a bold heading, 2-3 sentences of plain-language explanation, and one brief relatable example); Self-Reflection (3 open-ended prompts with write-in blanks); Try This Week (a specific skill broken into 3 concrete steps); Discussion Questions (3 questions to bring to sponsor, therapist, or next group); Notes (a labeled space with 3 lines).",
       },
       video_queries: {
         type: "array",
