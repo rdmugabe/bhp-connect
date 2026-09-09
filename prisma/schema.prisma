@@ -55,74 +55,6 @@ enum MeetingStatus {
   CANCELLED
 }
 
-// eMAR (Electronic Medication Administration Record) Enums
-enum MedicationOrderStatus {
-  ACTIVE
-  DISCONTINUED
-  COMPLETED
-  ON_HOLD
-}
-
-enum MedicationFrequency {
-  ONCE
-  DAILY
-  BID
-  TID
-  QID
-  Q4H
-  Q6H
-  Q8H
-  Q12H
-  QHS
-  QAM
-  PRN
-  WEEKLY
-  CUSTOM
-}
-
-enum MedicationRoute {
-  PO
-  SL
-  IM
-  IV
-  SC
-  TOPICAL
-  INHALED
-  OPHTHALMIC
-  OTIC
-  NASAL
-  RECTAL
-  TRANSDERMAL
-  OTHER
-}
-
-enum AdministrationStatus {
-  SCHEDULED
-  DUE
-  GIVEN
-  REFUSED
-  HELD
-  MISSED
-  NOT_AVAILABLE
-  LOA
-  DISCONTINUED
-}
-
-enum AlertType {
-  MEDICATION_DUE
-  MEDICATION_OVERDUE
-  MISSED_DOSE
-  ALLERGY_WARNING
-  DUPLICATE_MEDICATION
-  PRN_FOLLOWUP_DUE
-}
-
-enum AlertSeverity {
-  INFO
-  WARNING
-  CRITICAL
-}
-
 enum InvitationStatus {
   PENDING
   ACCEPTED
@@ -181,43 +113,41 @@ model BHPProfile {
 }
 
 model Facility {
-  id        String     @id @default(cuid())
-  name      String
-  address   String
-  phone     String?
-  bhpId     String
-  bhp       BHPProfile @relation(fields: [bhpId], references: [id], onDelete: Cascade)
+  id      String     @id @default(cuid())
+  name    String
+  address String
+  phone   String?
+  bhpId   String
+  bhp     BHPProfile @relation(fields: [bhpId], references: [id], onDelete: Cascade)
 
   // Onboarding Settings
-  defaultAdminName      String?  // Default administrator name for onboarding packets
-  defaultAdminSignature String?  // S3 URL for default administrator signature image
+  defaultAdminName      String? // Default administrator name for onboarding packets
+  defaultAdminSignature String? // S3 URL for default administrator signature image
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  staff                 BHRFProfile[]
-  intakes               Intake[]
-  asamAssessments       ASAMAssessment[]
-  documents             Document[]
-  messages              Message[]
-  employees             Employee[]
-  employeeDocumentTypes EmployeeDocumentType[]
-  meetings              Meeting[]
-  fireDrillReports      FireDrillReport[]
-  evacuationDrillReports EvacuationDrillReport[]
+  staff                    BHRFProfile[]
+  intakes                  Intake[]
+  asamAssessments          ASAMAssessment[]
+  documents                Document[]
+  messages                 Message[]
+  employees                Employee[]
+  employeeDocumentTypes    EmployeeDocumentType[]
+  meetings                 Meeting[]
+  fireDrillReports         FireDrillReport[]
+  evacuationDrillReports   EvacuationDrillReport[]
   oversightTrainingReports OversightTrainingReport[]
-  artMeetings           ARTMeeting[]
-  dischargeSummaries    DischargeSummary[]
-  incidentReports       IncidentReport[]
-  medicationOrders      MedicationOrder[]
-  medicationAlerts      MedicationAlert[]
-  progressNotes         ProgressNote[]
-  residentEvaluations   ResidentEvaluation[]
-  calendarEvents        CalendarEvent[]
-  facilityInvitations   FacilityInvitation[]
-  careCoordinationEntries CareCoordinationEntry[]
-  groupTherapyMaterials GroupTherapyMaterial[]
+  artMeetings              ARTMeeting[]
+  dischargeSummaries       DischargeSummary[]
+  incidentReports          IncidentReport[]
+  progressNotes            ProgressNote[]
+  residentEvaluations      ResidentEvaluation[]
+  calendarEvents           CalendarEvent[]
+  facilityInvitations      FacilityInvitation[]
+  careCoordinationEntries  CareCoordinationEntry[]
+  groupTherapyMaterials    GroupTherapyMaterial[]
 
   @@index([bhpId])
 }
@@ -261,16 +191,16 @@ model Intake {
   facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Demographics
-  residentName  String
-  ssn           String?  // Last 4 digits only
-  dateOfBirth   DateTime
-  admissionDate DateTime?
-  sex           String?
+  residentName        String
+  ssn                 String? // Last 4 digits only
+  dateOfBirth         DateTime
+  admissionDate       DateTime?
+  sex                 String?
   ethnicity           String?
   nativeAmericanTribe String?
-  language     String?
-  religion     String?
-  sexualOrientation String?
+  language            String?
+  religion            String?
+  sexualOrientation   String?
 
   // Contact Information
   patientAddress    String? @db.Text
@@ -312,14 +242,14 @@ model Intake {
   familyInvolved          String? @db.Text
 
   // Behavioral Health Symptoms
-  reasonForServices           String? @db.Text
-  currentBehavioralSymptoms   String? @db.Text
-  copingWithSymptoms          String? @db.Text
-  symptomsLimitations         String? @db.Text
-  immediateUrgentNeeds        String? @db.Text
-  signsOfImprovement          String? @db.Text
-  assistanceExpectations      String? @db.Text
-  involvedInTreatment         String? @db.Text
+  reasonForServices         String? @db.Text
+  currentBehavioralSymptoms String? @db.Text
+  copingWithSymptoms        String? @db.Text
+  symptomsLimitations       String? @db.Text
+  immediateUrgentNeeds      String? @db.Text
+  signsOfImprovement        String? @db.Text
+  assistanceExpectations    String? @db.Text
+  involvedInTreatment       String? @db.Text
 
   // Medical
   allergies            String? @db.Text
@@ -328,121 +258,121 @@ model Intake {
   medicalUrgency       String?
   personalMedicalHX    String? @db.Text
   familyMedicalHX      String? @db.Text
-  medicalConditions    Json?   // Structured checklist: diabetes, heart disease, etc.
+  medicalConditions    Json? // Structured checklist: diabetes, heart disease, etc.
   height               String?
   weight               String?
   bmi                  String?
 
   // Psychiatric
-  isCOT               Boolean @default(false)
-  personalPsychHX     String? @db.Text
-  familyPsychHX       String? @db.Text
-  treatmentPreferences String? @db.Text
+  isCOT                   Boolean @default(false)
+  personalPsychHX         String? @db.Text
+  familyPsychHX           String? @db.Text
+  treatmentPreferences    String? @db.Text
   psychMedicationEfficacy String? @db.Text
 
   // Risk Assessment
-  suicideHistory             String? @db.Text
-  suicideAttemptDetails      String? @db.Text
-  currentSuicideIdeation     Boolean @default(false)
-  suicideIdeationDetails     String? @db.Text
-  mostRecentSuicideIdeation  String? @db.Text
-  historySelfHarm            Boolean @default(false)
-  selfHarmDetails            String? @db.Text
-  dtsRiskFactors             Json?   // Danger to self risk factors checklist
-  dtsProtectiveFactors       Json?   // Danger to self protective factors checklist
-  historyHarmingOthers       Boolean @default(false)
-  harmingOthersDetails       String? @db.Text
-  homicidalIdeation          Boolean @default(false)
-  homicidalIdeationDetails   String? @db.Text
-  dtoRiskFactors             Json?   // Danger to others risk factors checklist
-  dutyToWarnCompleted        Boolean @default(false)
-  dutyToWarnDetails          String? @db.Text
-  previousHospitalizations   String? @db.Text
-  hospitalizationDetails     String? @db.Text
+  suicideHistory            String? @db.Text
+  suicideAttemptDetails     String? @db.Text
+  currentSuicideIdeation    Boolean @default(false)
+  suicideIdeationDetails    String? @db.Text
+  mostRecentSuicideIdeation String? @db.Text
+  historySelfHarm           Boolean @default(false)
+  selfHarmDetails           String? @db.Text
+  dtsRiskFactors            Json? // Danger to self risk factors checklist
+  dtsProtectiveFactors      Json? // Danger to self protective factors checklist
+  historyHarmingOthers      Boolean @default(false)
+  harmingOthersDetails      String? @db.Text
+  homicidalIdeation         Boolean @default(false)
+  homicidalIdeationDetails  String? @db.Text
+  dtoRiskFactors            Json? // Danger to others risk factors checklist
+  dutyToWarnCompleted       Boolean @default(false)
+  dutyToWarnDetails         String? @db.Text
+  previousHospitalizations  String? @db.Text
+  hospitalizationDetails    String? @db.Text
 
   // Developmental History
-  inUteroExposure          Boolean @default(false)
-  inUteroExposureDetails   String? @db.Text
-  developmentalMilestones  String? // Met, Not Met
-  developmentalDetails     String? @db.Text
-  speechDifficulties       Boolean @default(false)
-  speechDetails            String? @db.Text
-  visualImpairment         Boolean @default(false)
-  visualDetails            String? @db.Text
-  hearingImpairment        Boolean @default(false)
-  hearingDetails           String? @db.Text
-  motorSkillsImpairment    Boolean @default(false)
-  motorSkillsDetails       String? @db.Text
-  cognitiveImpairment      Boolean @default(false)
-  cognitiveDetails         String? @db.Text
-  socialSkillsDeficits     Boolean @default(false)
-  socialSkillsDetails      String? @db.Text
-  immunizationStatus       String? // Current, Not Current, Unknown
+  inUteroExposure         Boolean @default(false)
+  inUteroExposureDetails  String? @db.Text
+  developmentalMilestones String? // Met, Not Met
+  developmentalDetails    String? @db.Text
+  speechDifficulties      Boolean @default(false)
+  speechDetails           String? @db.Text
+  visualImpairment        Boolean @default(false)
+  visualDetails           String? @db.Text
+  hearingImpairment       Boolean @default(false)
+  hearingDetails          String? @db.Text
+  motorSkillsImpairment   Boolean @default(false)
+  motorSkillsDetails      String? @db.Text
+  cognitiveImpairment     Boolean @default(false)
+  cognitiveDetails        String? @db.Text
+  socialSkillsDeficits    Boolean @default(false)
+  socialSkillsDetails     String? @db.Text
+  immunizationStatus      String? // Current, Not Current, Unknown
 
   // Skills Assessment
   hygieneSkills      Json? // Checklist JSON
   skillsContinuation Json? // Additional skills checklist
 
   // PHQ-9
-  phq9Responses   Json? // Array of 9 responses (0-3 each)
-  phq9TotalScore  Int?
+  phq9Responses  Json? // Array of 9 responses (0-3 each)
+  phq9TotalScore Int?
 
   // Treatment
-  treatmentObjectives      String? @db.Text
-  dischargePlanObjectives  String? @db.Text
-  supportSystem            String? @db.Text
-  communityResources       String? @db.Text
+  treatmentObjectives     String? @db.Text
+  dischargePlanObjectives String? @db.Text
+  supportSystem           String? @db.Text
+  communityResources      String? @db.Text
 
   // Social History
-  childhoodDescription        String? @db.Text
-  abuseHistory                String? @db.Text
-  familyMentalHealthHistory   String? @db.Text
-  relationshipStatus          String?
-  relationshipSatisfaction    String? @db.Text
-  friendsDescription          String? @db.Text
+  childhoodDescription      String? @db.Text
+  abuseHistory              String? @db.Text
+  familyMentalHealthHistory String? @db.Text
+  relationshipStatus        String?
+  relationshipSatisfaction  String? @db.Text
+  friendsDescription        String? @db.Text
 
   // Education History
-  highestEducation     String?
-  specialEducation     Boolean @default(false)
+  highestEducation        String?
+  specialEducation        Boolean @default(false)
   specialEducationDetails String? @db.Text
-  plan504              Boolean @default(false)
-  iep                  Boolean @default(false)
-  educationDetails     String? @db.Text
+  plan504                 Boolean @default(false)
+  iep                     Boolean @default(false)
+  educationDetails        String? @db.Text
 
   // Employment History
-  currentlyEmployed       Boolean @default(false)
-  employmentDetails       String? @db.Text
-  workVolunteerHistory    String? @db.Text
-  employmentBarriers      String? @db.Text
+  currentlyEmployed    Boolean @default(false)
+  employmentDetails    String? @db.Text
+  workVolunteerHistory String? @db.Text
+  employmentBarriers   String? @db.Text
 
   // Legal History
-  criminalLegalHistory    String? @db.Text
-  courtOrderedTreatment   Boolean @default(false)
-  courtOrderedDetails     String? @db.Text
-  otherLegalIssues        String? @db.Text
+  criminalLegalHistory  String? @db.Text
+  courtOrderedTreatment Boolean @default(false)
+  courtOrderedDetails   String? @db.Text
+  otherLegalIssues      String? @db.Text
 
   // Substance Use History
-  substanceHistory        String? @db.Text
-  substanceUseTable       Json?   // Detailed table: type, first use, last use, pattern
-  drugOfChoice            String?
-  longestSobriety         String?
+  substanceHistory          String? @db.Text
+  substanceUseTable         Json? // Detailed table: type, first use, last use, pattern
+  drugOfChoice              String?
+  longestSobriety           String?
   substanceTreatmentHistory String? @db.Text
-  nicotineUse             Boolean @default(false)
-  nicotineDetails         String? @db.Text
-  substanceImpact         String? @db.Text
-  historyOfAbuse          String? @db.Text
+  nicotineUse               Boolean @default(false)
+  nicotineDetails           String? @db.Text
+  substanceImpact           String? @db.Text
+  historyOfAbuse            String? @db.Text
 
   // Current Living Situation
-  livingArrangements      String? @db.Text
-  sourceOfFinances        String? @db.Text
-  transportationMethod    String?
+  livingArrangements   String? @db.Text
+  sourceOfFinances     String? @db.Text
+  transportationMethod String?
 
   // ADLs
-  adlChecklist        Json? // Activities of Daily Living checklist
-  preferredActivities String? @db.Text
-  significantOthers   String? @db.Text
-  supportLevel        String?
-  typicalDay          String? @db.Text
+  adlChecklist                Json? // Activities of Daily Living checklist
+  preferredActivities         String? @db.Text
+  significantOthers           String? @db.Text
+  supportLevel                String?
+  typicalDay                  String? @db.Text
   strengthsAbilitiesInterests String? @db.Text
 
   // Wellness
@@ -486,8 +416,8 @@ model Intake {
   estimatedIntelligence   String?
 
   // Diagnosis & Recommendations
-  diagnosis                    String? @db.Text
-  treatmentRecommendation      String? @db.Text
+  diagnosis               String? @db.Text
+  treatmentRecommendation String? @db.Text
 
   // Crisis/Discharge
   crisisInterventionPlan String? @db.Text
@@ -497,34 +427,32 @@ model Intake {
 
   // Workflow
   status         IntakeStatus @default(PENDING)
-  draftStep      Int?         // Track which step user is on for drafts
+  draftStep      Int? // Track which step user is on for drafts
   decisionReason String?      @db.Text
   decidedAt      DateTime?
   decidedBy      String?
   submittedBy    String
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  archivedAt     DateTime?    // Soft delete - when set, intake is archived
-  dischargedAt   DateTime?    // When resident was discharged
+  archivedAt     DateTime? // Soft delete - when set, intake is archived
+  dischargedAt   DateTime? // When resident was discharged
 
   // Re-admission tracking
-  previousIntakeId  String?   // Reference to previous intake if re-admitted
-  previousIntake    Intake?   @relation("IntakeHistory", fields: [previousIntakeId], references: [id])
-  subsequentIntakes Intake[]  @relation("IntakeHistory")
+  previousIntakeId  String? // Reference to previous intake if re-admitted
+  previousIntake    Intake?  @relation("IntakeHistory", fields: [previousIntakeId], references: [id])
+  subsequentIntakes Intake[] @relation("IntakeHistory")
 
   // Relations
-  medications      IntakeMedication[]
-  asamAssessments  ASAMAssessment[]
-  documents        Document[]  // Documents owned by this resident
-  artMeetings      ARTMeeting[]
-  dischargeSummary DischargeSummary?
-  incidentReports  IncidentReport[]
-  medicationOrders MedicationOrder[]
-  medicationAlerts MedicationAlert[]
-  progressNotes    ProgressNote[]
-  residentEvaluations ResidentEvaluation[]
-  nextReEvaluationDueDate DateTime? @db.Date  // drives the Re-Evaluation Countdown
-  calendarEvents   CalendarEvent[]
+  medications             IntakeMedication[]
+  asamAssessments         ASAMAssessment[]
+  documents               Document[] // Documents owned by this resident
+  artMeetings             ARTMeeting[]
+  dischargeSummary        DischargeSummary?
+  incidentReports         IncidentReport[]
+  progressNotes           ProgressNote[]
+  residentEvaluations     ResidentEvaluation[]
+  nextReEvaluationDueDate DateTime?               @db.Date // drives the Re-Evaluation Countdown
+  calendarEvents          CalendarEvent[]
   careCoordinationEntries CareCoordinationEntry[]
 
   @@index([facilityId])
@@ -534,13 +462,13 @@ model Intake {
 }
 
 model IntakeMedication {
-  id        String @id @default(cuid())
-  intakeId  String
-  intake    Intake @relation(fields: [intakeId], references: [id], onDelete: Cascade)
-  name      String
-  dosage    String?
-  frequency String?
-  route     String?
+  id         String    @id @default(cuid())
+  intakeId   String
+  intake     Intake    @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  name       String
+  dosage     String?
+  frequency  String?
+  route      String?
   prescriber String?
   purpose    String?
   startDate  DateTime?
@@ -570,30 +498,30 @@ enum DocumentOwnerType {
 }
 
 model Document {
-  id          String            @id @default(cuid())
-  facilityId  String
-  facility    Facility          @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  categoryId  String?
-  category    DocumentCategory? @relation(fields: [categoryId], references: [id])
+  id         String            @id @default(cuid())
+  facilityId String
+  facility   Facility          @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   DocumentCategory? @relation(fields: [categoryId], references: [id])
 
   // Owner information
-  ownerType   DocumentOwnerType @default(FACILITY)
-  employeeId  String?
-  employee    Employee?         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  intakeId    String?           // For resident documents
-  intake      Intake?           @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  ownerType  DocumentOwnerType @default(FACILITY)
+  employeeId String?
+  employee   Employee?         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  intakeId   String? // For resident documents
+  intake     Intake?           @relation(fields: [intakeId], references: [id], onDelete: Cascade)
 
-  name        String
-  type        String
-  fileUrl     String?
-  expiresAt   DateTime?
-  status      DocumentStatus    @default(REQUESTED)
-  requestedBy String?
-  requestedAt DateTime?
-  uploadedBy  String?
-  uploadedAt  DateTime?
-  archivedAt  DateTime?         // Set when document is archived (e.g., patient discharged)
-  versions    DocumentVersion[]
+  name                    String
+  type                    String
+  fileUrl                 String?
+  expiresAt               DateTime?
+  status                  DocumentStatus           @default(REQUESTED)
+  requestedBy             String?
+  requestedAt             DateTime?
+  uploadedBy              String?
+  uploadedAt              DateTime?
+  archivedAt              DateTime? // Set when document is archived (e.g., patient discharged)
+  versions                DocumentVersion[]
   oversightTrainingReport OversightTrainingReport?
 
   @@index([facilityId])
@@ -612,9 +540,9 @@ model DocumentCategory {
   name        String
   description String?     @db.Text
   isRequired  Boolean     @default(false)
-  bhpId       String?     // If set, this is a BHP-required category
+  bhpId       String? // If set, this is a BHP-required category
   bhp         BHPProfile? @relation(fields: [bhpId], references: [id], onDelete: Cascade)
-  facilityId  String?     // If set, this is a facility-created category
+  facilityId  String? // If set, this is a facility-created category
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -675,12 +603,12 @@ model AuditLog {
 // Configurable document types for employees
 model EmployeeDocumentType {
   id                 String    @id @default(cuid())
-  facilityId         String?   // null = system default
+  facilityId         String? // null = system default
   facility           Facility? @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  name               String    // e.g., "Clearance Card", "CPR & First Aid"
+  name               String // e.g., "Clearance Card", "CPR & First Aid"
   description        String?   @db.Text // Description of what this document is
   expirationRequired Boolean   @default(true)
-  expirationMonths   Int?      // Default expiration period in months (e.g., 24 for CPR)
+  expirationMonths   Int? // Default expiration period in months (e.g., 24 for CPR)
   isDefault          Boolean   @default(false) // System-level default types
   isRequired         Boolean   @default(false) // Required for all employees
   isActive           Boolean   @default(true)
@@ -713,7 +641,7 @@ model Employee {
   updatedAt  DateTime  @updatedAt
 
   employeeDocuments EmployeeDocument[]
-  documents         Document[]  // General documents owned by this employee
+  documents         Document[] // General documents owned by this employee
 
   @@index([facilityId])
   @@index([isActive])
@@ -729,7 +657,7 @@ model EmployeeDocument {
   documentType   EmployeeDocumentType @relation(fields: [documentTypeId], references: [id])
   fileUrl        String
   issuedAt       DateTime
-  expiresAt      DateTime?            // null if "no expiration"
+  expiresAt      DateTime? // null if "no expiration"
   noExpiration   Boolean              @default(false)
   status         EmployeeDocStatus    @default(VALID)
   uploadedBy     String
@@ -744,29 +672,29 @@ model EmployeeDocument {
 
 // Video consultation meetings
 model Meeting {
-  id          String        @id @default(cuid())
-  facilityId  String
-  facility    Facility      @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Meeting Details
   title       String
-  description String?       @db.Text
+  description String?  @db.Text
   scheduledAt DateTime
-  duration    Int           @default(30) // Duration in minutes
+  duration    Int      @default(30) // Duration in minutes
 
   // Meeting Link
-  meetingUrl  String?       // Zoom/Google Meet link
+  meetingUrl String? // Zoom/Google Meet link
 
   // Status tracking
-  status      MeetingStatus @default(SCHEDULED)
-  startedAt   DateTime?
-  endedAt     DateTime?
+  status    MeetingStatus @default(SCHEDULED)
+  startedAt DateTime?
+  endedAt   DateTime?
 
   // Metadata
-  createdBy   String        // User ID who created the meeting
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  notes       String?       @db.Text // Post-meeting notes
+  createdBy String // User ID who created the meeting
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  notes     String?  @db.Text // Post-meeting notes
 
   @@index([facilityId])
   @@index([scheduledAt])
@@ -796,7 +724,7 @@ model FireDrillReport {
   id                  String      @id @default(cuid())
   facilityId          String
   facility            Facility    @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  reportMonth         Int         // 1-12
+  reportMonth         Int // 1-12
   reportYear          Int
   drillDate           DateTime
   drillTime           String
@@ -808,8 +736,8 @@ model FireDrillReport {
   buildingClearTime   String?
   totalEvacuationTime String?
   numberEvacuated     Int?
-  safetyChecklist     Json        // 6 boolean items
-  residentsPresent    Json?       // [{name, evacuated}]
+  safetyChecklist     Json // 6 boolean items
+  residentsPresent    Json? // [{name, evacuated}]
   observations        String?     @db.Text
   correctiveActions   String?     @db.Text
   drillResult         DrillResult
@@ -826,51 +754,51 @@ model FireDrillReport {
 
 // Evacuation/Disaster Drill Enums
 enum EvacuationDrillType {
-  EVACUATION  // Staff and Residents - Every 6 months
-  DISASTER    // Staff Only - Every 3 months
+  EVACUATION // Staff and Residents - Every 6 months
+  DISASTER // Staff Only - Every 3 months
 }
 
 enum EvacuationShift {
-  AM  // 7:00AM - 7:00PM
-  PM  // 7:00PM - 7:00AM
+  AM // 7:00AM - 7:00PM
+  PM // 7:00PM - 7:00AM
 }
 
 enum Quarter {
-  Q1  // Jan, Feb, Mar
-  Q2  // Apr, May, Jun
-  Q3  // Jul, Aug, Sep
-  Q4  // Oct, Nov, Dec
+  Q1 // Jan, Feb, Mar
+  Q2 // Apr, May, Jun
+  Q3 // Jul, Aug, Sep
+  Q4 // Oct, Nov, Dec
 }
 
 // Evacuation/Disaster Drill Report
 model EvacuationDrillReport {
-  id                  String              @id @default(cuid())
-  facilityId          String
-  facility            Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  drillType           EvacuationDrillType
-  drillDate           DateTime
-  drillTime           String
-  dayOfWeek           String
-  totalLengthMinutes  Int?
-  shift               EvacuationShift
-  quarter             Quarter
-  year                Int
-  disasterDrillType   String?             // e.g., "Fire", "Earthquake", "Flood" - only for disaster drills
-  staffInvolved       Json                // [{name: string}]
-  residentsInvolved   Json?               // [{name: string, assistanceRequired: string}] - only for evacuation drills
-  exitBlocked         String?             // Scenario description
-  exitUsed            String?
-  assemblyPoint       String?
-  correctLocation     Boolean?
-  allAccountedFor     Boolean?
-  issuesIdentified    Boolean?
-  observations        String?             @db.Text
-  drillResult         DrillResult
-  signatures          Json?               // {conductedBy, conductedByDate, supervisor, supervisorDate}
-  submittedBy         String
-  submittedAt         DateTime            @default(now())
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  id                 String              @id @default(cuid())
+  facilityId         String
+  facility           Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  drillType          EvacuationDrillType
+  drillDate          DateTime
+  drillTime          String
+  dayOfWeek          String
+  totalLengthMinutes Int?
+  shift              EvacuationShift
+  quarter            Quarter
+  year               Int
+  disasterDrillType  String? // e.g., "Fire", "Earthquake", "Flood" - only for disaster drills
+  staffInvolved      Json // [{name: string}]
+  residentsInvolved  Json? // [{name: string, assistanceRequired: string}] - only for evacuation drills
+  exitBlocked        String? // Scenario description
+  exitUsed           String?
+  assemblyPoint      String?
+  correctLocation    Boolean?
+  allAccountedFor    Boolean?
+  issuesIdentified   Boolean?
+  observations       String?             @db.Text
+  drillResult        DrillResult
+  signatures         Json? // {conductedBy, conductedByDate, supervisor, supervisorDate}
+  submittedBy        String
+  submittedAt        DateTime            @default(now())
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
   @@unique([facilityId, drillType, quarter, year, shift])
   @@index([facilityId])
@@ -885,169 +813,169 @@ model ASAMAssessment {
   facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Link to completed intake
-  intakeId   String
-  intake     Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  intakeId String
+  intake   Intake @relation(fields: [intakeId], references: [id], onDelete: Cascade)
 
   // Demographics
-  patientName       String
-  assessmentDate    DateTime  @default(now())
-  admissionDate     DateTime?
-  phoneNumber       String?
-  okayToLeaveVoicemail Boolean @default(false)
-  patientAddress    String?   @db.Text
-  dateOfBirth       DateTime
-  age               Int?
-  gender            String?
-  raceEthnicity     String?
-  preferredLanguage String?
-  ahcccsId          String?
-  otherInsuranceId  String?
-  insuranceType     String?   // None, AHCCCS, Medicare, AIHP, Private, Other
-  insurancePlan     String?
-  livingArrangement String?   // Homeless, Independent living, Other
-  referredBy        String?
-  reasonForTreatment String?  @db.Text
-  currentSymptoms   String?   @db.Text
+  patientName          String
+  assessmentDate       DateTime  @default(now())
+  admissionDate        DateTime?
+  phoneNumber          String?
+  okayToLeaveVoicemail Boolean   @default(false)
+  patientAddress       String?   @db.Text
+  dateOfBirth          DateTime
+  age                  Int?
+  gender               String?
+  raceEthnicity        String?
+  preferredLanguage    String?
+  ahcccsId             String?
+  otherInsuranceId     String?
+  insuranceType        String? // None, AHCCCS, Medicare, AIHP, Private, Other
+  insurancePlan        String?
+  livingArrangement    String? // Homeless, Independent living, Other
+  referredBy           String?
+  reasonForTreatment   String?   @db.Text
+  currentSymptoms      String?   @db.Text
 
   // Dimension 1: Substance Use, Acute Intoxication and/or Withdrawal Potential
-  substanceUseHistory Json?   // Array of substances with details (route, frequency, duration, last use)
-  usingMoreThanIntended Boolean @default(false)
-  usingMoreDetails      String? @db.Text
-  physicallyIllWhenStopping Boolean @default(false)
-  physicallyIllDetails  String? @db.Text
-  currentWithdrawalSymptoms Boolean @default(false)
-  withdrawalSymptomsDetails String? @db.Text
+  substanceUseHistory        Json? // Array of substances with details (route, frequency, duration, last use)
+  usingMoreThanIntended      Boolean @default(false)
+  usingMoreDetails           String? @db.Text
+  physicallyIllWhenStopping  Boolean @default(false)
+  physicallyIllDetails       String? @db.Text
+  currentWithdrawalSymptoms  Boolean @default(false)
+  withdrawalSymptomsDetails  String? @db.Text
   historyOfSeriousWithdrawal Boolean @default(false)
-  seriousWithdrawalDetails String? @db.Text
-  toleranceIncreased    Boolean @default(false)
-  toleranceDetails      String? @db.Text
-  recentUseChanges      Boolean @default(false)
-  recentUseChangesDetails String? @db.Text
-  familySubstanceHistory String? @db.Text
-  dimension1Severity    Int?    // 0-4: None, Mild, Moderate, Severe, Very Severe
-  dimension1Comments    String? @db.Text
+  seriousWithdrawalDetails   String? @db.Text
+  toleranceIncreased         Boolean @default(false)
+  toleranceDetails           String? @db.Text
+  recentUseChanges           Boolean @default(false)
+  recentUseChangesDetails    String? @db.Text
+  familySubstanceHistory     String? @db.Text
+  dimension1Severity         Int? // 0-4: None, Mild, Moderate, Severe, Very Severe
+  dimension1Comments         String? @db.Text
 
   // Dimension 2: Biomedical Conditions and Complications
-  medicalProviders      Json?   // Array of {name, specialty, contact}
-  medicalConditions     Json?   // Checklist of conditions
-  conditionsInterfere   Boolean @default(false)
+  medicalProviders           Json? // Array of {name, specialty, contact}
+  medicalConditions          Json? // Checklist of conditions
+  conditionsInterfere        Boolean @default(false)
   conditionsInterfereDetails String? @db.Text
-  priorHospitalizations String? @db.Text
-  lifeThreatening       Boolean @default(false)
-  medicalMedications    Json?   // Array of {medication, dose, reason, effectiveness}
-  dimension2Severity    Int?    // 0-4
-  dimension2Comments    String? @db.Text
+  priorHospitalizations      String? @db.Text
+  lifeThreatening            Boolean @default(false)
+  medicalMedications         Json? // Array of {medication, dose, reason, effectiveness}
+  dimension2Severity         Int? // 0-4
+  dimension2Comments         String? @db.Text
 
   // Dimension 3: Emotional, Behavioral, or Cognitive Conditions and Complications
-  moodSymptoms          Json?   // Checklist: depression, hopelessness, irritability, etc.
-  anxietySymptoms       Json?   // Checklist: anxiety, obsessive thoughts, compulsive behaviors, etc.
-  psychosisSymptoms     Json?   // Checklist: paranoia, delusions, hallucinations
-  otherSymptoms         Json?   // Sleep, memory, gambling, risky sex
-  suicidalThoughts      Boolean @default(false)
-  suicidalThoughtsDetails String? @db.Text
-  thoughtsOfHarmingOthers Boolean @default(false)
-  harmingOthersDetails  String? @db.Text
-  abuseHistory          String? @db.Text
-  traumaticEvents       String? @db.Text
-  mentalIllnessDiagnosed Boolean @default(false)
-  mentalIllnessDetails  String? @db.Text
-  previousPsychTreatment Boolean @default(false)
-  psychTreatmentDetails String? @db.Text
-  hallucinationsPresent Boolean @default(false)
-  hallucinationsDetails String? @db.Text
-  furtherMHAssessmentNeeded Boolean @default(false)
+  moodSymptoms               Json? // Checklist: depression, hopelessness, irritability, etc.
+  anxietySymptoms            Json? // Checklist: anxiety, obsessive thoughts, compulsive behaviors, etc.
+  psychosisSymptoms          Json? // Checklist: paranoia, delusions, hallucinations
+  otherSymptoms              Json? // Sleep, memory, gambling, risky sex
+  suicidalThoughts           Boolean @default(false)
+  suicidalThoughtsDetails    String? @db.Text
+  thoughtsOfHarmingOthers    Boolean @default(false)
+  harmingOthersDetails       String? @db.Text
+  abuseHistory               String? @db.Text
+  traumaticEvents            String? @db.Text
+  mentalIllnessDiagnosed     Boolean @default(false)
+  mentalIllnessDetails       String? @db.Text
+  previousPsychTreatment     Boolean @default(false)
+  psychTreatmentDetails      String? @db.Text
+  hallucinationsPresent      Boolean @default(false)
+  hallucinationsDetails      String? @db.Text
+  furtherMHAssessmentNeeded  Boolean @default(false)
   furtherMHAssessmentDetails String? @db.Text
-  psychiatricMedications Json?  // Array of {medication, dose, reason, effectiveness}
-  mentalHealthProviders Json?   // Array of {name, contact}
-  dimension3Severity    Int?    // 0-4
-  dimension3Comments    String? @db.Text
+  psychiatricMedications     Json? // Array of {medication, dose, reason, effectiveness}
+  mentalHealthProviders      Json? // Array of {name, contact}
+  dimension3Severity         Int? // 0-4
+  dimension3Comments         String? @db.Text
 
   // Dimension 4: Readiness to Change
-  areasAffectedByUse    Json?   // Checklist: work, mental health, physical health, finances, etc.
-  continueUseDespitefects Boolean @default(false)
-  continueUseDetails    String? @db.Text
-  previousTreatmentHelp Boolean @default(false)
-  treatmentProviders    Json?   // Array of {name, contact}
-  recoverySupport       String? @db.Text
-  recoveryBarriers      String? @db.Text
+  areasAffectedByUse         Json? // Checklist: work, mental health, physical health, finances, etc.
+  continueUseDespitefects    Boolean @default(false)
+  continueUseDetails         String? @db.Text
+  previousTreatmentHelp      Boolean @default(false)
+  treatmentProviders         Json? // Array of {name, contact}
+  recoverySupport            String? @db.Text
+  recoveryBarriers           String? @db.Text
   treatmentImportanceAlcohol String? // Not at all, Slightly, Moderately, Considerably, Extremely
-  treatmentImportanceDrugs String?
+  treatmentImportanceDrugs   String?
   treatmentImportanceDetails String? @db.Text
-  dimension4Severity    Int?    // 0-4
-  dimension4Comments    String? @db.Text
+  dimension4Severity         Int? // 0-4
+  dimension4Comments         String? @db.Text
 
   // Dimension 5: Relapse, Continued Use, or Continued Problem Potential
-  cravingsFrequencyAlcohol String? // None, Occasionally, Frequently, Constantly
-  cravingsFrequencyDrugs String?
-  cravingsDetails       String? @db.Text
+  cravingsFrequencyAlcohol   String? // None, Occasionally, Frequently, Constantly
+  cravingsFrequencyDrugs     String?
+  cravingsDetails            String? @db.Text
   timeSearchingForSubstances Boolean @default(false)
-  timeSearchingDetails  String? @db.Text
-  relapseWithoutTreatment Boolean @default(false)
-  relapseDetails        String? @db.Text
-  awareOfTriggers       Boolean @default(false)
-  triggersList          Json?   // Checklist: cravings, work pressure, mental health, relationships, etc.
-  copingWithTriggers    String? @db.Text
-  attemptsToControl     String? @db.Text
-  longestSobriety       String?
-  whatHelped            String? @db.Text
-  whatDidntHelp         String? @db.Text
-  dimension5Severity    Int?    // 0-4
-  dimension5Comments    String? @db.Text
+  timeSearchingDetails       String? @db.Text
+  relapseWithoutTreatment    Boolean @default(false)
+  relapseDetails             String? @db.Text
+  awareOfTriggers            Boolean @default(false)
+  triggersList               Json? // Checklist: cravings, work pressure, mental health, relationships, etc.
+  copingWithTriggers         String? @db.Text
+  attemptsToControl          String? @db.Text
+  longestSobriety            String?
+  whatHelped                 String? @db.Text
+  whatDidntHelp              String? @db.Text
+  dimension5Severity         Int? // 0-4
+  dimension5Comments         String? @db.Text
 
   // Dimension 6: Recovery/Living Environment
-  supportiveRelationships String? @db.Text
-  currentLivingSituation String? @db.Text
+  supportiveRelationships       String? @db.Text
+  currentLivingSituation        String? @db.Text
   othersUsingDrugsInEnvironment Boolean @default(false)
-  othersUsingDetails    String? @db.Text
-  safetyThreats         Boolean @default(false)
-  safetyThreatsDetails  String? @db.Text
-  negativeImpactRelationships Boolean @default(false)
-  negativeImpactDetails String? @db.Text
-  currentlyEmployedOrSchool Boolean @default(false)
-  employmentSchoolDetails String? @db.Text
-  socialServicesInvolved Boolean @default(false)
-  socialServicesDetails String? @db.Text
-  probationParoleOfficer String?
-  probationParoleContact String?
-  dimension6Severity    Int?    // 0-4
-  dimension6Comments    String? @db.Text
+  othersUsingDetails            String? @db.Text
+  safetyThreats                 Boolean @default(false)
+  safetyThreatsDetails          String? @db.Text
+  negativeImpactRelationships   Boolean @default(false)
+  negativeImpactDetails         String? @db.Text
+  currentlyEmployedOrSchool     Boolean @default(false)
+  employmentSchoolDetails       String? @db.Text
+  socialServicesInvolved        Boolean @default(false)
+  socialServicesDetails         String? @db.Text
+  probationParoleOfficer        String?
+  probationParoleContact        String?
+  dimension6Severity            Int? // 0-4
+  dimension6Comments            String? @db.Text
 
   // Summary of Multidimensional Assessment
-  summaryRationale      Json?   // Rationale for each dimension rating
+  summaryRationale Json? // Rationale for each dimension rating
 
   // DSM-5 Criteria for Substance Use Disorder
-  dsm5Criteria          Json?   // Array of 3 substances with criteria checked for each
-  dsm5Diagnoses         String? @db.Text  // List of diagnoses with severity
+  dsm5Criteria  Json? // Array of 3 substances with criteria checked for each
+  dsm5Diagnoses String? @db.Text // List of diagnoses with severity
 
   // ASAM Level of Care Determination
-  levelOfCareDetermination Json?  // Withdrawal Management and Treatment levels per dimension
-  matInterested         Boolean @default(false)
-  matDetails            String? @db.Text
+  levelOfCareDetermination Json? // Withdrawal Management and Treatment levels per dimension
+  matInterested            Boolean @default(false)
+  matDetails               String? @db.Text
 
   // Placement Summary
-  recommendedLevelOfCare String?
-  levelOfCareProvided   String?
-  discrepancyReason     String? // Not Applicable, Service Not Available, Provider Judgment, etc.
-  discrepancyExplanation String? @db.Text
+  recommendedLevelOfCare      String?
+  levelOfCareProvided         String?
+  discrepancyReason           String? // Not Applicable, Service Not Available, Provider Judgment, etc.
+  discrepancyExplanation      String? @db.Text
   designatedTreatmentLocation String? @db.Text
-  designatedProviderName String?
+  designatedProviderName      String?
 
   // Signatures
-  counselorName         String?
+  counselorName          String?
   counselorSignatureDate DateTime?
-  bhpLphaName           String?
-  bhpLphaSignatureDate  DateTime?
+  bhpLphaName            String?
+  bhpLphaSignatureDate   DateTime?
 
   // Workflow
-  status                IntakeStatus @default(PENDING)
-  draftStep             Int?         // Track which step user is on for drafts
-  decisionReason        String?      @db.Text
-  decidedAt             DateTime?
-  decidedBy             String?
-  submittedBy           String
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-  archivedAt            DateTime?    // Soft delete - when set, assessment is archived
+  status         IntakeStatus @default(PENDING)
+  draftStep      Int? // Track which step user is on for drafts
+  decisionReason String?      @db.Text
+  decidedAt      DateTime?
+  decidedBy      String?
+  submittedBy    String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  archivedAt     DateTime? // Soft delete - when set, assessment is archived
 
   @@index([facilityId])
   @@index([status])
@@ -1056,36 +984,36 @@ model ASAMAssessment {
 
 // Oversight Training Report - Bi-weekly admin task
 model OversightTrainingReport {
-  id                  String      @id @default(cuid())
-  facilityId          String
-  facility            Facility    @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Bi-weekly tracking (1-26)
-  biWeek              Int
-  year                Int
+  biWeek Int
+  year   Int
 
   // Training details
-  trainingDate        DateTime
-  conductedBy         String
+  trainingDate DateTime
+  conductedBy  String
 
   // Staff participants
-  staffParticipants   Json        // [{name: string, position?: string}]
+  staffParticipants Json // [{name: string, position?: string}]
 
   // Document upload (required)
-  documentUrl         String
-  documentName        String
+  documentUrl  String
+  documentName String
 
   // Link to Document for unified document management
-  documentId          String?     @unique
-  document            Document?   @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  documentId String?   @unique
+  document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
 
   // Optional notes
-  notes               String?     @db.Text
+  notes String? @db.Text
 
   // Submission tracking
-  submittedBy         String
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
+  submittedBy String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@unique([facilityId, biWeek, year])
   @@index([facilityId])
@@ -1093,22 +1021,22 @@ model OversightTrainingReport {
 
 // ART Meeting Worksheet - Monthly required assessment for residents
 model ARTMeeting {
-  id          String   @id @default(cuid())
-  intakeId    String
-  intake      Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
-  facilityId  String
-  facility    Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  intakeId   String
+  intake     Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Month tracking (for monthly requirement)
-  meetingMonth Int      // 1-12
-  meetingYear  Int      // e.g., 2026
+  meetingMonth Int // 1-12
+  meetingYear  Int // e.g., 2026
 
   // Meeting details
-  meetingDate  DateTime?
+  meetingDate DateTime?
 
   // Skipped meeting
-  isSkipped    Boolean  @default(false)
-  skipReason   String?  @db.Text
+  isSkipped  Boolean @default(false)
+  skipReason String? @db.Text
 
   // Form fields (from template)
   dxCodes              String?  @db.Text
@@ -1125,7 +1053,7 @@ model ARTMeeting {
   progressIndicators   String?  @db.Text
   medicalIssues        String?  @db.Text
   plan                 String?  @db.Text
-  summary              String?  @db.Text  // Summary/explanation of the meeting
+  summary              String?  @db.Text // Summary/explanation of the meeting
   notesTakenBy         String?
   meetingStartTime     String?
   meetingEndTime       String?
@@ -1134,8 +1062,8 @@ model ARTMeeting {
   status      IntakeStatus @default(DRAFT) // DRAFT, PENDING (submitted), APPROVED
   submittedAt DateTime?
   submittedBy String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@unique([intakeId, meetingMonth, meetingYear])
   @@index([facilityId])
@@ -1145,88 +1073,88 @@ model ARTMeeting {
 
 // Discharge Summary - Created when a resident is discharged from a facility
 model DischargeSummary {
-  id          String   @id @default(cuid())
-  intakeId    String   @unique
-  intake      Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
-  facilityId  String
-  facility    Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  intakeId   String   @unique
+  intake     Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Discharge Date/Time
-  dischargeDate     DateTime
+  dischargeDate      DateTime
   dischargeStartTime String?
   dischargeEndTime   String?
 
   // Program Info
-  enrolledProgram    String?   // Residential, IOP, Outpatient, Community Day, PHP
-  dischargeType      String?   // Completed Treatment, AMA, Administrative, etc.
+  enrolledProgram        String? // Residential, IOP, Outpatient, Community Day, PHP
+  dischargeType          String? // Completed Treatment, AMA, Administrative, etc.
   recommendedLevelOfCare String?
 
   // Contact Info After Discharge
   contactPhoneAfterDischarge   String?
-  contactAddressAfterDischarge String?  @db.Text
+  contactAddressAfterDischarge String? @db.Text
 
   // Clinical Content - Prefilled from Intake/ASAM
-  diagnoses                    String?  @db.Text  // From intake diagnosis
-  allergies                    String?  @db.Text  // From intake allergies
-  asamLevelOfCare              String?            // From ASAM recommendedLevelOfCare
+  diagnoses       String? @db.Text // From intake diagnosis
+  allergies       String? @db.Text // From intake allergies
+  asamLevelOfCare String? // From ASAM recommendedLevelOfCare
 
   // Clinical Content - Editable
-  presentingIssuesAtAdmission  String?  @db.Text
-  treatmentSummary             String?  @db.Text  // Summary of treatment provided
-  objectivesAttained           Json?    // Array of objectives with attainment status
-  objectiveNarratives          Json?    // Object with narrative for each objective
+  presentingIssuesAtAdmission String? @db.Text
+  treatmentSummary            String? @db.Text // Summary of treatment provided
+  objectivesAttained          Json? // Array of objectives with attainment status
+  objectiveNarratives         Json? // Object with narrative for each objective
 
   // Relapse Prevention & Crisis Planning
-  relapsePreventionPlan        String?  @db.Text
-  crisisResources              String?  @db.Text
+  relapsePreventionPlan String? @db.Text
+  crisisResources       String? @db.Text
 
   // Patient Education
-  patientEducationProvided     String?  @db.Text
-  specialInstructions          String?  @db.Text
+  patientEducationProvided String? @db.Text
+  specialInstructions      String? @db.Text
 
   // Completed Services
-  completedServices            String[] // Array of service names
+  completedServices String[] // Array of service names
 
   // Discharge Summary
-  actualDischargeDate          DateTime?
-  dischargeSummaryNarrative    String?  @db.Text
+  actualDischargeDate       DateTime?
+  dischargeSummaryNarrative String?   @db.Text
 
   // Discharging To
-  dischargingTo                String?  @db.Text
+  dischargingTo String? @db.Text
 
   // Personal Items & Medications
-  personalItemsReceived        Boolean  @default(false)
-  personalItemsStoredDays      Int?     // If items will be stored
-  itemsRemainAtFacility        Boolean  @default(false)
+  personalItemsReceived   Boolean @default(false)
+  personalItemsStoredDays Int? // If items will be stored
+  itemsRemainAtFacility   Boolean @default(false)
 
   // Discharge Medications
-  dischargeMedications         Json?    // Array of medications with name, dose, frequency
+  dischargeMedications Json? // Array of medications with name, dose, frequency
 
   // Service Referrals
-  serviceReferrals             Json?    // Array of referrals with details
+  serviceReferrals Json? // Array of referrals with details
 
   // Clinical Recommendations
-  clinicalRecommendations      String?  @db.Text
+  clinicalRecommendations String? @db.Text
 
   // Cultural Preferences
   culturalPreferencesConsidered Boolean @default(false)
 
   // Suicide Prevention Education
-  suicidePreventionEducation   String?  @db.Text
+  suicidePreventionEducation String? @db.Text
 
   // Discharge Meeting Participants
-  meetingInvitees              Json?    // Object with boolean keys: bhp, caseManager, bhtAdmin, resident, nurse
-  meetingAttendees             Json?    // Object with boolean keys: bhp, caseManager, bhtAdmin, resident, nurse
+  meetingInvitees  Json? // Object with boolean keys: bhp, caseManager, bhtAdmin, resident, nurse
+  meetingAttendees Json? // Object with boolean keys: bhp, caseManager, bhtAdmin, resident, nurse
 
   // Signatures
-  clientSignature              String?
-  clientSignatureDate          DateTime?
-  staffSignature               String?
-  staffCredentials             String?
-  staffSignatureDate           DateTime?
-  reviewerSignature            String?
-  reviewerCredentials          String?
-  reviewerSignatureDate        DateTime?
+  clientSignature       String?
+  clientSignatureDate   DateTime?
+  staffSignature        String?
+  staffCredentials      String?
+  staffSignatureDate    DateTime?
+  reviewerSignature     String?
+  reviewerCredentials   String?
+  reviewerSignatureDate DateTime?
 
   // Workflow
   status      IntakeStatus @default(DRAFT)
@@ -1242,59 +1170,59 @@ model DischargeSummary {
 
 // Incident Report - Records incidents involving residents
 model IncidentReport {
-  id          String   @id @default(cuid())
-  facilityId  String
-  facility    Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Optional link to resident (intake)
-  intakeId    String?
-  intake      Intake?  @relation(fields: [intakeId], references: [id], onDelete: SetNull)
+  intakeId String?
+  intake   Intake? @relation(fields: [intakeId], references: [id], onDelete: SetNull)
 
   // Report tracking
-  reportNumber String?  // Auto-generated or manual
+  reportNumber String? // Auto-generated or manual
 
   // Incident Information
-  incidentDate     DateTime
-  incidentTime     String
-  incidentLocation String
-  reportDate       DateTime  @default(now())
+  incidentDate      DateTime
+  incidentTime      String
+  incidentLocation  String
+  reportDate        DateTime @default(now())
   reportCompletedBy String
-  reporterTitle    String?
+  reporterTitle     String?
 
   // Resident Information (manual entry if no intake linked)
-  residentName     String?
-  residentDOB      DateTime?
+  residentName          String?
+  residentDOB           DateTime?
   residentAdmissionDate DateTime?
-  residentAhcccsId String?
+  residentAhcccsId      String?
 
   // Incident Types (multi-select)
-  incidentTypes    String[]  // Array of incident type codes
-  otherIncidentType String?  // If "OTHER" is selected
+  incidentTypes     String[] // Array of incident type codes
+  otherIncidentType String? // If "OTHER" is selected
 
   // Incident Description
   incidentDescription String @db.Text
 
   // Persons Involved
-  residentsInvolved Json?  // [{name, dob, roleInIncident}]
-  staffInvolved     Json?  // [{name, title, roleInIncident}]
-  witnesses         Json?  // [{name, titleOrRelationship, contactInfo}]
+  residentsInvolved Json? // [{name, dob, roleInIncident}]
+  staffInvolved     Json? // [{name, title, roleInIncident}]
+  witnesses         Json? // [{name, titleOrRelationship, contactInfo}]
 
   // Injuries
-  anyInjuries            Boolean @default(false)
-  injuryDescription      String? @db.Text
+  anyInjuries              Boolean @default(false)
+  injuryDescription        String? @db.Text
   medicalAttentionRequired Boolean @default(false)
-  treatmentProvided      String? @db.Text
-  was911Called           Boolean @default(false)
+  treatmentProvided        String? @db.Text
+  was911Called             Boolean @default(false)
   wasTransportedToHospital Boolean @default(false)
-  hospitalName           String?
+  hospitalName             String?
 
   // Interventions
-  interventionsUsed      String[]  // Array of intervention codes
-  otherIntervention      String?
-  actionsDescription     String?   @db.Text
+  interventionsUsed  String[] // Array of intervention codes
+  otherIntervention  String?
+  actionsDescription String?  @db.Text
 
   // Notifications
-  notifications          Json?  // [{personEntity, name, dateTime, method, notifiedBy}]
+  notifications Json? // [{personEntity, name, dateTime, method, notifiedBy}]
 
   // Resident Condition
   residentConditionBeforeIncident String? @db.Text
@@ -1302,21 +1230,21 @@ model IncidentReport {
   // Resident Status Post-Incident
   residentCurrentCondition String? @db.Text
   residentStatement        String? @db.Text
-  currentSupervisionLevel  String?  // Routine, Increased, 1:1, Other
+  currentSupervisionLevel  String? // Routine, Increased, 1:1, Other
   otherSupervisionLevel    String?
 
   // Follow-Up Required
-  followUpRequired         String[]  // Array of follow-up codes
-  otherFollowUp            String?
-  followUpActionsTimeline  String?   @db.Text
+  followUpRequired        String[] // Array of follow-up codes
+  otherFollowUp           String?
+  followUpActionsTimeline String?  @db.Text
 
   // Signatures (for PDF generation)
-  staffSignatureName       String?
-  staffSignatureDate       DateTime?
-  adminSignatureName       String?
-  adminSignatureDate       DateTime?
-  bhpSignatureName         String?
-  bhpSignatureDate         DateTime?
+  staffSignatureName String?
+  staffSignatureDate DateTime?
+  adminSignatureName String?
+  adminSignatureDate DateTime?
+  bhpSignatureName   String?
+  bhpSignatureDate   DateTime?
 
   // Workflow
   status      IntakeStatus @default(DRAFT)
@@ -1331,227 +1259,54 @@ model IncidentReport {
   @@index([status])
 }
 
-// eMAR (Electronic Medication Administration Record) Models
-
-model MedicationOrder {
-  id                String              @id @default(cuid())
-  intakeId          String
-  intake            Intake              @relation(fields: [intakeId], references: [id], onDelete: Cascade)
-  facilityId        String
-  facility          Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-
-  // Medication Details
-  medicationName    String
-  genericName       String?
-  strength          String
-  dosageForm        String?
-
-  // Dosing
-  dose              String
-  route             MedicationRoute
-  frequency         MedicationFrequency
-  customFrequency   String?
-  scheduleTimes     String[]            @default([])
-
-  // PRN
-  isPRN             Boolean             @default(false)
-  prnReason         String?             @db.Text
-  prnMinIntervalHours Int?
-  prnMaxDailyDoses  Int?
-
-  // Prescriber
-  prescriberName    String
-  prescriberNPI     String?
-  prescriberPhone   String?
-
-  // Dates
-  startDate         DateTime
-  endDate           DateTime?
-
-  // Instructions
-  instructions      String?             @db.Text
-  administrationNotes String?           @db.Text
-
-  // Pharmacy
-  pharmacyName      String?
-  pharmacyPhone     String?
-  rxNumber          String?
-
-  // Control
-  isControlled      Boolean             @default(false)
-  controlSchedule   String?
-
-  // Status
-  status            MedicationOrderStatus @default(ACTIVE)
-  discontinuedAt    DateTime?
-  discontinuedBy    String?
-  discontinueReason String?             @db.Text
-
-  // Audit
-  orderedBy         String
-  orderedAt         DateTime            @default(now())
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-
-  schedules         MedicationSchedule[]
-  administrations   MedicationAdministration[]
-
-  @@index([intakeId])
-  @@index([facilityId])
-  @@index([status])
-  @@index([isPRN])
-}
-
-model MedicationSchedule {
-  id                String              @id @default(cuid())
-  medicationOrderId String
-  medicationOrder   MedicationOrder     @relation(fields: [medicationOrderId], references: [id], onDelete: Cascade)
-
-  scheduledDate     DateTime            @db.Date
-  scheduledTime     String
-  scheduledDateTime DateTime
-  status            AdministrationStatus @default(SCHEDULED)
-  windowStartTime   DateTime
-  windowEndTime     DateTime
-
-  administrationId  String?             @unique
-  administration    MedicationAdministration? @relation(fields: [administrationId], references: [id])
-
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-
-  @@index([medicationOrderId])
-  @@index([scheduledDateTime])
-  @@index([status])
-}
-
-model MedicationAdministration {
-  id                String              @id @default(cuid())
-  medicationOrderId String
-  medicationOrder   MedicationOrder     @relation(fields: [medicationOrderId], references: [id], onDelete: Cascade)
-
-  schedule          MedicationSchedule?
-  scheduledDateTime DateTime?
-  administeredAt    DateTime
-
-  administeredById  String
-  administeredBy    String
-
-  doseGiven         String
-  route             MedicationRoute
-  status            AdministrationStatus
-
-  refusedReason     String?             @db.Text
-  heldReason        String?             @db.Text
-  heldBy            String?
-  notGivenReason    String?             @db.Text
-
-  // PRN specific
-  prnReasonGiven    String?             @db.Text
-  prnEffectiveness  String?             @db.Text
-  prnFollowupAt     DateTime?           // When follow-up is due
-  prnFollowupCompletedAt DateTime?      // When follow-up was actually done
-  prnFollowupNotes  String?             @db.Text
-  prnFollowupById   String?
-
-  // Vitals (optional)
-  vitalsBP          String?
-  vitalsPulse       Int?
-  vitalsTemp        String?
-  vitalsResp        Int?
-  vitalsPain        Int?
-
-  // Witness for controlled substances
-  witnessRequired   Boolean             @default(false)
-  witnessId         String?
-  witnessName       String?
-
-  notes             String?             @db.Text
-
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-
-  @@index([medicationOrderId])
-  @@index([administeredAt])
-  @@index([status])
-}
-
-model MedicationAlert {
-  id                String              @id @default(cuid())
-  facilityId        String
-  facility          Facility            @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  intakeId          String?
-  intake            Intake?             @relation(fields: [intakeId], references: [id], onDelete: Cascade)
-  medicationOrderId String?
-  scheduleId        String?
-
-  alertType         AlertType
-  severity          AlertSeverity
-  title             String
-  message           String              @db.Text
-
-  isActive          Boolean             @default(true)
-  acknowledgedAt    DateTime?
-  acknowledgedById  String?
-  acknowledgedBy    String?
-
-  triggeredAt       DateTime            @default(now())
-  expiresAt         DateTime?
-  createdAt         DateTime            @default(now())
-
-  @@index([facilityId])
-  @@index([intakeId])
-  @@index([isActive])
-}
-
 // Progress Note - Daily Progress Notes for Residents
 model ProgressNote {
-  id              String   @id @default(cuid())
-  intakeId        String
-  intake          Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
-  facilityId      String
-  facility        Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  intakeId   String
+  intake     Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Note Metadata
-  noteDate        DateTime @db.Date
-  shift           String?  // "AM", "PM", "NOC"
-  authorName      String
-  authorTitle     String?
+  noteDate    DateTime @db.Date
+  shift       String? // "AM", "PM", "NOC"
+  authorName  String
+  authorTitle String?
 
   // Staff Input Fields (raw observations)
-  residentStatus       String?  @db.Text
-  observedBehaviors    String?  @db.Text
-  moodAffect           String?  @db.Text
+  residentStatus        String? @db.Text
+  observedBehaviors     String? @db.Text
+  moodAffect            String? @db.Text
   activityParticipation String? @db.Text
-  staffInteractions    String?  @db.Text
-  peerInteractions     String?  @db.Text
-  medicationCompliance String?  @db.Text
-  hygieneAdl           String?  @db.Text
-  mealsAppetite        String?  @db.Text
-  sleepPattern         String?  @db.Text
-  staffInterventions   String?  @db.Text
-  residentResponse     String?  @db.Text
-  notableEvents        String?  @db.Text
-  additionalNotes      String?  @db.Text
+  staffInteractions     String? @db.Text
+  peerInteractions      String? @db.Text
+  medicationCompliance  String? @db.Text
+  hygieneAdl            String? @db.Text
+  mealsAppetite         String? @db.Text
+  sleepPattern          String? @db.Text
+  staffInterventions    String? @db.Text
+  residentResponse      String? @db.Text
+  notableEvents         String? @db.Text
+  additionalNotes       String? @db.Text
 
   // AI-Generated Output
-  generatedNote    String?  @db.Text
+  generatedNote     String?  @db.Text
   riskFlagsDetected String[] @default([])
 
   // BHT Signature (required for finalization)
-  bhtSignature       String?
-  bhtCredentials     String?
-  bhtSignatureDate   DateTime?
+  bhtSignature     String?
+  bhtCredentials   String?
+  bhtSignatureDate DateTime?
 
   // Workflow
-  status          String   @default("DRAFT") // DRAFT, FINAL
-  submittedBy     String
-  submittedAt     DateTime?
+  status      String    @default("DRAFT") // DRAFT, FINAL
+  submittedBy String
+  submittedAt DateTime?
 
   // Audit
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  archivedAt      DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  archivedAt DateTime?
 
   // Care Coordination Links
   careCoordinationLinks CareCoordinationProgressNoteLink[]
@@ -1566,20 +1321,20 @@ model ProgressNote {
 // Cycle 1 = days 1-30 from admissionDate, cycle 2 = days 31-60, etc.
 // Evaluation + treatment plan must be uploaded within days 27-30 of each cycle.
 model ResidentEvaluation {
-  id              String   @id @default(cuid())
-  intakeId        String
-  facilityId      String
-  cycleNumber     Int                // 1, 2, 3, ... counted from admissionDate
-  cycleStartDate  DateTime @db.Date  // admissionDate + (cycleNumber - 1) * 30 days
-  cycleEndDate    DateTime @db.Date  // cycleStartDate + 29 days
-  completedDate   DateTime @db.Date  // date the PDF was signed/uploaded
-  fileUrl         String             // S3 key
-  fileName        String
-  fileSize        Int
-  uploadedBy      String             // User id
-  notes           String?  @db.Text
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  intakeId       String
+  facilityId     String
+  cycleNumber    Int // 1, 2, 3, ... counted from admissionDate
+  cycleStartDate DateTime @db.Date // admissionDate + (cycleNumber - 1) * 30 days
+  cycleEndDate   DateTime @db.Date // cycleStartDate + 29 days
+  completedDate  DateTime @db.Date // date the PDF was signed/uploaded
+  fileUrl        String // S3 key
+  fileName       String
+  fileSize       Int
+  uploadedBy     String // User id
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   intake   Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
   facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
@@ -1591,52 +1346,52 @@ model ResidentEvaluation {
 
 // Calendar Event - Appointments and events for residents
 model CalendarEvent {
-  id              String   @id @default(cuid())
-  facilityId      String
-  facility        Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  intakeId        String
-  intake          Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  intakeId   String
+  intake     Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
 
   // Event Details
-  title           String
-  description     String?  @db.Text
-  eventType       String   // DOCTOR_VISIT, THERAPY, COURT_DATE, FAMILY_VISIT, CASE_MANAGEMENT, TRANSPORTATION, OTHER
-  location        String?
+  title       String
+  description String? @db.Text
+  eventType   String // DOCTOR_VISIT, THERAPY, COURT_DATE, FAMILY_VISIT, CASE_MANAGEMENT, TRANSPORTATION, OTHER
+  location    String?
 
   // Scheduling
-  startDateTime   DateTime
-  endDateTime     DateTime
-  allDay          Boolean  @default(false)
+  startDateTime DateTime
+  endDateTime   DateTime
+  allDay        Boolean  @default(false)
 
   // Recurrence
-  isRecurring       Boolean  @default(false)
-  recurrenceType    String?  // DAILY, WEEKLY, BIWEEKLY, MONTHLY
-  recurrenceEndDate DateTime?
-  recurrenceDays    String[] @default([]) // For weekly: SUN, MON, TUE, WED, THU, FRI, SAT
-  parentEventId     String?  // Links recurring instances to the parent event
-  parentEvent       CalendarEvent?  @relation("RecurringEvents", fields: [parentEventId], references: [id], onDelete: Cascade)
+  isRecurring        Boolean         @default(false)
+  recurrenceType     String? // DAILY, WEEKLY, BIWEEKLY, MONTHLY
+  recurrenceEndDate  DateTime?
+  recurrenceDays     String[]        @default([]) // For weekly: SUN, MON, TUE, WED, THU, FRI, SAT
+  parentEventId      String? // Links recurring instances to the parent event
+  parentEvent        CalendarEvent?  @relation("RecurringEvents", fields: [parentEventId], references: [id], onDelete: Cascade)
   recurringInstances CalendarEvent[] @relation("RecurringEvents")
 
   // Display
-  color           String?  // Hex color code for custom color
+  color String? // Hex color code for custom color
 
   // Reminders
-  reminderMinutes Int[]    @default([]) // e.g., [1440, 60] = 1 day before, 1 hour before
+  reminderMinutes Int[] @default([]) // e.g., [1440, 60] = 1 day before, 1 hour before
 
   // Status
-  status          String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
-  completedAt     DateTime?
-  cancelledAt     DateTime?
-  cancelReason    String?
+  status       String    @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  completedAt  DateTime?
+  cancelledAt  DateTime?
+  cancelReason String?
 
   // Audit
-  createdBy       String
-  createdByName   String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdBy     String
+  createdByName String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Reminders tracking
-  reminders       CalendarReminder[]
+  reminders CalendarReminder[]
 
   @@index([facilityId])
   @@index([intakeId])
@@ -1646,16 +1401,16 @@ model CalendarEvent {
 
 // Calendar Reminder - Tracks when reminders should be sent and if they've been acknowledged
 model CalendarReminder {
-  id              String   @id @default(cuid())
-  eventId         String
-  event           CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  id      String        @id @default(cuid())
+  eventId String
+  event   CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  reminderTime    DateTime // When the reminder should trigger
-  isActive        Boolean  @default(true)
-  acknowledgedAt  DateTime?
-  acknowledgedBy  String?
+  reminderTime   DateTime // When the reminder should trigger
+  isActive       Boolean   @default(true)
+  acknowledgedAt DateTime?
+  acknowledgedBy String?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([eventId])
   @@index([reminderTime])
@@ -1664,29 +1419,29 @@ model CalendarReminder {
 
 // Facility Staff Invitation
 model FacilityInvitation {
-  id              String           @id @default(cuid())
-  facilityId      String
-  facility        Facility         @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Invitation details
-  email           String
-  role            String           // Position/title (e.g., "BHT", "Case Manager")
+  email String
+  role  String // Position/title (e.g., "BHT", "Case Manager")
 
   // Token
-  token           String           @unique
-  expiresAt       DateTime
+  token     String   @unique
+  expiresAt DateTime
 
   // Status
-  status          InvitationStatus @default(PENDING)
+  status InvitationStatus @default(PENDING)
 
   // Tracking
-  invitedById     String
-  invitedBy       User             @relation(fields: [invitedById], references: [id])
-  acceptedAt      DateTime?
-  acceptedUserId  String?
+  invitedById    String
+  invitedBy      User      @relation(fields: [invitedById], references: [id])
+  acceptedAt     DateTime?
+  acceptedUserId String?
 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([facilityId])
   @@index([email])
@@ -1710,45 +1465,45 @@ enum CareCoordinationActivityType {
 
 // Care Coordination Timeline Entry
 model CareCoordinationEntry {
-  id              String                       @id @default(cuid())
-  intakeId        String
-  intake          Intake                       @relation(fields: [intakeId], references: [id], onDelete: Cascade)
-  facilityId      String
-  facility        Facility                     @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  intakeId   String
+  intake     Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
   // Activity Details
-  activityType    CareCoordinationActivityType
-  activityDate    DateTime
-  activityTime    String?
-  description     String                       @db.Text
-  outcome         String?                      @db.Text
-  followUpNeeded  Boolean                      @default(false)
-  followUpDate    DateTime?
-  followUpNotes   String?                      @db.Text
+  activityType   CareCoordinationActivityType
+  activityDate   DateTime
+  activityTime   String?
+  description    String                       @db.Text
+  outcome        String?                      @db.Text
+  followUpNeeded Boolean                      @default(false)
+  followUpDate   DateTime?
+  followUpNotes  String?                      @db.Text
 
   // Contact Information
-  contactName     String?
-  contactRole     String?
-  contactPhone    String?
-  contactEmail    String?
+  contactName  String?
+  contactRole  String?
+  contactPhone String?
+  contactEmail String?
 
   // Attachments
-  attachments     CareCoordinationAttachment[]
+  attachments CareCoordinationAttachment[]
 
   // Edit History
-  editHistory     Json?
+  editHistory Json?
 
   // Audit Fields
-  createdById     String
-  createdByName   String
-  createdAt       DateTime                     @default(now())
-  updatedAt       DateTime                     @updatedAt
+  createdById   String
+  createdByName String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Soft Delete
-  archivedAt      DateTime?
-  archivedById    String?
-  archivedByName  String?
-  archiveReason   String?
+  archivedAt     DateTime?
+  archivedById   String?
+  archivedByName String?
+  archiveReason  String?
 
   // Progress Note Links
   progressNoteLinks CareCoordinationProgressNoteLink[]
@@ -1762,30 +1517,30 @@ model CareCoordinationEntry {
 
 // Care Coordination Attachments
 model CareCoordinationAttachment {
-  id              String                 @id @default(cuid())
-  entryId         String
-  entry           CareCoordinationEntry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  fileName        String
-  fileType        String
-  fileSize        Int
-  fileUrl         String
-  uploadedById    String
-  uploadedByName  String
-  uploadedAt      DateTime               @default(now())
+  id             String                @id @default(cuid())
+  entryId        String
+  entry          CareCoordinationEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  fileName       String
+  fileType       String
+  fileSize       Int
+  fileUrl        String
+  uploadedById   String
+  uploadedByName String
+  uploadedAt     DateTime              @default(now())
 
   @@index([entryId])
 }
 
 // Link between Care Coordination Entries and Progress Notes
 model CareCoordinationProgressNoteLink {
-  id              String                 @id @default(cuid())
-  entryId         String
-  entry           CareCoordinationEntry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  progressNoteId  String
-  progressNote    ProgressNote           @relation(fields: [progressNoteId], references: [id], onDelete: Cascade)
-  linkedAt        DateTime               @default(now())
-  linkedById      String
-  linkedByName    String
+  id             String                @id @default(cuid())
+  entryId        String
+  entry          CareCoordinationEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  progressNoteId String
+  progressNote   ProgressNote          @relation(fields: [progressNoteId], references: [id], onDelete: Cascade)
+  linkedAt       DateTime              @default(now())
+  linkedById     String
+  linkedByName   String
 
   @@unique([entryId, progressNoteId])
   @@index([progressNoteId])
@@ -1794,22 +1549,22 @@ model CareCoordinationProgressNoteLink {
 /// AI-generated group therapy material for a specific date at a facility.
 /// One record per (facility, sessionDate); regenerating replaces the row.
 model GroupTherapyMaterial {
-  id                String   @id @default(cuid())
-  facilityId        String
-  facility          Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
-  sessionDate       DateTime @db.Date
-  topic             String
-  facilitatorGuide  String   @db.Text
-  handoutMarkdown   String   @db.Text
+  sessionDate      DateTime @db.Date
+  topic            String
+  facilitatorGuide String   @db.Text
+  handoutMarkdown  String   @db.Text
   /// Array of {url, title, channelTitle, thumbnail, publishedAt, query}
-  videos            Json
+  videos           Json
 
   /// Optional seed phrase the user asked to steer the topic ("boundaries", etc.).
-  themeSeed         String?
-  generatedBy       String   // user id who clicked Generate
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  themeSeed   String?
+  generatedBy String // user id who clicked Generate
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@unique([facilityId, sessionDate])
   @@index([facilityId])

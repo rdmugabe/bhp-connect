@@ -29,7 +29,6 @@ import {
   UserPlus,
   ClipboardCheck,
   AlertTriangle,
-  Pill,
   CalendarDays,
   Menu,
   NotebookPen,
@@ -39,7 +38,7 @@ interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  showBadge?: "messages" | "applications" | "intakes" | "asam" | "meetings" | "adminTasks" | "artMeetings" | "calendar" | "emar";
+  showBadge?: "messages" | "applications" | "intakes" | "asam" | "meetings" | "adminTasks" | "artMeetings" | "calendar";
 }
 
 const bhpNavItems: NavItem[] = [
@@ -83,12 +82,6 @@ const bhpNavItems: NavItem[] = [
     title: "Incident Reports",
     href: "/bhp/incident-reports",
     icon: AlertTriangle,
-  },
-  {
-    title: "eMAR",
-    href: "/bhp/emar",
-    icon: Pill,
-    showBadge: "emar",
   },
   {
     title: "Credentials",
@@ -163,12 +156,6 @@ const bhrfNavItems: NavItem[] = [
     icon: NotebookPen,
   },
   {
-    title: "eMAR",
-    href: "/facility/emar",
-    icon: Pill,
-    showBadge: "emar",
-  },
-  {
     title: "Documents",
     href: "/facility/documents",
     icon: FolderOpen,
@@ -226,7 +213,6 @@ interface BadgeCounts {
   adminTasks: number;
   artMeetings: number;
   calendar: number;
-  emar: number;
 }
 
 interface DashboardNavProps {
@@ -300,7 +286,6 @@ export function DashboardNav({ role }: DashboardNavProps) {
     adminTasks: 0,
     artMeetings: 0,
     calendar: 0,
-    emar: 0,
   });
 
   useEffect(() => {

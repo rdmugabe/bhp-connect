@@ -174,31 +174,6 @@ export async function POST(request: NextRequest) {
       frequency: med.frequency || "",
     }));
 
-    // Also check for medication orders from eMAR
-    const medicationOrders = await prisma.medicationOrder.findMany({
-      where: {
-        intakeId: intake.id,
-        status: "ACTIVE",
-        discontinuedAt: null,
-      },
-      select: {
-        medicationName: true,
-        dose: true,
-        frequency: true,
-      },
-    });
-
-    medicationOrders.forEach((order) => {
-      // Avoid duplicates
-      if (!currentMedications.some((m) => m.name.toLowerCase() === order.medicationName.toLowerCase())) {
-        currentMedications.push({
-          name: order.medicationName,
-          dosage: order.dose || "",
-          frequency: order.frequency || "",
-        });
-      }
-    });
-
     // Calculate length of stay
     const admissionDate = intake.admissionDate || intake.createdAt;
     const dischargeDateParsed = dischargeDate ? new Date(dischargeDate) : new Date();

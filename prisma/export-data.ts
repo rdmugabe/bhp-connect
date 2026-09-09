@@ -82,18 +82,6 @@ async function exportData() {
   data.incidentReports = await prisma.incidentReport.findMany();
   console.log(`Exported ${data.incidentReports.length} incident reports`);
 
-  data.medicationOrders = await prisma.medicationOrder.findMany();
-  console.log(`Exported ${data.medicationOrders.length} medication orders`);
-
-  data.medicationSchedules = await prisma.medicationSchedule.findMany();
-  console.log(`Exported ${data.medicationSchedules.length} medication schedules`);
-
-  data.medicationAdministrations = await prisma.medicationAdministration.findMany();
-  console.log(`Exported ${data.medicationAdministrations.length} medication administrations`);
-
-  data.medicationAlerts = await prisma.medicationAlert.findMany();
-  console.log(`Exported ${data.medicationAlerts.length} medication alerts`);
-
   data.progressNotes = await prisma.progressNote.findMany();
   console.log(`Exported ${data.progressNotes.length} progress notes`);
 

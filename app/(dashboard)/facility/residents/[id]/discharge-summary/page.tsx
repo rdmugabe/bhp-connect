@@ -54,21 +54,6 @@ export default async function DischargeSummaryPage({ params, searchParams }: Pag
     },
   });
 
-  // Get current medications from eMAR if available
-  const medicationOrders = intake ? await prisma.medicationOrder.findMany({
-    where: {
-      intakeId: intake.id,
-      status: "ACTIVE",
-      discontinuedAt: null,
-    },
-    select: {
-      medicationName: true,
-      dose: true,
-      frequency: true,
-      prescriberName: true,
-    },
-  }) : [];
-
   if (!intake || intake.facilityId !== bhrfProfile.facilityId) {
     notFound();
   }
@@ -184,25 +169,12 @@ export default async function DischargeSummaryPage({ params, searchParams }: Pag
           asamReasonForTreatment: intake.asamAssessments[0]?.reasonForTreatment || null,
           asamCurrentSymptoms: intake.asamAssessments[0]?.currentSymptoms || null,
         }}
-        prefillMedications={[
-          // From intake medications
-          ...intake.medications.map((med) => ({
-            medication: med.name,
-            dosage: med.dosage || "",
-            frequency: med.frequency || "",
-            prescriber: med.prescriber || "",
-          })),
-          // From active medication orders (eMAR)
-          ...medicationOrders.map((order) => ({
-            medication: order.medicationName,
-            dosage: order.dose || "",
-            frequency: order.frequency || "",
-            prescriber: order.prescriberName || "",
-          })),
-        ].filter((med, index, self) =>
-          // Remove duplicates by medication name
-          index === self.findIndex((m) => m.medication.toLowerCase() === med.medication.toLowerCase())
-        )}
+        prefillMedications={intake.medications.map((med) => ({
+          medication: med.name,
+          dosage: med.dosage || "",
+          frequency: med.frequency || "",
+          prescriber: med.prescriber || "",
+        }))}
         initialData={
           dischargeSummary
             ? {

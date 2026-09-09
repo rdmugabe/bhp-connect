@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
     let artMeetings = 0;
     let certificationIssues = 0;
     let calendar = 0;
-    let emar = 0;
     let evaluationsOverdue = 0;
     let evaluationsDueSoon = 0;
 
@@ -72,30 +71,6 @@ export async function GET(request: NextRequest) {
             },
           },
         });
-
-        // Count eMAR notifications across all facilities (unacknowledged alerts)
-        const unacknowledgedAlerts = await prisma.medicationAlert.count({
-          where: {
-            facility: { bhpId: bhpProfile.id },
-            isActive: true,
-            acknowledgedAt: null,
-          },
-        });
-
-        // Count PRN administrations needing follow-up
-        const prnFollowupsNeeded = await prisma.medicationAdministration.count({
-          where: {
-            medicationOrder: {
-              facility: { bhpId: bhpProfile.id },
-              isPRN: true,
-            },
-            status: "GIVEN",
-            prnFollowupAt: { not: null, lte: new Date() },
-            prnFollowupNotes: null,
-          },
-        });
-
-        emar = unacknowledgedAlerts + prnFollowupsNeeded;
 
         // Re-Evaluation Countdown counts across all BHP facilities
         const bhpResidents = await prisma.intake.findMany({
@@ -282,30 +257,6 @@ export async function GET(request: NextRequest) {
           },
         });
 
-        // Count eMAR notifications (unacknowledged alerts + PRN follow-ups needed)
-        const unacknowledgedAlerts = await prisma.medicationAlert.count({
-          where: {
-            facilityId: bhrfProfile.facilityId,
-            isActive: true,
-            acknowledgedAt: null,
-          },
-        });
-
-        // Count PRN administrations needing follow-up
-        const prnFollowupsNeeded = await prisma.medicationAdministration.count({
-          where: {
-            medicationOrder: {
-              facilityId: bhrfProfile.facilityId,
-              isPRN: true,
-            },
-            status: "GIVEN",
-            prnFollowupAt: { not: null, lte: new Date() },
-            prnFollowupNotes: null,
-          },
-        });
-
-        emar = unacknowledgedAlerts + prnFollowupsNeeded;
-
         // Count employee certification issues (missing, expired, expiring soon)
         const requiredCertTypes = await prisma.employeeDocumentType.findMany({
           where: {
@@ -371,7 +322,6 @@ export async function GET(request: NextRequest) {
       artMeetings,
       certificationIssues,
       calendar,
-      emar,
       evaluationsOverdue,
       evaluationsDueSoon,
     });
