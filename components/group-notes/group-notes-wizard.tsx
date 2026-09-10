@@ -383,15 +383,45 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || `Generate failed (${res.status})`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `Generate failed (${res.status})` }));
+        throw new Error(err?.error || `Generate failed (${res.status})`);
+      }
 
-      setResults(data.results ?? []);
-      setDriveEnabled(Boolean(data.drive_enabled));
+      // Decode result metadata from the base64 header before the blob is
+      // consumed. The zip body itself is streamed to the browser as a file
+      // download so staff get all .docx notes in one click.
+      const meta = res.headers.get("x-generate-results");
+      let count = 0;
+      let rows: GenerateResultRow[] = [];
+      if (meta) {
+        try {
+          const decoded = JSON.parse(atob(meta)) as { count_ok?: number; results?: GenerateResultRow[] };
+          count = decoded.count_ok ?? 0;
+          rows = decoded.results ?? [];
+        } catch { /* fall through */ }
+      }
+
+      const blob = await res.blob();
+      const disposition = res.headers.get("content-disposition") || "";
+      const nameMatch = /filename="?([^";]+)"?/.exec(disposition);
+      const filename = nameMatch ? nameMatch[1] : "group-notes.zip";
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      setResults(rows);
+      setDriveEnabled(false);
       purgeTranscripts();
       toast({
-        title: `Generated ${data.count_ok ?? 0} document${(data.count_ok ?? 0) === 1 ? "" : "s"}`,
-        description: data.drive_enabled ? "Uploaded to Google Drive." : "Drive upload not configured — files were saved locally on the service.",
+        title: `Generated ${count} document${count === 1 ? "" : "s"}`,
+        description: "Zip downloaded to your browser.",
       });
     } catch (err) {
       toast({
@@ -424,7 +454,7 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
           <div>
             <h1 className="text-2xl font-bold">Group Therapy</h1>
             <p className="text-sm text-muted-foreground">
-              Dictate observations, then generate one .docx per resident per session. Files upload to Google Drive.
+              Fill in observations (or dictate), then generate one .docx per resident per session. Files download as a .zip.
             </p>
           </div>
           <Badge variant="secondary">{residents.length} resident{residents.length === 1 ? "" : "s"}</Badge>
@@ -625,7 +655,7 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
           <CardHeader>
             <CardTitle>Results</CardTitle>
             <CardDescription>
-              {driveEnabled === false ? "Drive upload was not configured — files were saved on the service host." : null}
+              {driveEnabled === false ? "Files downloaded as a zip to your browser." : null}
             </CardDescription>
           </CardHeader>
           <CardContent>
