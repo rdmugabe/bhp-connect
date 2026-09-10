@@ -265,14 +265,6 @@ function labelValueRuns(label: string, value: string): TextRun[] {
   ];
 }
 
-function plainPara(text: string, opts?: { bold?: boolean; center?: boolean; size?: number; after?: number; before?: number }): Paragraph {
-  return new Paragraph({
-    alignment: opts?.center ? AlignmentType.CENTER : AlignmentType.LEFT,
-    spacing: { before: opts?.before ?? 0, after: opts?.after ?? 100 },
-    children: [run(text, { bold: opts?.bold, size: opts?.size })],
-  });
-}
-
 /** Bold section title (no shading, no heading style — matches the sample). */
 function sectionTitle(text: string): Paragraph {
   return new Paragraph({
@@ -297,28 +289,32 @@ const CELL_BORDER = {
   right: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
 };
 
+/** Page width in twips (Letter = 12240) minus 1" margins on both sides. */
+const USABLE_WIDTH_DXA = 12240 - 1440 * 2;
+
 interface CellOpts {
   bold?: boolean;
   align?: "center" | "left";
-  widthPct?: number;
+  /** Absolute cell width in twips (DXA). Percentages in this docx version are
+   *  on a 5000-scale, so we use DXA everywhere for consistent rendering. */
+  widthDxa?: number;
   columnSpan?: number;
   runs?: TextRun[];
+  paragraphs?: Paragraph[];
 }
 
 function makeCell(text: string | null, opts?: CellOpts): TableCell {
-  const runs = opts?.runs ?? (text !== null
-    ? [run(text, { bold: opts?.bold })]
-    : [run("")]);
+  const children: Paragraph[] = opts?.paragraphs ?? [
+    new Paragraph({
+      alignment: opts?.align === "center" ? AlignmentType.CENTER : AlignmentType.LEFT,
+      children: opts?.runs ?? [run(text ?? "", { bold: opts?.bold })],
+    }),
+  ];
   return new TableCell({
     borders: CELL_BORDER,
-    width: opts?.widthPct ? { size: opts.widthPct, type: WidthType.PERCENTAGE } : undefined,
+    width: opts?.widthDxa ? { size: opts.widthDxa, type: WidthType.DXA } : undefined,
     columnSpan: opts?.columnSpan,
-    children: [
-      new Paragraph({
-        alignment: opts?.align === "center" ? AlignmentType.CENTER : AlignmentType.LEFT,
-        children: runs,
-      }),
-    ],
+    children,
   });
 }
 
@@ -328,7 +324,7 @@ function makeCellRuns(runs: TextRun[], opts?: Omit<CellOpts, "runs">): TableCell
 
 function fullWidthTable(rows: TableRow[]): Table {
   return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
+    width: { size: USABLE_WIDTH_DXA, type: WidthType.DXA },
     rows,
   });
 }
@@ -337,14 +333,24 @@ function fullWidthTable(rows: TableRow[]): Table {
 // Section builders
 // ---------------------------------------------------------------------------
 
+// Column-width plans in DXA (twips). Each plan sums to USABLE_WIDTH_DXA.
+const IDENT_WIDTHS = [3240, 1800, 2160, 2160] as const;        // Name / DOB / AHCCCS / Date
+const SESSION_WIDTHS = [1620, 1980, 1440, 1440, 1440, 1440] as const;
+const TOPIC_WIDTHS = [1440, USABLE_WIDTH_DXA - 1440] as const;
+const PARTICIPATION_WIDTHS = [2520, 2160, 2160, 2520] as const; // label/val/label/val
+const RATING_WIDTHS = [3960, 1350, 1350, 1350, 1350] as const;  // area/N/A/Low/Med/High
+const TREATMENT_WIDTHS = [3600, USABLE_WIDTH_DXA - 3600] as const;
+const ADDITIONAL_WIDTHS = [3060, USABLE_WIDTH_DXA - 3060] as const;
+const SIGNATURE_WIDTHS = [1980, 3960, 900, 2520] as const;      // label/val/date/val
+
 function identityTable(name: string, dobIso: string, ahcccsId: string, dateMdY: string): Table {
   return fullWidthTable([
     new TableRow({
       children: [
-        makeCellRuns(labelValueRuns("Name", name), { widthPct: 35 }),
-        makeCellRuns(labelValueRuns("DOB", isoToMDYYYY(dobIso)), { widthPct: 20 }),
-        makeCellRuns(labelValueRuns("AHCCCS ID", ahcccsId || ""), { widthPct: 25 }),
-        makeCellRuns(labelValueRuns("Date", dateMdY), { widthPct: 20 }),
+        makeCellRuns(labelValueRuns("Name", name), { widthDxa: IDENT_WIDTHS[0] }),
+        makeCellRuns(labelValueRuns("DOB", isoToMDYYYY(dobIso)), { widthDxa: IDENT_WIDTHS[1] }),
+        makeCellRuns(labelValueRuns("AHCCCS ID", ahcccsId || ""), { widthDxa: IDENT_WIDTHS[2] }),
+        makeCellRuns(labelValueRuns("Date", dateMdY), { widthDxa: IDENT_WIDTHS[3] }),
       ],
     }),
   ]);
@@ -354,12 +360,12 @@ function sessionInfoTable(startLabel: string, endLabel: string): Table {
   return fullWidthTable([
     new TableRow({
       children: [
-        makeCell("Session Type:", { bold: true, widthPct: 16 }),
-        makeCell("Group Therapy Session", { widthPct: 17 }),
-        makeCell("Start Time:", { bold: true, widthPct: 16 }),
-        makeCell(startLabel, { widthPct: 17 }),
-        makeCell("End Time:", { bold: true, widthPct: 16 }),
-        makeCell(endLabel, { widthPct: 18 }),
+        makeCell("Session Type:", { bold: true, widthDxa: SESSION_WIDTHS[0] }),
+        makeCell("Group Therapy Session", { widthDxa: SESSION_WIDTHS[1] }),
+        makeCell("Start Time:", { bold: true, widthDxa: SESSION_WIDTHS[2] }),
+        makeCell(startLabel, { widthDxa: SESSION_WIDTHS[3] }),
+        makeCell("End Time:", { bold: true, widthDxa: SESSION_WIDTHS[4] }),
+        makeCell(endLabel, { widthDxa: SESSION_WIDTHS[5] }),
       ],
     }),
   ]);
@@ -369,8 +375,8 @@ function topicTable(topic: string): Table {
   return fullWidthTable([
     new TableRow({
       children: [
-        makeCell("Topic:", { bold: true, widthPct: 15 }),
-        makeCell(topic, { widthPct: 85 }),
+        makeCell("Topic:", { bold: true, widthDxa: TOPIC_WIDTHS[0] }),
+        makeCell(topic, { widthDxa: TOPIC_WIDTHS[1] }),
       ],
     }),
   ]);
@@ -379,7 +385,7 @@ function topicTable(topic: string): Table {
 function summaryTable(summary: string): Table {
   return fullWidthTable([
     new TableRow({
-      children: [makeCell(summary, { widthPct: 100 })],
+      children: [makeCell(summary, { widthDxa: USABLE_WIDTH_DXA })],
     }),
   ]);
 }
@@ -388,18 +394,18 @@ function participationTable(completed: string, stayedOnTask: string, comment1: s
   return fullWidthTable([
     new TableRow({
       children: [
-        makeCell("Completed Group Therapy:", { bold: true, widthPct: 27 }),
-        makeCell(completed, { widthPct: 23 }),
-        makeCell("Stayed on Task:", { bold: true, widthPct: 27 }),
-        makeCell(stayedOnTask, { widthPct: 23 }),
+        makeCell("Completed Group Therapy:", { bold: true, widthDxa: PARTICIPATION_WIDTHS[0] }),
+        makeCell(completed, { widthDxa: PARTICIPATION_WIDTHS[1] }),
+        makeCell("Stayed on Task:", { bold: true, widthDxa: PARTICIPATION_WIDTHS[2] }),
+        makeCell(stayedOnTask, { widthDxa: PARTICIPATION_WIDTHS[3] }),
       ],
     }),
     new TableRow({
       children: [
-        makeCell("Comments:", { bold: true }),
-        makeCell(comment1),
-        makeCell("Comments:", { bold: true }),
-        makeCell(comment2),
+        makeCell("Comments:", { bold: true, widthDxa: PARTICIPATION_WIDTHS[0] }),
+        makeCell(comment1, { widthDxa: PARTICIPATION_WIDTHS[1] }),
+        makeCell("Comments:", { bold: true, widthDxa: PARTICIPATION_WIDTHS[2] }),
+        makeCell(comment2, { widthDxa: PARTICIPATION_WIDTHS[3] }),
       ],
     }),
   ]);
@@ -409,21 +415,21 @@ function ratingTable(items: Array<{ label: string; level: "n/a" | "low" | "med" 
   const header = new TableRow({
     tableHeader: true,
     children: [
-      makeCell("Assessment Area", { bold: true, widthPct: 44 }),
-      makeCell("N/A", { bold: true, align: "center", widthPct: 14 }),
-      makeCell("Low", { bold: true, align: "center", widthPct: 14 }),
-      makeCell("Med", { bold: true, align: "center", widthPct: 14 }),
-      makeCell("High", { bold: true, align: "center", widthPct: 14 }),
+      makeCell("Assessment Area", { bold: true, widthDxa: RATING_WIDTHS[0] }),
+      makeCell("N/A", { bold: true, align: "center", widthDxa: RATING_WIDTHS[1] }),
+      makeCell("Low", { bold: true, align: "center", widthDxa: RATING_WIDTHS[2] }),
+      makeCell("Med", { bold: true, align: "center", widthDxa: RATING_WIDTHS[3] }),
+      makeCell("High", { bold: true, align: "center", widthDxa: RATING_WIDTHS[4] }),
     ],
   });
   const dataRows = items.map(i =>
     new TableRow({
       children: [
-        makeCell(i.label, { widthPct: 44 }),
-        makeCell(i.level === "n/a" ? "X" : "", { align: "center", widthPct: 14 }),
-        makeCell(i.level === "low" ? "X" : "", { align: "center", widthPct: 14 }),
-        makeCell(i.level === "med" ? "X" : "", { align: "center", widthPct: 14 }),
-        makeCell(i.level === "high" ? "X" : "", { align: "center", widthPct: 14 }),
+        makeCell(i.label, { widthDxa: RATING_WIDTHS[0] }),
+        makeCell(i.level === "n/a" ? "X" : "", { align: "center", widthDxa: RATING_WIDTHS[1] }),
+        makeCell(i.level === "low" ? "X" : "", { align: "center", widthDxa: RATING_WIDTHS[2] }),
+        makeCell(i.level === "med" ? "X" : "", { align: "center", widthDxa: RATING_WIDTHS[3] }),
+        makeCell(i.level === "high" ? "X" : "", { align: "center", widthDxa: RATING_WIDTHS[4] }),
       ],
     })
   );
@@ -444,14 +450,14 @@ function treatmentGoalsTable(addressed: string, goal: string): Table {
   return fullWidthTable([
     new TableRow({
       children: [
-        makeCell("Were treatment goals addressed?", { bold: true, widthPct: 40 }),
-        makeCell(addressed, { widthPct: 60 }),
+        makeCell("Were treatment goals addressed?", { bold: true, widthDxa: TREATMENT_WIDTHS[0] }),
+        makeCell(addressed, { widthDxa: TREATMENT_WIDTHS[1] }),
       ],
     }),
     new TableRow({
       children: [
-        makeCell("Goals Addressed:", { bold: true, widthPct: 40 }),
-        makeCell(goal, { widthPct: 60 }),
+        makeCell("Goals Addressed:", { bold: true, widthDxa: TREATMENT_WIDTHS[0] }),
+        makeCell(goal, { widthDxa: TREATMENT_WIDTHS[1] }),
       ],
     }),
   ]);
@@ -461,37 +467,48 @@ function additionalInfoTable(sig: string): Table {
   return fullWidthTable([
     new TableRow({
       children: [
-        makeCell("Significant Information:", { bold: true, widthPct: 35 }),
-        makeCell(sig, { widthPct: 65 }),
+        makeCell("Significant Information:", { bold: true, widthDxa: ADDITIONAL_WIDTHS[0] }),
+        makeCell(sig, { widthDxa: ADDITIONAL_WIDTHS[1] }),
       ],
     }),
   ]);
 }
 
+/** Build a signature cell: blank line for hand signature at top, then an
+ *  underscore line, then the typed name below (empty for staff so whoever
+ *  signs writes their own name). The extra empty paragraphs give physical
+ *  room to sign. */
+function signatureCell(nameBelow: string, widthDxa: number): TableCell {
+  const paragraphs: Paragraph[] = [
+    new Paragraph({ children: [run("")] }),
+    new Paragraph({ children: [run("")] }),
+    new Paragraph({ children: [run("________________________________________")] }),
+  ];
+  if (nameBelow) {
+    paragraphs.push(new Paragraph({ children: [run(nameBelow)] }));
+  }
+  return makeCell(null, { paragraphs, widthDxa });
+}
+
 function signaturesTable(
-  staffLine: string,
   bhpSignatoryName: string,
   dateMdY: string
 ): Table {
-  const bhpCellRuns = [
-    run("________________________________________"),
-    run(bhpSignatoryName, { break: 1 }),
-  ];
   return fullWidthTable([
     new TableRow({
       children: [
-        makeCell("Staff Signature:", { bold: true, widthPct: 22 }),
-        makeCell(staffLine, { widthPct: 43 }),
-        makeCell("Date:", { bold: true, widthPct: 12 }),
-        makeCell(dateMdY, { widthPct: 23 }),
+        makeCell("Staff Signature:", { bold: true, widthDxa: SIGNATURE_WIDTHS[0] }),
+        signatureCell("", SIGNATURE_WIDTHS[1]),
+        makeCell("Date:", { bold: true, widthDxa: SIGNATURE_WIDTHS[2] }),
+        makeCell(dateMdY, { widthDxa: SIGNATURE_WIDTHS[3] }),
       ],
     }),
     new TableRow({
       children: [
-        makeCell("BHP Signature:", { bold: true, widthPct: 22 }),
-        makeCellRuns(bhpCellRuns, { widthPct: 43 }),
-        makeCell("Date:", { bold: true, widthPct: 12 }),
-        makeCell(dateMdY, { widthPct: 23 }),
+        makeCell("BHP Signature:", { bold: true, widthDxa: SIGNATURE_WIDTHS[0] }),
+        signatureCell(bhpSignatoryName, SIGNATURE_WIDTHS[1]),
+        makeCell("Date:", { bold: true, widthDxa: SIGNATURE_WIDTHS[2] }),
+        makeCell(dateMdY, { widthDxa: SIGNATURE_WIDTHS[3] }),
       ],
     }),
   ]);
@@ -603,10 +620,10 @@ function buildOneNote(a: OneNoteArgs): Document {
   children.push(sectionTitle("Additional Information"));
   children.push(additionalInfoTable(resident.significantInfo.trim()));
 
-  // 11. Signatures
+  // 11. Signatures — staff cell left blank so whoever facilitates signs and
+  // prints their own name; BHP cell prints Dr. Azode's name under the line.
   children.push(sectionTitle("Signatures"));
-  const staffLine = `${a.staffName || "Staff Name"}${a.staffTitle ? ", " + a.staffTitle : ""}`;
-  children.push(signaturesTable(staffLine, a.bhpSignatoryName, a.dateMdY));
+  children.push(signaturesTable(a.bhpSignatoryName, a.dateMdY));
 
   return new Document({
     creator: "BHP Connect",
@@ -619,7 +636,9 @@ function buildOneNote(a: OneNoteArgs): Document {
     sections: [
       {
         properties: {
-          page: { margin: { top: 720, bottom: 720, left: 720, right: 720 } },
+          // Standard 1" margins so the doc breathes and doesn't try to
+          // squeeze onto one page.
+          page: { margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } },
         },
         children,
       },
