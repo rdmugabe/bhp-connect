@@ -12,6 +12,8 @@ interface RequestBody {
   date_str: string;
   staff_name: string;
   staff_title?: string;
+  /** Data URL of the staff signature PNG (data:image/png;base64,…). Optional. */
+  staff_signature_png?: string;
   group_topic: string;
   group_summary: string;
   sessions: Array<"0930" | "1300" | "1630">;
@@ -116,11 +118,20 @@ export async function POST(req: NextRequest) {
     sessionCodes
   );
 
+  // Strip the data-URL prefix off the signature PNG so the docx builder
+  // gets raw base64 bytes.
+  let staffSignatureBase64 = "";
+  if (body.staff_signature_png) {
+    const m = /^data:image\/png;base64,(.*)$/.exec(body.staff_signature_png);
+    staffSignatureBase64 = m ? m[1] : body.staff_signature_png;
+  }
+
   const files = await buildAllNotes({
     facilityName,
     dateMdY: body.date_str,
     staffName: body.staff_name,
     staffTitle: body.staff_title || "BHT",
+    staffSignatureBase64,
     bhpSignatoryName: BHP_SIGNATORY_NAME,
     groupTopic: body.group_topic || "",
     groupSummary: body.group_summary || "",

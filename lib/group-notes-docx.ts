@@ -30,6 +30,7 @@ import {
   AlignmentType,
   BorderStyle,
   Document,
+  ImageRun,
   Packer,
   Paragraph,
   Table,
@@ -73,6 +74,10 @@ export interface GenerateArgs {
   dateMdY: string;        // M/D/YY
   staffName: string;
   staffTitle: string;
+  /** Raw base64-encoded PNG of the staff signature (no `data:` prefix).
+   *  When present, embedded into every generated note's Staff Signature
+   *  cell. */
+  staffSignatureBase64?: string;
   bhpSignatoryName: string;
   groupTopic: string;
   groupSummary: string;
@@ -479,16 +484,43 @@ function additionalInfoTable(sig: string): Table {
   ]);
 }
 
-/** Build a signature cell: blank line for hand signature at top, then an
- *  underscore line, then the typed name below (empty for staff so whoever
- *  signs writes their own name). The extra empty paragraphs give physical
- *  room to sign. */
-function signatureCell(nameBelow: string, widthDxa: number): TableCell {
-  const paragraphs: Paragraph[] = [
-    new Paragraph({ children: [run("")] }),
-    new Paragraph({ children: [run("")] }),
-    new Paragraph({ children: [run("________________________________________")] }),
-  ];
+/** Build a signature cell: an embedded PNG signature when provided,
+ *  otherwise blank space + an underscore line for hand-signing. Optional
+ *  printed name goes below the signature / line. */
+function signatureCell(
+  nameBelow: string,
+  widthDxa: number,
+  imageBase64?: string
+): TableCell {
+  const paragraphs: Paragraph[] = [];
+  if (imageBase64) {
+    let bytes: Uint8Array | null = null;
+    try {
+      bytes = new Uint8Array(Buffer.from(imageBase64, "base64"));
+    } catch {
+      bytes = null;
+    }
+    if (bytes && bytes.byteLength > 0) {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new ImageRun({
+              data: bytes,
+              transformation: { width: 180, height: 60 },
+              type: "png",
+            }),
+          ],
+        })
+      );
+    }
+  }
+  if (paragraphs.length === 0) {
+    paragraphs.push(
+      new Paragraph({ children: [run("")] }),
+      new Paragraph({ children: [run("")] }),
+      new Paragraph({ children: [run("________________________________________")] })
+    );
+  }
   if (nameBelow) {
     paragraphs.push(new Paragraph({ children: [run(nameBelow)] }));
   }
@@ -497,13 +529,15 @@ function signatureCell(nameBelow: string, widthDxa: number): TableCell {
 
 function signaturesTable(
   bhpSignatoryName: string,
-  dateMdY: string
+  dateMdY: string,
+  staffPrintedName: string,
+  staffImageBase64?: string
 ): Table {
   return fullWidthTable([
     new TableRow({
       children: [
         makeCell("Staff Signature:", { bold: true, widthDxa: SIGNATURE_WIDTHS[0] }),
-        signatureCell("", SIGNATURE_WIDTHS[1]),
+        signatureCell(staffPrintedName, SIGNATURE_WIDTHS[1], staffImageBase64),
         makeCell("Date:", { bold: true, widthDxa: SIGNATURE_WIDTHS[2] }),
         makeCell(dateMdY, { widthDxa: SIGNATURE_WIDTHS[3] }),
       ],
@@ -531,6 +565,7 @@ interface OneNoteArgs {
   summary: string;
   staffName: string;
   staffTitle: string;
+  staffSignatureBase64?: string;
   bhpSignatoryName: string;
   resident: ResidentEntry;
 }
@@ -625,10 +660,21 @@ function buildOneNote(a: OneNoteArgs): Document {
   children.push(sectionTitle("Additional Information"));
   children.push(additionalInfoTable(resident.significantInfo.trim()));
 
-  // 11. Signatures — staff cell left blank so whoever facilitates signs and
-  // prints their own name; BHP cell prints Dr. Azode's name under the line.
+  // 11. Signatures — staff cell embeds the drawn signature PNG when
+  // provided (with the printed name below); BHP cell prints Dr. Azode's
+  // name under the line.
   children.push(sectionTitle("Signatures"));
-  children.push(signaturesTable(a.bhpSignatoryName, a.dateMdY));
+  const staffPrintedName = a.staffName
+    ? `${a.staffName}${a.staffTitle ? ", " + a.staffTitle : ""}`
+    : "";
+  children.push(
+    signaturesTable(
+      a.bhpSignatoryName,
+      a.dateMdY,
+      a.staffSignatureBase64 ? staffPrintedName : "",
+      a.staffSignatureBase64
+    )
+  );
 
   return new Document({
     creator: "BHP Connect",
@@ -680,6 +726,7 @@ export async function buildAllNotes(args: GenerateArgs): Promise<GeneratedFile[]
         summary: slotSummary,
         staffName: args.staffName,
         staffTitle: args.staffTitle,
+        staffSignatureBase64: args.staffSignatureBase64,
         bhpSignatoryName: args.bhpSignatoryName,
         resident: r,
       });

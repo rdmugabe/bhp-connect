@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { SignaturePad } from "@/components/ui/signature-pad";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -185,6 +186,7 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
 
   // Step 1 — basics
   const [staffName, setStaffName] = useState("");
+  const [staffSignature, setStaffSignature] = useState(""); // data:image/png;base64,…
   const [dateISO, setDateISO] = useState<string>(todayISO());
   const [sessions, setSessions] = useState<Set<string>>(new Set(SESSION_SLOTS.map((s) => s.code)));
 
@@ -383,6 +385,7 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
       const payload = {
         date_str: isoToMDY(dateISO),
         staff_name: staffName,
+        staff_signature_png: staffSignature || "",
         group_topic: groupTopic,
         group_summary: groupSummary,
         sessions: Array.from(sessions),
@@ -503,6 +506,18 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
                 onChange={(e) => setDateISO(e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <SignaturePad
+              label="Staff signature (optional)"
+              value={staffSignature}
+              onChange={setStaffSignature}
+            />
+            <p className="text-xs text-muted-foreground">
+              Signature is embedded on every generated note. Only residents with
+              filled-in observations get a note.
+            </p>
           </div>
 
           <div className="space-y-1.5">
