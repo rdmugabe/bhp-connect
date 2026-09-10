@@ -371,7 +371,10 @@ function sessionInfoTable(startLabel: string, endLabel: string): Table {
   ]);
 }
 
-function topicTable(topic: string): Table {
+/** Topic + Summary as a single 2-row 2-column table so Word doesn't merge
+ *  two separate adjacent tables and drop the second row into the first
+ *  column. */
+function topicSummaryTable(topic: string, summary: string): Table {
   return fullWidthTable([
     new TableRow({
       children: [
@@ -379,13 +382,11 @@ function topicTable(topic: string): Table {
         makeCell(topic, { widthDxa: TOPIC_WIDTHS[1] }),
       ],
     }),
-  ]);
-}
-
-function summaryTable(summary: string): Table {
-  return fullWidthTable([
     new TableRow({
-      children: [makeCell(summary, { widthDxa: USABLE_WIDTH_DXA })],
+      children: [
+        makeCell("Summary:", { bold: true, widthDxa: TOPIC_WIDTHS[0] }),
+        makeCell(summary, { widthDxa: TOPIC_WIDTHS[1] }),
+      ],
     }),
   ]);
 }
@@ -566,9 +567,9 @@ function buildOneNote(a: OneNoteArgs): Document {
 
   // 5. Group Topic/Summary Notes
   children.push(sectionTitle("Group Topic/Summary Notes"));
-  children.push(topicTable(a.topic));
   children.push(
-    summaryTable(
+    topicSummaryTable(
+      a.topic,
       a.summary ||
         "Structured group session focused on the day's topic. Facilitator delivered content and led discussion; residents were invited to share and practice skills as applicable."
     )
