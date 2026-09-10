@@ -5,16 +5,33 @@
  * facility (see sample: Yngwie Howard - 090726 1630.docx). Produces one
  * Word document per resident per session slot. Runs entirely in-process
  * — no external service required.
+ *
+ * Layout notes (reverse-engineered from the signed sample):
+ *  - Top identity block is a single-row 4-column table:
+ *      Name / DOB / AHCCCS ID / Date, each cell contains "Label:\nValue".
+ *  - Section titles ("Group Topic/Summary Notes", etc.) are plain bold
+ *    paragraphs, not shaded headings.
+ *  - Session Date is a paragraph on its own, then a single-row 6-column
+ *    table for [Session Type][Group Therapy Session][Start Time][…][End
+ *    Time][…].
+ *  - Topic is a 2-cell 1-row table; the summary text is a 1-cell 1-row
+ *    table that spans the width.
+ *  - Participation Assessment is a 4-column × 2-row table (Yes/No row,
+ *    Comments row).
+ *  - Rating tables have 5 columns and 6 rows (header + 5 items). There
+ *    is no Comments row inside the rating table; Comments is a paragraph
+ *    that follows the table.
+ *  - Treatment Goals is a 2-column × 2-row table.
+ *  - Additional Information is a 1-row × 2-column table.
+ *  - Signatures is a 4-column × 2-row table (staff row, BHP row).
  */
 
 import {
   AlignmentType,
   BorderStyle,
   Document,
-  HeadingLevel,
   Packer,
   Paragraph,
-  ShadingType,
   Table,
   TableCell,
   TableRow,
@@ -41,8 +58,8 @@ export const SESSION_SLOTS: SessionSlot[] = [
 
 export interface ResidentEntry {
   name: string;
-  dob: string;            // ISO YYYY-MM-DD from the intake DOB
-  ahcccsId: string;       // Intake.policyNumber
+  dob: string;            // ISO YYYY-MM-DD
+  ahcccsId: string;
   present: boolean;
   absenceReason: string;
   participation: string;
@@ -56,7 +73,7 @@ export interface GenerateArgs {
   dateMdY: string;        // M/D/YY
   staffName: string;
   staffTitle: string;
-  bhpSignatoryName: string;   // e.g. "Dr. Chris Azode, DNP, MBA, PMHNP-BC"
+  bhpSignatoryName: string;
   groupTopic: string;
   groupSummary: string;
   sessionCodes: Array<"0930" | "1300" | "1630">;
@@ -73,6 +90,126 @@ export interface GeneratedFile {
 }
 
 // ---------------------------------------------------------------------------
+// Treatment-goal catalog. One phrase is chosen per note; selection is biased
+// toward goals whose distinctive words appear in the group's topic and
+// summary text, with a seeded fallback for variety across residents in the
+// same session.
+// ---------------------------------------------------------------------------
+const TREATMENT_GOALS: string[] = [
+  "Staying Sober","Not Going Back to Old Habits","Learning Healthy Ways to Cope",
+  "Handling Strong Feelings","Getting Through Hard Moments","Handling Worry and Fear",
+  "Lifting Low Mood","Handling Stress","Handling Anger","Healing From the Past",
+  "Talking to Others in a Healthy Way","Setting Healthy Limits","Rebuilding Family Relationships",
+  "Making Sober Friends","Feeling Better About Yourself","Building a Daily Routine",
+  "Thinking Before Acting","Solving Problems","Staying Calm and Present","Staying Motivated",
+  "Coping With Loss","Getting Along With Others","Sleeping Better and Taking Care of Yourself",
+  "Handling Cravings and Triggers","Building Healthy Relationships","Handling Money and Bills",
+  "Getting Ready for Work","Taking Medicine as Directed","Spending Less Time Alone",
+  "Finding Fun, Healthy Activities","Taking Care of Your Health","Changing Negative Thinking",
+  "Making a Plan to Stay Sober","Handling More Than One Problem at Once","Learning Everyday Life Skills",
+  "Being More Patient","Talking Better With Family","Being Kind to Yourself","Knowing Your Triggers",
+  "Speaking Up for Yourself","Letting Go of Guilt and Shame","Earning Back Trust",
+  "Understanding Your Feelings","Building a New, Sober Life","Working Through Disagreements",
+  "Making Good Choices","Handling Pain Without Drugs","Building a Support System",
+  "Building Healthy Habits","Understanding Your Addiction","Handling Daily Life Better",
+  "Feeling Less Anxious and Down","Getting Steady and Sober","Setting Limits With Others",
+  "Staying Away From Risky Choices","Bouncing Back From Setbacks","Getting Along Better With People",
+  "Staying Sober Long-Term","Understanding Yourself Better","Using Drugs and Alcohol Less",
+  "Improving Your Mental Health","Keeping a Healthy Daily Routine","Being a Better Parent",
+  "Handling Grief","Getting More Involved in the Community","Feeling Better in Body and Mind",
+  "Talking Things Out in a Healthy Way","Working Through the Past","Feeling More Confident in Recovery",
+  "Feeling Less Worried and Panicked","Handling Your Emotions","Making Healthy Friendships",
+];
+
+const STOP_WORDS = new Set([
+  "a","an","the","and","or","of","to","in","on","for","with","from","at","by",
+  "your","you","yours","yourself","yourselves",
+  "is","are","was","were","be","been","being","am",
+  "as","it","its","this","that","these","those","so","if","not","yes","no",
+  "do","does","did","doing","done",
+  "have","has","had","having",
+  "will","would","can","could","should","may","might","must",
+  "about","into","out","up","down","over","under","again","then","than",
+  "more","most","very","just","also","too","only","own","any","each","every","all",
+  "how","when","where","what","who","which","because","while","between",
+  "few","some","such","other","others","another","different","same",
+  "we","us","our","ours",
+  "he","she","him","her","his","hers","they","them","their","theirs","i","me","my","mine",
+  "one","two","three","four","five","many","much","several",
+  "someone","anyone","everyone","nobody","something","anything","everything","nothing",
+  "put","get","got","gets","getting","give","gave","given","take","took","taken","taking",
+  "make","made","makes","making","let","lets","letting","use","used","using",
+  "go","goes","went","gone","come","came","comes","coming",
+  "know","knows","knew","known","knowing",
+  "say","says","said","tell","told","telling",
+  "feel","feels","felt","feeling","think","thinks","thought","thinking",
+  "want","wants","wanted","need","needs","needed",
+  "chance","member","members","people","person",
+  "left","room","today","yesterday","tomorrow","now","later",
+  "share","shared","sharing","support","supported","supporting","group","groups","session","sessions",
+]);
+
+function tokenize(s: string): string[] {
+  return (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/)
+    .filter(w => w && !STOP_WORDS.has(w) && w.length > 2);
+}
+
+function pickGoal(topic: string, summary: string, seed: string): string {
+  const contextTokens = new Set([...tokenize(topic), ...tokenize(summary)]);
+  if (contextTokens.size === 0) {
+    const rand = seededRng(seed);
+    return TREATMENT_GOALS[Math.floor(rand() * TREATMENT_GOALS.length)];
+  }
+  const scored = TREATMENT_GOALS.map(g => {
+    const gtoks = tokenize(g);
+    let score = 0;
+    for (const t of gtoks) if (contextTokens.has(t)) score++;
+    return { goal: g, score };
+  });
+  const maxScore = Math.max(...scored.map(s => s.score));
+  if (maxScore === 0) {
+    const rand = seededRng(seed);
+    return TREATMENT_GOALS[Math.floor(rand() * TREATMENT_GOALS.length)];
+  }
+  const topBucket = scored.filter(s => s.score === maxScore).map(s => s.goal);
+  const rand = seededRng(seed);
+  return topBucket[Math.floor(rand() * topBucket.length)];
+}
+
+// ---------------------------------------------------------------------------
+// Deterministic PRNG + rating picker
+// ---------------------------------------------------------------------------
+
+function hash32(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function seededRng(seedStr: string): () => number {
+  let a = hash32(seedStr) || 0x9e3779b9;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function pickLevel(present: boolean, rand: () => number): "n/a" | "low" | "med" | "high" {
+  if (!present) return "n/a";
+  const r = rand();
+  if (r < 0.55) return "high";
+  if (r < 0.90) return "med";
+  if (r < 0.98) return "low";
+  return "n/a";
+}
+
+// ---------------------------------------------------------------------------
 // Utility helpers
 // ---------------------------------------------------------------------------
 
@@ -80,7 +217,6 @@ function sanitizeFilename(s: string): string {
   return s.replace(/[\\/:*?"<>|]+/g, "-").trim().slice(0, 80);
 }
 
-/** ISO YYYY-MM-DD → "M/D/YYYY" (leading-zero stripped). */
 function isoToMDYYYY(iso: string): string {
   if (!iso) return "";
   const parts = iso.split("-");
@@ -89,7 +225,6 @@ function isoToMDYYYY(iso: string): string {
   return `${parseInt(m, 10)}/${parseInt(d, 10)}/${y}`;
 }
 
-/** "M/D/YY" → "MMDDYY" for filenames. */
 function mdyToFilenameStub(mdy: string): string {
   const [m, d, y] = mdy.split("/");
   const mm = (m || "").padStart(2, "0");
@@ -104,65 +239,80 @@ function residentHasContent(r: ResidentEntry): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Paragraph helpers
+// Paragraph/table primitives
 // ---------------------------------------------------------------------------
 
 const FONT = "Calibri";
 const RUN_SIZE = 22; // 11pt
 
-function text(run: string, opts?: { bold?: boolean; italics?: boolean; size?: number }): TextRun {
+function run(t: string, opts?: { bold?: boolean; italics?: boolean; size?: number; break?: number }): TextRun {
   return new TextRun({
-    text: run,
+    text: t,
     bold: opts?.bold,
     italics: opts?.italics,
     size: opts?.size ?? RUN_SIZE,
     font: FONT,
+    break: opts?.break,
   });
 }
 
-function para(runs: TextRun[], opts?: { alignment?: (typeof AlignmentType)[keyof typeof AlignmentType]; after?: number; before?: number }): Paragraph {
+/** Two runs in a single paragraph, with a soft line break between the label
+ *  (bold) and the value — matches the sample's identity cells. */
+function labelValueRuns(label: string, value: string): TextRun[] {
+  return [
+    run(`${label}:`, { bold: true }),
+    run(value, { break: 1 }),
+  ];
+}
+
+function plainPara(text: string, opts?: { bold?: boolean; center?: boolean; size?: number; after?: number; before?: number }): Paragraph {
   return new Paragraph({
-    alignment: opts?.alignment,
-    spacing: { before: opts?.before ?? 0, after: opts?.after ?? 80 },
-    children: runs,
+    alignment: opts?.center ? AlignmentType.CENTER : AlignmentType.LEFT,
+    spacing: { before: opts?.before ?? 0, after: opts?.after ?? 100 },
+    children: [run(text, { bold: opts?.bold, size: opts?.size })],
   });
 }
 
-function heading(t: string): Paragraph {
+/** Bold section title (no shading, no heading style — matches the sample). */
+function sectionTitle(text: string): Paragraph {
   return new Paragraph({
-    heading: HeadingLevel.HEADING_2,
-    spacing: { before: 200, after: 100 },
-    shading: { type: ShadingType.CLEAR, color: "auto", fill: "D9D9D9" },
-    children: [text(t, { bold: true, size: 24 })],
+    spacing: { before: 240, after: 80 },
+    children: [run(text, { bold: true, size: 24 })],
   });
 }
 
-function docTitle(t: string): Paragraph {
+/** Document title, centered. */
+function docTitle(text: string): Paragraph {
   return new Paragraph({
     alignment: AlignmentType.CENTER,
-    spacing: { after: 200 },
-    children: [text(t, { bold: true, size: 28 })],
+    spacing: { before: 120, after: 200 },
+    children: [run(text, { bold: true, size: 28 })],
   });
 }
 
-// ---------------------------------------------------------------------------
-// Table helpers
-// ---------------------------------------------------------------------------
-
 const CELL_BORDER = {
-  top: { style: BorderStyle.SINGLE, size: 4, color: "808080" },
-  bottom: { style: BorderStyle.SINGLE, size: 4, color: "808080" },
-  left: { style: BorderStyle.SINGLE, size: 4, color: "808080" },
-  right: { style: BorderStyle.SINGLE, size: 4, color: "808080" },
+  top: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+  bottom: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+  left: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
+  right: { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" },
 };
 
-function cell(runs: TextRun[], opts?: { widthPct?: number; shading?: string; bold?: boolean; align?: "center" | "left" }): TableCell {
+interface CellOpts {
+  bold?: boolean;
+  align?: "center" | "left";
+  widthPct?: number;
+  columnSpan?: number;
+  runs?: TextRun[];
+}
+
+function makeCell(text: string | null, opts?: CellOpts): TableCell {
+  const runs = opts?.runs ?? (text !== null
+    ? [run(text, { bold: opts?.bold })]
+    : [run("")]);
   return new TableCell({
     borders: CELL_BORDER,
-    shading: opts?.shading
-      ? { type: ShadingType.CLEAR, color: "auto", fill: opts.shading }
-      : undefined,
     width: opts?.widthPct ? { size: opts.widthPct, type: WidthType.PERCENTAGE } : undefined,
+    columnSpan: opts?.columnSpan,
     children: [
       new Paragraph({
         alignment: opts?.align === "center" ? AlignmentType.CENTER : AlignmentType.LEFT,
@@ -172,66 +322,179 @@ function cell(runs: TextRun[], opts?: { widthPct?: number; shading?: string; bol
   });
 }
 
-function kvTable(rows: Array<[string, string]>): Table {
+function makeCellRuns(runs: TextRun[], opts?: Omit<CellOpts, "runs">): TableCell {
+  return makeCell(null, { ...opts, runs });
+}
+
+function fullWidthTable(rows: TableRow[]): Table {
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: rows.map(([k, v]) =>
-      new TableRow({
-        children: [
-          cell([text(k, { bold: true })], { widthPct: 30, shading: "F2F2F2" }),
-          cell([text(v)], { widthPct: 70 }),
-        ],
-      })
-    ),
+    rows,
   });
 }
 
-interface RatingRow {
-  label: string;
-  /** "n/a" | "low" | "med" | "high" */
-  level: "n/a" | "low" | "med" | "high";
+// ---------------------------------------------------------------------------
+// Section builders
+// ---------------------------------------------------------------------------
+
+function identityTable(name: string, dobIso: string, ahcccsId: string, dateMdY: string): Table {
+  return fullWidthTable([
+    new TableRow({
+      children: [
+        makeCellRuns(labelValueRuns("Name", name), { widthPct: 35 }),
+        makeCellRuns(labelValueRuns("DOB", isoToMDYYYY(dobIso)), { widthPct: 20 }),
+        makeCellRuns(labelValueRuns("AHCCCS ID", ahcccsId || ""), { widthPct: 25 }),
+        makeCellRuns(labelValueRuns("Date", dateMdY), { widthPct: 20 }),
+      ],
+    }),
+  ]);
 }
 
-function ratingTable(rows: RatingRow[], commentText: string): Table {
+function sessionInfoTable(startLabel: string, endLabel: string): Table {
+  return fullWidthTable([
+    new TableRow({
+      children: [
+        makeCell("Session Type:", { bold: true, widthPct: 16 }),
+        makeCell("Group Therapy Session", { widthPct: 17 }),
+        makeCell("Start Time:", { bold: true, widthPct: 16 }),
+        makeCell(startLabel, { widthPct: 17 }),
+        makeCell("End Time:", { bold: true, widthPct: 16 }),
+        makeCell(endLabel, { widthPct: 18 }),
+      ],
+    }),
+  ]);
+}
+
+function topicTable(topic: string): Table {
+  return fullWidthTable([
+    new TableRow({
+      children: [
+        makeCell("Topic:", { bold: true, widthPct: 15 }),
+        makeCell(topic, { widthPct: 85 }),
+      ],
+    }),
+  ]);
+}
+
+function summaryTable(summary: string): Table {
+  return fullWidthTable([
+    new TableRow({
+      children: [makeCell(summary, { widthPct: 100 })],
+    }),
+  ]);
+}
+
+function participationTable(completed: string, stayedOnTask: string, comment1: string, comment2: string): Table {
+  return fullWidthTable([
+    new TableRow({
+      children: [
+        makeCell("Completed Group Therapy:", { bold: true, widthPct: 27 }),
+        makeCell(completed, { widthPct: 23 }),
+        makeCell("Stayed on Task:", { bold: true, widthPct: 27 }),
+        makeCell(stayedOnTask, { widthPct: 23 }),
+      ],
+    }),
+    new TableRow({
+      children: [
+        makeCell("Comments:", { bold: true }),
+        makeCell(comment1),
+        makeCell("Comments:", { bold: true }),
+        makeCell(comment2),
+      ],
+    }),
+  ]);
+}
+
+function ratingTable(items: Array<{ label: string; level: "n/a" | "low" | "med" | "high" }>): Table {
   const header = new TableRow({
     tableHeader: true,
     children: [
-      cell([text("Assessment Area", { bold: true })], { widthPct: 44, shading: "D9D9D9" }),
-      cell([text("N/A", { bold: true })], { widthPct: 14, shading: "D9D9D9", align: "center" }),
-      cell([text("Low", { bold: true })], { widthPct: 14, shading: "D9D9D9", align: "center" }),
-      cell([text("Med", { bold: true })], { widthPct: 14, shading: "D9D9D9", align: "center" }),
-      cell([text("High", { bold: true })], { widthPct: 14, shading: "D9D9D9", align: "center" }),
+      makeCell("Assessment Area", { bold: true, widthPct: 44 }),
+      makeCell("N/A", { bold: true, align: "center", widthPct: 14 }),
+      makeCell("Low", { bold: true, align: "center", widthPct: 14 }),
+      makeCell("Med", { bold: true, align: "center", widthPct: 14 }),
+      makeCell("High", { bold: true, align: "center", widthPct: 14 }),
     ],
   });
-
-  const dataRows = rows.map(r =>
+  const dataRows = items.map(i =>
     new TableRow({
       children: [
-        cell([text(r.label)], { widthPct: 44 }),
-        cell([text(r.level === "n/a" ? "X" : "")], { widthPct: 14, align: "center" }),
-        cell([text(r.level === "low" ? "X" : "")], { widthPct: 14, align: "center" }),
-        cell([text(r.level === "med" ? "X" : "")], { widthPct: 14, align: "center" }),
-        cell([text(r.level === "high" ? "X" : "")], { widthPct: 14, align: "center" }),
+        makeCell(i.label, { widthPct: 44 }),
+        makeCell(i.level === "n/a" ? "X" : "", { align: "center", widthPct: 14 }),
+        makeCell(i.level === "low" ? "X" : "", { align: "center", widthPct: 14 }),
+        makeCell(i.level === "med" ? "X" : "", { align: "center", widthPct: 14 }),
+        makeCell(i.level === "high" ? "X" : "", { align: "center", widthPct: 14 }),
       ],
     })
   );
+  return fullWidthTable([header, ...dataRows]);
+}
 
-  const commentRow = new TableRow({
+function commentsParagraph(text: string): Paragraph {
+  return new Paragraph({
+    spacing: { before: 100, after: 120 },
     children: [
-      cell([text("Comments:", { bold: true })], { widthPct: 44, shading: "F2F2F2" }),
-      new TableCell({
-        borders: CELL_BORDER,
-        width: { size: 56, type: WidthType.PERCENTAGE },
-        columnSpan: 4,
-        children: [new Paragraph({ children: [text(commentText || "")] })],
-      }),
+      run("Comments: ", { bold: true }),
+      run(text || ""),
     ],
   });
+}
 
-  return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: [header, ...dataRows, commentRow],
-  });
+function treatmentGoalsTable(addressed: string, goal: string): Table {
+  return fullWidthTable([
+    new TableRow({
+      children: [
+        makeCell("Were treatment goals addressed?", { bold: true, widthPct: 40 }),
+        makeCell(addressed, { widthPct: 60 }),
+      ],
+    }),
+    new TableRow({
+      children: [
+        makeCell("Goals Addressed:", { bold: true, widthPct: 40 }),
+        makeCell(goal, { widthPct: 60 }),
+      ],
+    }),
+  ]);
+}
+
+function additionalInfoTable(sig: string): Table {
+  return fullWidthTable([
+    new TableRow({
+      children: [
+        makeCell("Significant Information:", { bold: true, widthPct: 35 }),
+        makeCell(sig, { widthPct: 65 }),
+      ],
+    }),
+  ]);
+}
+
+function signaturesTable(
+  staffLine: string,
+  bhpSignatoryName: string,
+  dateMdY: string
+): Table {
+  const bhpCellRuns = [
+    run("________________________________________"),
+    run(bhpSignatoryName, { break: 1 }),
+  ];
+  return fullWidthTable([
+    new TableRow({
+      children: [
+        makeCell("Staff Signature:", { bold: true, widthPct: 22 }),
+        makeCell(staffLine, { widthPct: 43 }),
+        makeCell("Date:", { bold: true, widthPct: 12 }),
+        makeCell(dateMdY, { widthPct: 23 }),
+      ],
+    }),
+    new TableRow({
+      children: [
+        makeCell("BHP Signature:", { bold: true, widthPct: 22 }),
+        makeCellRuns(bhpCellRuns, { widthPct: 43 }),
+        makeCell("Date:", { bold: true, widthPct: 12 }),
+        makeCell(dateMdY, { widthPct: 23 }),
+      ],
+    }),
+  ]);
 }
 
 // ---------------------------------------------------------------------------
@@ -250,194 +513,6 @@ interface OneNoteArgs {
   resident: ResidentEntry;
 }
 
-// ---------------------------------------------------------------------------
-// Treatment-goal catalog. One phrase is chosen per note; selection is biased
-// toward goals whose distinctive words appear in the group's topic and
-// summary text, with deterministic seeded fallback for variety across
-// residents in the same session.
-// ---------------------------------------------------------------------------
-const TREATMENT_GOALS: string[] = [
-  "Staying Sober",
-  "Not Going Back to Old Habits",
-  "Learning Healthy Ways to Cope",
-  "Handling Strong Feelings",
-  "Getting Through Hard Moments",
-  "Handling Worry and Fear",
-  "Lifting Low Mood",
-  "Handling Stress",
-  "Handling Anger",
-  "Healing From the Past",
-  "Talking to Others in a Healthy Way",
-  "Setting Healthy Limits",
-  "Rebuilding Family Relationships",
-  "Making Sober Friends",
-  "Feeling Better About Yourself",
-  "Building a Daily Routine",
-  "Thinking Before Acting",
-  "Solving Problems",
-  "Staying Calm and Present",
-  "Staying Motivated",
-  "Coping With Loss",
-  "Getting Along With Others",
-  "Sleeping Better and Taking Care of Yourself",
-  "Handling Cravings and Triggers",
-  "Building Healthy Relationships",
-  "Handling Money and Bills",
-  "Getting Ready for Work",
-  "Taking Medicine as Directed",
-  "Spending Less Time Alone",
-  "Finding Fun, Healthy Activities",
-  "Taking Care of Your Health",
-  "Changing Negative Thinking",
-  "Making a Plan to Stay Sober",
-  "Handling More Than One Problem at Once",
-  "Learning Everyday Life Skills",
-  "Being More Patient",
-  "Talking Better With Family",
-  "Being Kind to Yourself",
-  "Knowing Your Triggers",
-  "Speaking Up for Yourself",
-  "Letting Go of Guilt and Shame",
-  "Earning Back Trust",
-  "Understanding Your Feelings",
-  "Building a New, Sober Life",
-  "Working Through Disagreements",
-  "Making Good Choices",
-  "Handling Pain Without Drugs",
-  "Building a Support System",
-  "Building Healthy Habits",
-  "Understanding Your Addiction",
-  "Handling Daily Life Better",
-  "Feeling Less Anxious and Down",
-  "Getting Steady and Sober",
-  "Setting Limits With Others",
-  "Staying Away From Risky Choices",
-  "Bouncing Back From Setbacks",
-  "Getting Along Better With People",
-  "Staying Sober Long-Term",
-  "Understanding Yourself Better",
-  "Using Drugs and Alcohol Less",
-  "Improving Your Mental Health",
-  "Keeping a Healthy Daily Routine",
-  "Being a Better Parent",
-  "Handling Grief",
-  "Getting More Involved in the Community",
-  "Feeling Better in Body and Mind",
-  "Talking Things Out in a Healthy Way",
-  "Working Through the Past",
-  "Feeling More Confident in Recovery",
-  "Feeling Less Worried and Panicked",
-  "Handling Your Emotions",
-  "Making Healthy Friendships",
-];
-
-/** Words we ignore when scoring goal-vs-topic overlap. Includes generic
- *  verbs and quantifiers that would otherwise create false-positive hits. */
-const STOP_WORDS = new Set([
-  "a","an","the","and","or","of","to","in","on","for","with","from","at","by",
-  "your","you","yours","yourself","yourselves",
-  "is","are","was","were","be","been","being","am",
-  "as","it","its","this","that","these","those","so","if","not","yes","no",
-  "do","does","did","doing","done",
-  "have","has","had","having",
-  "will","would","can","could","should","may","might","must",
-  "about","into","out","up","down","over","under","again","then","than",
-  "more","most","very","just","also","too","only","own","any","each","every","all",
-  "how","when","where","what","who","which","because","while","between",
-  "few","some","such","other","others","another","different","same",
-  "we","us","our","ours",
-  "he","she","him","her","his","hers","they","them","their","theirs","i","me","my","mine",
-  // Common quantifiers / pronouns / generic verbs that shouldn't drive matching
-  "one","two","three","four","five","many","much","several",
-  "someone","anyone","everyone","nobody","something","anything","everything","nothing",
-  "put","get","got","gets","getting","give","gave","given","take","took","taken","taking",
-  "make","made","makes","making","let","lets","letting","use","used","using",
-  "go","goes","went","gone","come","came","comes","coming",
-  "know","knows","knew","known","knowing",
-  "say","says","said","tell","told","telling",
-  "feel","feels","felt","feeling","think","thinks","thought","thinking",
-  "want","wants","wanted","need","needs","needed",
-  "chance","member","members","people","person","person",
-  "left","left","room","today","yesterday","tomorrow","now","later",
-  "share","shared","sharing","support","supported","supporting","group","groups","session","sessions",
-]);
-
-function tokenize(s: string): string[] {
-  return (s || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter(w => w && !STOP_WORDS.has(w) && w.length > 2);
-}
-
-/** Rank goals by how many distinctive topic/summary words they share. Falls
- *  back to a deterministic seeded pick when no goal matches. Different
- *  residents in the same session can still land on different goals thanks
- *  to the seeded tie-break. */
-function pickGoal(topic: string, summary: string, seed: string): string {
-  const contextTokens = new Set([...tokenize(topic), ...tokenize(summary)]);
-  if (contextTokens.size === 0) {
-    const rand = seededRng(seed);
-    return TREATMENT_GOALS[Math.floor(rand() * TREATMENT_GOALS.length)];
-  }
-
-  const scored: Array<{ goal: string; score: number }> = TREATMENT_GOALS.map(g => {
-    const gtoks = tokenize(g);
-    let score = 0;
-    for (const t of gtoks) if (contextTokens.has(t)) score++;
-    return { goal: g, score };
-  });
-  const maxScore = Math.max(...scored.map(s => s.score));
-  if (maxScore === 0) {
-    const rand = seededRng(seed);
-    return TREATMENT_GOALS[Math.floor(rand() * TREATMENT_GOALS.length)];
-  }
-
-  // Prefer only top-scoring goals — the treatment goal addressed in group
-  // should reflect the topic accurately, not drift into loosely-related
-  // phrases. Ties are broken by the seed for stability across re-generations.
-  const topBucket = scored
-    .filter(s => s.score === maxScore)
-    .map(s => s.goal);
-  const rand = seededRng(seed);
-  return topBucket[Math.floor(rand() * topBucket.length)];
-}
-
-/** Deterministic 32-bit hash of a string. Same input → same output, so the
- *  same note re-generates identically. */
-function hash32(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-/** Mulberry32 seeded PRNG — returns 0..1 uniform draws. */
-function seededRng(seedStr: string): () => number {
-  let a = hash32(seedStr) || 0x9e3779b9;
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** Weighted rating for a present resident: skews High/Med, occasional Low,
- *  rare N/A. Absent residents are always N/A. */
-function pickLevel(present: boolean, rand: () => number): "n/a" | "low" | "med" | "high" {
-  if (!present) return "n/a";
-  const r = rand();
-  // High 55% / Med 35% / Low 8% / N/A 2%
-  if (r < 0.55) return "high";
-  if (r < 0.90) return "med";
-  if (r < 0.98) return "low";
-  return "n/a";
-}
-
 function buildOneNote(a: OneNoteArgs): Document {
   const { resident, slot } = a;
   const rand = seededRng(`${resident.name}|${a.dateMdY}|${slot.code}`);
@@ -445,142 +520,106 @@ function buildOneNote(a: OneNoteArgs): Document {
   const completed = resident.present ? "Yes" : "No";
   const stayedOnTask = resident.present ? "Yes" : "No";
 
-  const children: (Paragraph | Table)[] = [];
-
-  // Top: Name / DOB / AHCCCS ID / Date
-  children.push(
-    kvTable([
-      ["Name:", resident.name],
-      ["DOB:", isoToMDYYYY(resident.dob)],
-      ["AHCCCS ID:", resident.ahcccsId || ""],
-      ["Date:", a.dateMdY],
-    ])
-  );
-
-  children.push(new Paragraph({ children: [text("")] }));
-  children.push(docTitle("Therapeutic Group/Activity Note"));
-
-  // Session Info
-  children.push(
-    kvTable([
-      ["Session Date:", a.dateMdY],
-      ["Session Type:", "Group Therapy Session"],
-      ["Start Time:", slot.startLabel],
-      ["End Time:", slot.endLabel],
-    ])
-  );
-
-  // Group Topic/Summary Notes
-  children.push(heading("Group Topic/Summary Notes"));
-  children.push(
-    kvTable([
-      ["Topic:", a.topic],
-    ])
-  );
-  children.push(
-    para([text(a.summary || "Structured group session focused on the day's topic. Facilitator delivered content and led discussion; residents were invited to share and practice skills as applicable.")], { after: 120 })
-  );
-
-  // Participation Assessment
-  children.push(heading("Participation Assessment"));
-  children.push(
-    kvTable([
-      ["Completed Group Therapy:", completed],
-      ["Stayed on Task:", stayedOnTask],
-    ])
-  );
-  if (resident.present && resident.participation.trim()) {
-    children.push(
-      kvTable([
-        ["Comments:", resident.participation.trim()],
-      ])
-    );
-  } else if (!resident.present && resident.absenceReason.trim()) {
-    children.push(
-      kvTable([
-        ["Comments:", `Resident was absent. Reason: ${resident.absenceReason.trim()}`],
-      ])
-    );
-  }
-
-  // Behavioral Observations
-  children.push(heading("Behavioral Observations During Group Therapy"));
-  children.push(
-    ratingTable(
-      [
-        { label: "Initiated positive interactions", level: pick() },
-        { label: "Shared feelings/emotions", level: pick() },
-        { label: "Gave self-disclosure", level: pick() },
-        { label: "Participated in discussions", level: pick() },
-        { label: "Offered suggestion/opinion/feedback", level: pick() },
-      ],
-      resident.behavior.trim()
-    )
-  );
-
-  // Overall Group Engagement Assessment
-  children.push(heading("Overall Group Engagement Assessment"));
-  children.push(
-    ratingTable(
-      [
-        { label: "Perceived interest in Group/Therapeutic Activity", level: pick() },
-        { label: "Helpful to Others", level: pick() },
-        { label: "Focused on Group Topic/Therapeutic Activity", level: pick() },
-        { label: "Showed listening Skills/Empathy", level: pick() },
-        { label: "Seemed to benefit from group process", level: pick() },
-      ],
-      resident.overall.trim()
-    )
-  );
-
-  // Treatment Goals — pick a phrase whose keywords best fit the topic/summary.
   const goal = resident.present
     ? pickGoal(a.topic, a.summary, `${resident.name}|${a.dateMdY}|${slot.code}|goal`)
     : "";
-  children.push(heading("Treatment Goals"));
+
+  const children: (Paragraph | Table)[] = [];
+
+  // 1. Identity block
+  children.push(identityTable(resident.name, resident.dob, resident.ahcccsId, a.dateMdY));
+
+  // 2. Title
+  children.push(new Paragraph({ children: [run("")] }));
+  children.push(docTitle("Therapeutic Group/Activity Note"));
+
+  // 3. Session Date (paragraph)
   children.push(
-    kvTable([
-      ["Were treatment goals addressed?", resident.present ? "Yes" : "No"],
-      ["Goals Addressed:", goal],
-    ])
+    new Paragraph({
+      spacing: { after: 80 },
+      children: [
+        run("Session Date: ", { bold: true }),
+        run(a.dateMdY),
+      ],
+    })
   );
 
-  // Additional Information
-  children.push(heading("Additional Information"));
+  // 4. Session Type / Start / End table
+  children.push(sessionInfoTable(slot.startLabel, slot.endLabel));
+
+  // 5. Group Topic/Summary Notes
+  children.push(sectionTitle("Group Topic/Summary Notes"));
+  children.push(topicTable(a.topic));
   children.push(
-    kvTable([
-      ["Significant Information:", resident.significantInfo.trim() || ""],
-    ])
+    summaryTable(
+      a.summary ||
+        "Structured group session focused on the day's topic. Facilitator delivered content and led discussion; residents were invited to share and practice skills as applicable."
+    )
   );
 
-  // Signatures
-  children.push(heading("Signatures"));
+  // 6. Participation Assessment
+  children.push(sectionTitle("Participation Assessment"));
+  const participationText = resident.present
+    ? (resident.participation.trim() || "")
+    : `Resident was absent. Reason: ${resident.absenceReason.trim() || "Not documented"}.`;
+  // Second Comments column has no dedicated wizard field; keep it in sync with
+  // participationText but leave blank when the primary is blank.
+  const stayedOnTaskComment = resident.present ? "" : "";
   children.push(
-    kvTable([
-      ["Staff Signature:", `${a.staffName || "Staff Name"}${a.staffTitle ? ", " + a.staffTitle : ""}`],
-      ["Date:", a.dateMdY],
-      ["BHP Signature:", "__________________________________________"],
-      ["", a.bhpSignatoryName],
-      ["Date:", a.dateMdY],
+    participationTable(completed, stayedOnTask, participationText, stayedOnTaskComment)
+  );
+
+  // 7. Behavioral Observations
+  children.push(sectionTitle("Behavioral Observations During Group Therapy"));
+  children.push(
+    ratingTable([
+      { label: "Initiated positive interactions", level: pick() },
+      { label: "Shared feelings/emotions", level: pick() },
+      { label: "Gave self-disclosure", level: pick() },
+      { label: "Participated in discussions", level: pick() },
+      { label: "Offered suggestion/opinion/feedback", level: pick() },
     ])
   );
+  children.push(commentsParagraph(resident.behavior.trim()));
+
+  // 8. Overall Group Engagement Assessment
+  children.push(sectionTitle("Overall Group Engagement Assessment"));
+  children.push(
+    ratingTable([
+      { label: "Perceived interest in Group/Therapeutic Activity", level: pick() },
+      { label: "Helpful to Others", level: pick() },
+      { label: "Focused on Group Topic/Therapeutic Activity", level: pick() },
+      { label: "Showed listening Skills/Empathy", level: pick() },
+      { label: "Seemed to benefit from group process", level: pick() },
+    ])
+  );
+  children.push(commentsParagraph(resident.overall.trim()));
+
+  // 9. Treatment Goals
+  children.push(sectionTitle("Treatment Goals"));
+  children.push(treatmentGoalsTable(resident.present ? "Yes" : "No", goal));
+
+  // 10. Additional Information
+  children.push(sectionTitle("Additional Information"));
+  children.push(additionalInfoTable(resident.significantInfo.trim()));
+
+  // 11. Signatures
+  children.push(sectionTitle("Signatures"));
+  const staffLine = `${a.staffName || "Staff Name"}${a.staffTitle ? ", " + a.staffTitle : ""}`;
+  children.push(signaturesTable(staffLine, a.bhpSignatoryName, a.dateMdY));
 
   return new Document({
     creator: "BHP Connect",
-    title: `${resident.name} - ${a.dateMdY} ${slot.startLabel} Group Note`,
+    title: `${resident.name} - ${a.dateMdY} Group Note`,
     styles: {
       default: {
-        document: {
-          run: { font: FONT, size: RUN_SIZE },
-        },
+        document: { run: { font: FONT, size: RUN_SIZE } },
       },
     },
     sections: [
       {
         properties: {
-          page: {
-            margin: { top: 720, bottom: 720, left: 720, right: 720 }, // 0.5"
-          },
+          page: { margin: { top: 720, bottom: 720, left: 720, right: 720 } },
         },
         children,
       },
@@ -593,10 +632,7 @@ const DEFAULT_TOPIC = "Group Session";
 export async function buildAllNotes(args: GenerateArgs): Promise<GeneratedFile[]> {
   const files: GeneratedFile[] = [];
   const activeSlots = SESSION_SLOTS.filter(s => args.sessionCodes.includes(s.code));
-
-  // Only residents with at least one populated field get a document.
   const eligibleResidents = args.residents.filter(residentHasContent);
-
   const dateStub = mdyToFilenameStub(args.dateMdY);
 
   for (let sIdx = 0; sIdx < activeSlots.length; sIdx++) {
