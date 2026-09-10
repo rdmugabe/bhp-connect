@@ -77,6 +77,10 @@ export interface GenerateArgs {
   groupTopic: string;
   groupSummary: string;
   sessionCodes: Array<"0930" | "1300" | "1630">;
+  /** Optional per-session summary overrides. When supplied, each session's
+   *  notes use their own summary text; otherwise every session falls back
+   *  to `groupSummary`. */
+  summariesBySession?: Partial<Record<"0930" | "1300" | "1630", string>>;
   residents: ResidentEntry[];
 }
 
@@ -660,6 +664,8 @@ export async function buildAllNotes(args: GenerateArgs): Promise<GeneratedFile[]
     const topic =
       args.groupTopic.trim() ||
       `${DEFAULT_TOPIC} — Part ${sIdx + 1} of ${activeSlots.length}`;
+    const slotSummary =
+      args.summariesBySession?.[slot.code]?.trim() || args.groupSummary;
 
     for (const r of eligibleResidents) {
       const doc = buildOneNote({
@@ -667,7 +673,7 @@ export async function buildAllNotes(args: GenerateArgs): Promise<GeneratedFile[]
         dateMdY: args.dateMdY,
         slot,
         topic,
-        summary: args.groupSummary,
+        summary: slotSummary,
         staffName: args.staffName,
         staffTitle: args.staffTitle,
         bhpSignatoryName: args.bhpSignatoryName,

@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { getFacilityScope } from "@/lib/facility-scope";
 import { prisma } from "@/lib/prisma";
 import { buildAllNotes, SESSION_SLOTS, type ResidentEntry } from "@/lib/group-notes-docx";
+import { generateSessionSummaries } from "@/lib/group-notes-variations";
 
 interface RequestBody {
   date_str: string;
@@ -106,6 +107,15 @@ export async function POST(req: NextRequest) {
   });
   const facilityName = facilityRecord?.name ?? "Behavioral Health Residential Facility";
 
+  // When multiple sessions were requested, ask Claude to produce a distinct
+  // summary per session so the three notes don't read identically. Falls
+  // back to the shared summary if the call fails or the key is missing.
+  const summariesBySession = await generateSessionSummaries(
+    body.group_topic || "",
+    body.group_summary || "",
+    sessionCodes
+  );
+
   const files = await buildAllNotes({
     facilityName,
     dateMdY: body.date_str,
@@ -115,6 +125,7 @@ export async function POST(req: NextRequest) {
     groupTopic: body.group_topic || "",
     groupSummary: body.group_summary || "",
     sessionCodes,
+    summariesBySession,
     residents,
   });
 
