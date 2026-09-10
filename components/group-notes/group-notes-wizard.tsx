@@ -362,7 +362,9 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
     return residents.some((r) => r._dictation.trim());
   }, [groupDictation, residents]);
 
-  const handleGenerate = async () => {
+  const [folderLink, setFolderLink] = useState<string | null>(null);
+
+  const handleGenerate = async (destination: "zip" | "drive" = "zip") => {
     if (!canGenerate) return;
 
     // Guard against the "dictated but never clicked Extract" foot-gun.
@@ -388,11 +390,13 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
 
     setGenerating(true);
     setResults(null);
+    setFolderLink(null);
     try {
       const payload = {
         date_str: isoToMDY(dateISO),
         staff_name: staffName,
         staff_signature_png: staffSignature || "",
+        destination,
         group_topic: groupTopic,
         group_summary: groupSummary,
         sessions: Array.from(sessions),
@@ -434,12 +438,17 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
       }
 
       setResults(data.results ?? []);
-      setDriveEnabled(Boolean(data.drive_enabled));
+      setDriveEnabled(destination === "drive");
+      setFolderLink(typeof data.folder_link === "string" ? data.folder_link : null);
       purgeTranscripts();
       const count = data.count_ok ?? 0;
+      const failed = data.count_failed ?? 0;
       toast({
-        title: `Generated ${count} document${count === 1 ? "" : "s"}`,
-        description: "Zip downloaded to your browser.",
+        title: `Generated ${count} document${count === 1 ? "" : "s"}${failed ? ` (${failed} failed)` : ""}`,
+        description:
+          destination === "drive"
+            ? "Uploaded to the Group Notes Drive folder."
+            : "Zip downloaded to your browser.",
       });
     } catch (err) {
       toast({
@@ -678,9 +687,17 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
             </Button>
           </>
         )}
-        <Button onClick={handleGenerate} disabled={!canGenerate}>
+        <Button onClick={() => handleGenerate("zip")} disabled={!canGenerate}>
           {generating ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}
           Generate documents
+        </Button>
+        <Button
+          onClick={() => handleGenerate("drive")}
+          disabled={!canGenerate}
+          variant="secondary"
+        >
+          {generating ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}
+          Send to Google Drive
         </Button>
         <div className="ml-auto text-xs text-muted-foreground">
           {normalizedStaffName ? `Signing as ${normalizedStaffName}` : "Enter staff name to sign"}
@@ -692,8 +709,27 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
         <Card>
           <CardHeader>
             <CardTitle>Results</CardTitle>
-            <CardDescription>
-              {driveEnabled === false ? "Files downloaded as a zip to your browser." : null}
+            <CardDescription className="space-y-1">
+              {driveEnabled ? (
+                folderLink ? (
+                  <span>
+                    Uploaded to{" "}
+                    <a
+                      href={folderLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary underline"
+                    >
+                      the shared Drive folder
+                    </a>
+                    .
+                  </span>
+                ) : (
+                  <span>Uploaded to the shared Drive folder.</span>
+                )
+              ) : (
+                <span>Files downloaded as a zip to your browser.</span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -713,7 +749,19 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
                     <span className="text-slate-300">{row.resident}</span>
                     {row.session ? <span className="text-slate-500"> · {row.session}</span> : null}
                     {row.file ? <span className="text-slate-400"> · {row.file}</span> : null}
-                    {row.drive ? <span className="text-slate-500"> · drive: {row.drive}</span> : null}
+                    {row.drive ? (
+                      <>
+                        {" · "}
+                        <a
+                          href={row.drive}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-emerald-300 underline"
+                        >
+                          open
+                        </a>
+                      </>
+                    ) : null}
                     {row.reason ? <span className="text-slate-500"> · {row.reason}</span> : null}
                     {row.error ? <span className="text-red-300"> · {row.error}</span> : null}
                   </div>

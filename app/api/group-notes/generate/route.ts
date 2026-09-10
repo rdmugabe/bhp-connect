@@ -7,6 +7,7 @@ import { getFacilityScope } from "@/lib/facility-scope";
 import { prisma } from "@/lib/prisma";
 import { buildAllNotes, SESSION_SLOTS, type ResidentEntry } from "@/lib/group-notes-docx";
 import { generateSessionSummaries } from "@/lib/group-notes-variations";
+import { isDriveConfigured, uploadDocxFilesToDrive, driveFolderLink } from "@/lib/google-drive";
 
 interface RequestBody {
   date_str: string;
@@ -14,6 +15,9 @@ interface RequestBody {
   staff_title?: string;
   /** Data URL of the staff signature PNG (data:image/png;base64,…). Optional. */
   staff_signature_png?: string;
+  /** "zip" (default) returns files bundled as a downloadable zip;
+   *  "drive" uploads them to the configured shared Drive folder. */
+  destination?: "zip" | "drive";
   group_topic: string;
   group_summary: string;
   sessions: Array<"0930" | "1300" | "1630">;
@@ -147,15 +151,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const zip = new JSZip();
-  for (const f of files) {
-    zip.file(f.filename, f.bytes);
-  }
-  const zipBytes = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
-
-  const dateSlug = body.date_str.replace(/\//g, "-");
-  const zipName = `group-notes_${dateSlug}.zip`;
-
+  const destination = body.destination === "drive" ? "drive" : "zip";
   const results = files.map(f => ({
     resident: f.resident,
     session: f.session,
@@ -163,11 +159,51 @@ export async function POST(req: NextRequest) {
     file: f.filename,
   }));
 
-  // Return JSON with a base64-encoded zip payload. Robust to stale clients
-  // that always call `res.json()` on this endpoint, and lets the browser
-  // download the file with one click.
+  if (destination === "drive") {
+    if (!isDriveConfigured()) {
+      return NextResponse.json(
+        { error: "Google Drive is not configured. Set GOOGLE_DRIVE_SA_KEY_JSON and GROUP_NOTES_DRIVE_FOLDER_ID." },
+        { status: 503 }
+      );
+    }
+    try {
+      const { successes, failures, folderId } = await uploadDocxFilesToDrive(files);
+      const merged = results.map(r => {
+        const s = successes.find(x => x.filename === r.file);
+        const f = failures.find(x => x.filename === r.file);
+        return {
+          ...r,
+          drive: s?.webViewLink ?? undefined,
+          error: f?.error,
+          status: f ? ("error" as const) : r.status,
+        };
+      });
+      return NextResponse.json({
+        count_ok: successes.length,
+        count_failed: failures.length,
+        destination: "drive",
+        folder_link: driveFolderLink(folderId),
+        results: merged,
+      });
+    } catch (err) {
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : "Drive upload failed" },
+        { status: 500 }
+      );
+    }
+  }
+
+  // Default: bundle everything into a zip and stream it back as JSON with
+  // a base64-encoded payload. Robust to stale clients that call res.json().
+  const zip = new JSZip();
+  for (const f of files) zip.file(f.filename, f.bytes);
+  const zipBytes = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+  const dateSlug = body.date_str.replace(/\//g, "-");
+  const zipName = `group-notes_${dateSlug}.zip`;
+
   return NextResponse.json({
     count_ok: files.length,
+    destination: "zip",
     drive_enabled: false,
     zip_filename: zipName,
     zip_base64: Buffer.from(zipBytes).toString("base64"),
