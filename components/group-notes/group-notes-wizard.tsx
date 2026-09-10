@@ -79,6 +79,11 @@ interface GenerateResultRow {
   error?: string;
 }
 
+/** Feature flag: hide every dictation surface (Mic buttons, Extract button,
+ *  transcript textareas, "Voice unsupported" hints). Set back to true when
+ *  the Python extract service is wired up again. */
+const DICTATION_ENABLED = false;
+
 /** M/D/YY */
 function formatDateMDY(d: Date): string {
   const m = d.getMonth() + 1;
@@ -349,8 +354,10 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
     !generating;
 
   /** Any dictation the user recorded but never extracted. If truthy, generating
-   *  now would silently discard the transcript — we warn before that happens. */
+   *  now would silently discard the transcript — we warn before that happens.
+   *  Always false while the dictation UI is disabled. */
   const hasUnusedDictation = useMemo(() => {
+    if (!DICTATION_ENABLED) return false;
     if (groupDictation.trim()) return true;
     return residents.some((r) => r._dictation.trim());
   }, [groupDictation, residents]);
@@ -465,7 +472,7 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
           <div>
             <h1 className="text-2xl font-bold">Group Therapy</h1>
             <p className="text-sm text-muted-foreground">
-              Fill in observations (or dictate), then generate one .docx per resident per session. Files download as a .zip.
+              Fill in observations for each resident, then generate one .docx per resident per session. Files download as a .zip.
             </p>
           </div>
           <Badge variant="secondary">{residents.length} resident{residents.length === 1 ? "" : "s"}</Badge>
@@ -546,40 +553,44 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
         </CardContent>
       </Card>
 
-      {/* Step 2 — Group dictation */}
+      {/* Step 2 — Group topic + summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Group summary dictation (optional)</CardTitle>
+          <CardTitle>Group topic and summary</CardTitle>
           <CardDescription>
-            Speak or paste what the group covered. Click Extract to populate Topic/Summary and per-resident fields.
+            The summary is paraphrased into three session-specific versions when multiple sessions are selected.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-center gap-2">
-            {speech.activeKey === "group" ? (
-              <Button size="sm" variant="destructive" onClick={speech.stop}>
-                <Square className="h-3.5 w-3.5 mr-1" /> Stop
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!speech.supported || speech.activeKey !== null}
-                onClick={() => startRecord("group", setGroupDictation)}
-              >
-                <Mic className="h-3.5 w-3.5 mr-1" /> Record group summary
-              </Button>
-            )}
-            {!speech.supported && (
-              <span className="text-xs text-muted-foreground">(Voice unsupported — type below)</span>
-            )}
-          </div>
-          <Textarea
-            value={groupDictation}
-            onChange={(e) => setGroupDictation(e.target.value)}
-            placeholder="What the group covered — topic, main points, tone…"
-            rows={4}
-          />
+          {DICTATION_ENABLED && (
+            <>
+              <div className="flex items-center gap-2">
+                {speech.activeKey === "group" ? (
+                  <Button size="sm" variant="destructive" onClick={speech.stop}>
+                    <Square className="h-3.5 w-3.5 mr-1" /> Stop
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={!speech.supported || speech.activeKey !== null}
+                    onClick={() => startRecord("group", setGroupDictation)}
+                  >
+                    <Mic className="h-3.5 w-3.5 mr-1" /> Record group summary
+                  </Button>
+                )}
+                {!speech.supported && (
+                  <span className="text-xs text-muted-foreground">(Voice unsupported — type below)</span>
+                )}
+              </div>
+              <Textarea
+                value={groupDictation}
+                onChange={(e) => setGroupDictation(e.target.value)}
+                placeholder="What the group covered — topic, main points, tone…"
+                rows={4}
+              />
+            </>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
             <div className="space-y-1.5">
@@ -612,7 +623,7 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
             <div>
               <CardTitle>Residents</CardTitle>
               <CardDescription>
-                Per-resident dictation is optional. Empty text-fields fall back to the pooled comment templates.
+                Only residents with at least one filled field get a note.
               </CardDescription>
             </div>
             <label className="flex items-center gap-2 text-sm">
@@ -656,16 +667,20 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
 
       {/* Actions */}
       <div className="sticky bottom-0 -mx-6 px-6 py-3 bg-white/95 backdrop-blur border-t flex flex-wrap items-center gap-3">
-        <Button onClick={handleExtract} disabled={!canExtract} variant="outline">
-          {extracting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
-          Extract from recordings
-        </Button>
+        {DICTATION_ENABLED && (
+          <>
+            <Button onClick={handleExtract} disabled={!canExtract} variant="outline">
+              {extracting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
+              Extract from recordings
+            </Button>
+            <Button variant="ghost" size="sm" onClick={purgeTranscripts} disabled={!groupDictation && !residents.some((r) => r._dictation)}>
+              <RotateCcw className="h-4 w-4 mr-1" /> Clear transcripts
+            </Button>
+          </>
+        )}
         <Button onClick={handleGenerate} disabled={!canGenerate}>
           {generating ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}
           Generate documents
-        </Button>
-        <Button variant="ghost" size="sm" onClick={purgeTranscripts} disabled={!groupDictation && !residents.some((r) => r._dictation)}>
-          <RotateCcw className="h-4 w-4 mr-1" /> Clear transcripts
         </Button>
         <div className="ml-auto text-xs text-muted-foreground">
           {normalizedStaffName ? `Signing as ${normalizedStaffName}` : "Enter staff name to sign"}
@@ -783,28 +798,30 @@ function ResidentBlock({
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-2">
-            {recording ? (
-              <Button size="sm" variant="destructive" onClick={onStopRecord}>
-                <Square className="h-3.5 w-3.5 mr-1" /> Stop
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!supported || (anyRecording && !recording)}
-                onClick={onStartRecord}
-              >
-                <Mic className="h-3.5 w-3.5 mr-1" /> Record observations
-              </Button>
-            )}
-            {resident._dictation && (
-              <span className="text-xs text-muted-foreground">
-                Transcript ready — click Extract to populate fields
-              </span>
-            )}
-          </div>
-          {resident._dictation && (
+          {DICTATION_ENABLED && (
+            <div className="flex items-center gap-2">
+              {recording ? (
+                <Button size="sm" variant="destructive" onClick={onStopRecord}>
+                  <Square className="h-3.5 w-3.5 mr-1" /> Stop
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!supported || (anyRecording && !recording)}
+                  onClick={onStartRecord}
+                >
+                  <Mic className="h-3.5 w-3.5 mr-1" /> Record observations
+                </Button>
+              )}
+              {resident._dictation && (
+                <span className="text-xs text-muted-foreground">
+                  Transcript ready — click Extract to populate fields
+                </span>
+              )}
+            </div>
+          )}
+          {DICTATION_ENABLED && resident._dictation && (
             <Textarea
               value={resident._dictation}
               onChange={(e) => onChange({ _dictation: e.target.value })}
