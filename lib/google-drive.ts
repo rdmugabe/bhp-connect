@@ -1,22 +1,23 @@
 /**
  * Google Drive uploader for the group therapy note .docx files.
  *
- * Uses a service account (identity + JSON key stored in env) to upload
- * each generated .docx into a preconfigured shared folder. The service
- * account itself owns the file; staff read it via the shared folder.
+ * Uses a service account (identity + JSON key from env) to upload each
+ * generated .docx into a preconfigured Shared Drive folder. Talks to the
+ * Drive REST API via fetch — no full `googleapis` SDK, which bloats the
+ * Next.js server bundle and OOM'd the Amplify build.
  *
  * Env vars:
- *   GOOGLE_DRIVE_SA_KEY_JSON   — the full service-account JSON key,
- *                                 stringified. Read directly from .env
- *                                 to sidestep shell overrides.
- *   GROUP_NOTES_DRIVE_FOLDER_ID — the destination folder id (the part
- *                                 after "folders/" in the browser URL).
+ *   GOOGLE_DRIVE_SA_KEY_JSON   — full service-account JSON key,
+ *                                stringified single line.
+ *   GROUP_NOTES_DRIVE_FOLDER_ID — destination folder id (a folder in a
+ *                                Shared Drive; My Drive folders don't
+ *                                work because service accounts have no
+ *                                storage quota).
  */
 
 import * as fs from "fs";
 import * as path from "path";
-import { google } from "googleapis";
-import { Readable } from "stream";
+import { JWT } from "google-auth-library";
 
 interface ServiceAccountKey {
   client_email: string;
@@ -33,7 +34,6 @@ function envFromDotenv(key: string): string {
     const re = new RegExp(`^\\s*${key}\\s*=\\s*(['"])((?:\\\\.|(?!\\1)[^\\r])*)\\1\\s*$`, "m");
     const m = re.exec(contents);
     if (m) return m[2];
-    // Fallback for unquoted values.
     const bare = new RegExp(`^\\s*${key}\\s*=\\s*(.+)$`, "m").exec(contents);
     if (bare) return bare[1].trim();
   } catch { /* fall through */ }
@@ -71,29 +71,103 @@ export interface DriveUploadFailure {
   error: string;
 }
 
-async function driveClient() {
+async function getAccessToken(): Promise<string> {
   const key = readServiceAccountKey();
   if (!key) throw new Error("GOOGLE_DRIVE_SA_KEY_JSON is not configured.");
-  // Normalize the PEM: convert any literal "\n" back to real newlines and
-  // collapse any duplicate newlines that our env rewrite introduced around
-  // the BEGIN/END markers. OpenSSL rejects a PEM with blank interior lines.
-  const pem = key.private_key
-    .replace(/\\n/g, "\n")
-    .replace(/\n{2,}/g, "\n")
-    .trim() + "\n";
-  const jwt = new google.auth.JWT({
+  // Normalize the PEM: convert literal "\n" back to real newlines and collapse
+  // any duplicate newlines (our env rewrite occasionally introduced blanks
+  // around the BEGIN/END markers). OpenSSL rejects PEMs with blank lines.
+  const pem =
+    key.private_key
+      .replace(/\\n/g, "\n")
+      .replace(/\n{2,}/g, "\n")
+      .trim() + "\n";
+  const jwt = new JWT({
     email: key.client_email,
     key: pem,
     scopes: ["https://www.googleapis.com/auth/drive.file"],
   });
-  await jwt.authorize();
-  return google.drive({ version: "v3", auth: jwt });
+  const res = await jwt.authorize();
+  if (!res.access_token) throw new Error("JWT authorization returned no access_token");
+  return res.access_token;
+}
+
+const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+async function uploadOne(
+  accessToken: string,
+  folderId: string,
+  file: { filename: string; bytes: Uint8Array }
+): Promise<DriveUploadResult> {
+  const metadata = {
+    name: file.filename,
+    parents: [folderId],
+    mimeType: DOCX_MIME,
+  };
+
+  // Multipart upload per Drive REST API v3:
+  // https://developers.google.com/workspace/drive/api/reference/rest/v3/files/create
+  const boundary = `bhpc-boundary-${Math.random().toString(36).slice(2)}`;
+  const delim = `--${boundary}\r\n`;
+  const close = `\r\n--${boundary}--`;
+
+  const head =
+    delim +
+    "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+    JSON.stringify(metadata) +
+    "\r\n" +
+    delim +
+    `Content-Type: ${DOCX_MIME}\r\n` +
+    "Content-Transfer-Encoding: base64\r\n\r\n";
+
+  const b64 = Buffer.from(file.bytes).toString("base64");
+
+  const body = Buffer.concat([
+    Buffer.from(head, "utf-8"),
+    Buffer.from(b64, "utf-8"),
+    Buffer.from(close, "utf-8"),
+  ]);
+
+  const url =
+    "https://www.googleapis.com/upload/drive/v3/files?" +
+    new URLSearchParams({
+      uploadType: "multipart",
+      supportsAllDrives: "true",
+      fields: "id,webViewLink",
+    }).toString();
+
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": `multipart/related; boundary=${boundary}`,
+      "Content-Length": String(body.byteLength),
+    },
+    body,
+  });
+
+  const text = await resp.text();
+  let data: { id?: string; webViewLink?: string; error?: { message?: string } } = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`Drive upload returned non-JSON (${resp.status}): ${text.slice(0, 200)}`);
+  }
+  if (!resp.ok) {
+    throw new Error(data.error?.message || `Drive upload failed (${resp.status})`);
+  }
+  if (!data.id) throw new Error("Drive returned no file id");
+
+  return {
+    filename: file.filename,
+    fileId: data.id,
+    webViewLink: data.webViewLink || `https://drive.google.com/file/d/${data.id}/view`,
+  };
 }
 
 /**
- * Upload a set of .docx buffers to the configured shared Drive folder.
- * Returns per-file results. Continues on individual failures so the
- * caller can report a partial success.
+ * Upload a set of .docx buffers to the configured Shared Drive folder.
+ * Continues on individual failures; returns per-file results.
  */
 export async function uploadDocxFilesToDrive(
   files: Array<{ filename: string; bytes: Uint8Array }>
@@ -102,34 +176,14 @@ export async function uploadDocxFilesToDrive(
   if (!folderId) throw new Error("GROUP_NOTES_DRIVE_FOLDER_ID is not configured.");
   if (files.length === 0) return { successes: [], folderId, failures: [] };
 
-  const drive = await driveClient();
+  const accessToken = await getAccessToken();
   const successes: DriveUploadResult[] = [];
   const failures: DriveUploadFailure[] = [];
 
   for (const f of files) {
     try {
-      const bodyStream = Readable.from(Buffer.from(f.bytes));
-      const res = await drive.files.create({
-        requestBody: {
-          name: f.filename,
-          parents: [folderId],
-          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        },
-        media: {
-          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          body: bodyStream,
-        },
-        fields: "id,webViewLink",
-        supportsAllDrives: true,
-      });
-      const id = res.data.id;
-      const webViewLink =
-        res.data.webViewLink || (id ? `https://drive.google.com/file/d/${id}/view` : "");
-      if (!id) {
-        failures.push({ filename: f.filename, error: "Drive returned no file id" });
-        continue;
-      }
-      successes.push({ filename: f.filename, fileId: id, webViewLink });
+      const r = await uploadOne(accessToken, folderId, f);
+      successes.push(r);
     } catch (err) {
       failures.push({
         filename: f.filename,
