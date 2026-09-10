@@ -383,42 +383,30 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: `Generate failed (${res.status})` }));
-        throw new Error(err?.error || `Generate failed (${res.status})`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `Generate failed (${res.status})`);
+
+      // The route returns the .docx bundle as a base64-encoded zip in the JSON
+      // body. Decode and trigger a browser download.
+      if (typeof data.zip_base64 === "string" && typeof data.zip_filename === "string") {
+        const bin = atob(data.zip_base64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const blob = new Blob([bytes], { type: "application/zip" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = data.zip_filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
       }
 
-      // Decode result metadata from the base64 header before the blob is
-      // consumed. The zip body itself is streamed to the browser as a file
-      // download so staff get all .docx notes in one click.
-      const meta = res.headers.get("x-generate-results");
-      let count = 0;
-      let rows: GenerateResultRow[] = [];
-      if (meta) {
-        try {
-          const decoded = JSON.parse(atob(meta)) as { count_ok?: number; results?: GenerateResultRow[] };
-          count = decoded.count_ok ?? 0;
-          rows = decoded.results ?? [];
-        } catch { /* fall through */ }
-      }
-
-      const blob = await res.blob();
-      const disposition = res.headers.get("content-disposition") || "";
-      const nameMatch = /filename="?([^";]+)"?/.exec(disposition);
-      const filename = nameMatch ? nameMatch[1] : "group-notes.zip";
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-
-      setResults(rows);
-      setDriveEnabled(false);
+      setResults(data.results ?? []);
+      setDriveEnabled(Boolean(data.drive_enabled));
       purgeTranscripts();
+      const count = data.count_ok ?? 0;
       toast({
         title: `Generated ${count} document${count === 1 ? "" : "s"}`,
         description: "Zip downloaded to your browser.",

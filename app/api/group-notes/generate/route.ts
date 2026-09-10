@@ -114,14 +114,14 @@ export async function POST(req: NextRequest) {
     file: f.filename,
   }));
 
-  return new NextResponse(new Uint8Array(zipBytes), {
-    status: 200,
-    headers: {
-      "content-type": "application/zip",
-      "content-disposition": `attachment; filename="${zipName}"`,
-      "x-generate-results": Buffer.from(
-        JSON.stringify({ count_ok: files.length, results })
-      ).toString("base64"),
-    },
+  // Return JSON with a base64-encoded zip payload. Robust to stale clients
+  // that always call `res.json()` on this endpoint, and lets the browser
+  // download the file with one click.
+  return NextResponse.json({
+    count_ok: files.length,
+    drive_enabled: false,
+    zip_filename: zipName,
+    zip_base64: Buffer.from(zipBytes).toString("base64"),
+    results,
   });
 }
