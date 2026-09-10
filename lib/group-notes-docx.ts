@@ -661,9 +661,13 @@ export async function buildAllNotes(args: GenerateArgs): Promise<GeneratedFile[]
 
   for (let sIdx = 0; sIdx < activeSlots.length; sIdx++) {
     const slot = activeSlots[sIdx];
+    const baseTopic = args.groupTopic.trim() || DEFAULT_TOPIC;
+    // Append the day-position marker so staff can tell which of the day's
+    // groups this note is for, even when the topic itself is the same.
     const topic =
-      args.groupTopic.trim() ||
-      `${DEFAULT_TOPIC} — Part ${sIdx + 1} of ${activeSlots.length}`;
+      activeSlots.length > 1
+        ? `${baseTopic} (Part ${sIdx + 1} of ${activeSlots.length})`
+        : baseTopic;
     const slotSummary =
       args.summariesBySession?.[slot.code]?.trim() || args.groupSummary;
 
