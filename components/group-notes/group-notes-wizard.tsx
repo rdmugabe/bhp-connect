@@ -598,7 +598,7 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
                 rows={3}
                 value={groupSummary}
                 onChange={(e) => setGroupSummary(e.target.value)}
-                placeholder="Will be split into Part 1/2/3 across the day."
+                placeholder="Describe what the group covered: the main topic, how members engaged, and the key takeaway."
               />
             </div>
           </div>
