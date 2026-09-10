@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
       dateOfBirth: true,
       admissionDate: true,
       dischargedAt: true,
+      policyNumber: true,
     },
     orderBy: [{ dischargedAt: "asc" }, { residentName: "asc" }],
   });
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest) {
       intakeId: r.id,
       name: r.residentName,
       dob: r.dateOfBirth?.toISOString().slice(0, 10) ?? "",
+      ahcccsId: r.policyNumber ?? "",
       admissionDate: r.admissionDate?.toISOString().slice(0, 10) ?? null,
       dischargedAt: r.dischargedAt?.toISOString().slice(0, 10) ?? null,
       isDischarged: r.dischargedAt !== null,

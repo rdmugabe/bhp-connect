@@ -45,6 +45,7 @@ interface ApiResident {
   intakeId: string;
   name: string;
   dob: string;
+  ahcccsId?: string;
   admissionDate: string | null;
   dischargedAt: string | null;
   isDischarged: boolean;
@@ -53,6 +54,8 @@ interface ApiResident {
 interface ResidentEntry {
   intakeId: string;
   name: string;
+  dob: string;
+  ahcccsId: string;
   isDischarged: boolean;
   present: boolean;
   absenceReason: string;
@@ -214,10 +217,12 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
         const prevByName = new Map(prev.map((r) => [r.name, r]));
         return data.residents.map<ResidentEntry>((r) => {
           const existing = prevByName.get(r.name);
-          if (existing) return { ...existing, isDischarged: r.isDischarged, intakeId: r.intakeId };
+          if (existing) return { ...existing, isDischarged: r.isDischarged, intakeId: r.intakeId, dob: r.dob, ahcccsId: r.ahcccsId ?? "" };
           return {
             intakeId: r.intakeId,
             name: r.name,
+            dob: r.dob,
+            ahcccsId: r.ahcccsId ?? "",
             isDischarged: r.isDischarged,
             present: true,
             absenceReason: "",
@@ -326,7 +331,20 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
     return `${name}, BHT`;
   }, [staffName]);
 
-  const canGenerate = normalizedStaffName && sessions.size > 0 && residents.length > 0 && !generating;
+  const anyResidentFilled = residents.some(r =>
+    r.absenceReason.trim().length > 0 ||
+    r.participation.trim().length > 0 ||
+    r.behavior.trim().length > 0 ||
+    r.overall.trim().length > 0 ||
+    r.significantInfo.trim().length > 0
+  );
+
+  const canGenerate =
+    normalizedStaffName &&
+    sessions.size > 0 &&
+    residents.length > 0 &&
+    anyResidentFilled &&
+    !generating;
 
   /** Any dictation the user recorded but never extracted. If truthy, generating
    *  now would silently discard the transcript — we warn before that happens. */
@@ -370,6 +388,8 @@ export function GroupNotesWizard({ embedded = false }: { embedded?: boolean } = 
         sessions: Array.from(sessions),
         residents: residents.map((r) => ({
           name: r.name,
+          dob: r.dob,
+          ahcccs_id: r.ahcccsId,
           present: r.present,
           absence_reason: r.absenceReason,
           participation: r.participation,

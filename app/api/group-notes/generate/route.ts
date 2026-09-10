@@ -16,6 +16,8 @@ interface RequestBody {
   sessions: Array<"0930" | "1300" | "1630">;
   residents: Array<{
     name: string;
+    dob?: string;
+    ahcccs_id?: string;
     present: boolean;
     absence_reason: string;
     participation: string;
@@ -24,6 +26,10 @@ interface RequestBody {
     significant_info: string;
   }>;
 }
+
+/** Facility BHP signatory. Configurable per facility later — hard-coded for
+ *  now to match Lucid Behavioral Health's signed template. */
+const BHP_SIGNATORY_NAME = "Dr. Chris Azode, DNP, MBA, PMHNP-BC";
 
 async function resolveFacilityId(
   session: Session | null,
@@ -69,6 +75,8 @@ export async function POST(req: NextRequest) {
 
   const residents: ResidentEntry[] = (body.residents ?? []).map(r => ({
     name: r.name,
+    dob: r.dob ?? "",
+    ahcccsId: r.ahcccs_id ?? "",
     present: r.present,
     absenceReason: r.absence_reason,
     participation: r.participation,
@@ -79,6 +87,17 @@ export async function POST(req: NextRequest) {
 
   if (residents.length === 0) {
     return NextResponse.json({ error: "No residents provided" }, { status: 400 });
+  }
+
+  const anyFilled = residents.some(r =>
+    [r.absenceReason, r.participation, r.behavior, r.overall, r.significantInfo]
+      .some(v => (v ?? "").trim().length > 0)
+  );
+  if (!anyFilled) {
+    return NextResponse.json(
+      { error: "Fill in at least one field for one resident before generating." },
+      { status: 400 }
+    );
   }
 
   const facilityRecord = await prisma.facility.findUnique({
@@ -92,11 +111,19 @@ export async function POST(req: NextRequest) {
     dateMdY: body.date_str,
     staffName: body.staff_name,
     staffTitle: body.staff_title || "BHT",
+    bhpSignatoryName: BHP_SIGNATORY_NAME,
     groupTopic: body.group_topic || "",
     groupSummary: body.group_summary || "",
     sessionCodes,
     residents,
   });
+
+  if (files.length === 0) {
+    return NextResponse.json(
+      { error: "None of the residents in this batch had any information filled in. Fill in at least one field per resident you want a note for." },
+      { status: 400 }
+    );
+  }
 
   const zip = new JSZip();
   for (const f of files) {
