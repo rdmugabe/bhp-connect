@@ -41,7 +41,7 @@ export function isYouTubeConfigured(): boolean {
  */
 export async function youtubeSearchTop(
   query: string,
-  opts: { duration?: "short" | "medium" | "any" } = {}
+  opts: { duration?: "short" | "medium" | "long" | "any" } = {}
 ): Promise<YouTubeSearchResult | null> {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) throw new YouTubeSearchError(503, "YOUTUBE_API_KEY not configured");
@@ -54,11 +54,13 @@ export async function youtubeSearchTop(
     maxResults: "5",
     safeSearch: "strict",
     videoEmbeddable: "true",
-    videoSyndicated: "true",
+    // Note: videoSyndicated=true drops most long educational content
+    // (creators often don't opt in). We link to YouTube rather than
+    // embed, so we don't need syndication.
     relevanceLanguage: "en",
     order: "relevance",
   });
-  const duration = opts.duration ?? "medium";
+  const duration = opts.duration ?? "long";
   if (duration !== "any") params.set("videoDuration", duration);
 
   const res = await fetch(`${API_URL}?${params.toString()}`, { cache: "no-store" });
@@ -114,8 +116,18 @@ export async function youtubeSearchTop(
 export async function youtubeSearchMany(
   queries: string[]
 ): Promise<Array<YouTubeSearchResult | null>> {
+  // Prefer long-form informational content (lectures, classes, talks). If a
+  // query has no long hit, fall back to medium (4-20min) so we still return
+  // *something* clinically appropriate rather than nothing.
   const results = await Promise.allSettled(
-    queries.map(q => youtubeSearchTop(q))
+    queries.map(async q => {
+      // Long > medium > any — grab the most educational hit we can find.
+      const long = await youtubeSearchTop(q, { duration: "long" });
+      if (long) return long;
+      const medium = await youtubeSearchTop(q, { duration: "medium" });
+      if (medium) return medium;
+      return youtubeSearchTop(q, { duration: "any" });
+    })
   );
   return results.map(r => (r.status === "fulfilled" ? r.value : null));
 }

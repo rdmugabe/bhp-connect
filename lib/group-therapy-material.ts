@@ -38,8 +38,8 @@ function readAnthropicKey(): string {
 }
 
 const MODEL = "claude-haiku-4-5-20251001";
-const MAX_TOKENS_META = 1500;   // topic + summary + guide + 3 queries
-const MAX_TOKENS_HANDOUT = 3500; // handout markdown only
+const MAX_TOKENS_META = 3000;   // topic + summary + guide (with answer keys) + 3 queries
+const MAX_TOKENS_HANDOUT = 4000; // handout with video summary + questionnaire
 
 const SHARED_CONSTRAINTS = `You are a licensed behavioral health clinician preparing a single group therapy session for adult residents in a Behavioral Health Residential Facility (BHRF). Residents commonly present with substance use disorders (alcohol, methamphetamine, cannabis) and co-occurring mental health conditions (MDD, GAD, PTSD, insomnia).
 
@@ -49,22 +49,31 @@ Constraints:
 - Avoid content that could re-traumatize (no explicit descriptions of substance use, violence, or self-harm).
 - 8th-grade reading level.`;
 
-const META_SYSTEM = SHARED_CONSTRAINTS + `\n\nYour job: pick ONE cohesive session topic and return topic, summary, a tight facilitator cheat sheet, and 3 YouTube search queries via the "emit_session_meta" tool.`;
+// The material centers around ONE long-form educational video (a lecture,
+// class, or informational talk) that the group watches together. The handout
+// summarizes what the video covers and gives residents a questionnaire to
+// fill in as they watch. The facilitator guide gives the instructor the
+// answer key and expected discussion insights so they can guide reflection.
+const META_SYSTEM = SHARED_CONSTRAINTS + `\n\nYour job: design ONE cohesive session anchored to a full-length educational video (a lecture, class, or informational talk — think 20-60 minute educator-style content, not short clips). Return topic, summary, an instructor guide with answer keys / discussion insights, and 3 YouTube queries via the "emit_session_meta" tool.`;
 
-const HANDOUT_SYSTEM = SHARED_CONSTRAINTS + `\n\nYour job: write a rich participant handout for the specified topic that can carry a full 60-minute group. Return via the "emit_handout" tool.`;
+const HANDOUT_SYSTEM = SHARED_CONSTRAINTS + `\n\nYour job: write a participant handout organized around a full-length educational video the group will watch together. Include a summary of what the video covers and an interactive questionnaire residents fill in as they watch or in discussion afterward. Return via the "emit_handout" tool.`;
 
 const META_TOOL = {
   name: "emit_session_meta",
-  description: "Return the session topic, summary, facilitator guide, and video search queries.",
+  description: "Return the session topic, summary, instructor guide with answer keys, and video search queries.",
   input_schema: {
     type: "object" as const,
     properties: {
       topic: { type: "string", description: "Short punchy title, 3-8 words." },
-      topic_summary: { type: "string", description: "1-2 sentence description of what the session covers." },
+      topic_summary: { type: "string", description: "1-2 sentence description of what the session covers, oriented to the video's subject." },
       facilitator_guide: {
         type: "string",
         description:
-          "Markdown cheat sheet with sections: **Objectives** (2-3 bullets), **Opening (5 min)** (1-2 sentences), **Main Content (30 min)** (3-4 numbered steps, one-line talking points each), **Group Activity (15 min)** (brief), **Closing (10 min)** (brief), **Watch-outs** (2-3 bullets max).",
+          "Markdown instructor guide with these sections:\n" +
+          "**Objectives** (2-3 bullets — what residents should learn from the video).\n" +
+          "**Session Flow (60 min)** — 3-4 short bullets: intro to the topic (5min), watch video (~30min), work through the participant questionnaire together (20min), closing reflection (5min).\n" +
+          "**Answer Key & Discussion Insights** — 5-6 numbered items, each aligned to the participant questionnaire. For each item: (a) the expected/clinically-sound answer in 2-3 sentences at 8th-grade reading level; (b) 1-2 sentences of deeper insight, common misconception, or discussion prompt the instructor can raise to enrich the conversation.\n" +
+          "**Watch-outs** (2-3 bullets — trauma-sensitive content, common cognitive distortions to gently challenge, when to redirect).",
       },
       video_queries: {
         type: "array",
@@ -72,7 +81,7 @@ const META_TOOL = {
         minItems: 3,
         maxItems: 3,
         description:
-          "Exactly 3 specific YouTube search phrases, each tight enough to surface a short (<15 min) clinically relevant video. Include duration hint when useful.",
+          "Exactly 3 specific YouTube search phrases that will surface long-form educational content (lectures, TED talks, university classes, licensed clinician explainers, expert-led webinars). Prefer 20-60 minute videos. Add words like 'lecture', 'full class', 'explained', 'webinar', 'masterclass', 'psychology of', 'documentary' where appropriate. Avoid words like 'short', 'quick', 'in 60 seconds'.",
       },
     },
     required: ["topic", "topic_summary", "facilitator_guide", "video_queries"],
@@ -81,14 +90,19 @@ const META_TOOL = {
 
 const HANDOUT_TOOL = {
   name: "emit_handout",
-  description: "Return the participant handout as markdown.",
+  description: "Return the participant handout as markdown, structured around the session's educational video.",
   input_schema: {
     type: "object" as const,
     properties: {
       handout_markdown: {
         type: "string",
         description:
-          "Markdown handout for participants, 3 pages when printed. Include all sections with real substance: Title + one-line subtitle; Why This Matters (2-3 sentences); Key Concepts (5 concepts, each with a bold heading, 2-3 sentences of plain-language explanation, and one brief relatable example); Self-Reflection (4 open-ended prompts with write-in blanks); Try This Week (a specific skill broken into 3-4 concrete steps with a short how-it-helps sentence); Discussion Questions (3 questions to bring to sponsor, therapist, or next group); Notes (a labeled space with 3-4 lines).",
+          "Markdown handout for participants (3 pages printed). Sections in order:\n\n" +
+          "1. **Title + one-line subtitle** describing the session focus.\n\n" +
+          "2. **About Today's Video** — 3-4 sentences summarizing what the video covers and why it matters for recovery. Written to prime the resident for what they're about to watch. Include 3 short bullets of 'What to listen for' — specific ideas, terms, or examples to notice in the video.\n\n" +
+          "3. **Interactive Questionnaire** — 6 numbered open-ended questions about the video's content and how it applies to the resident's recovery. Questions must be about the CONTENT of the video (what the speaker says, examples given, techniques taught, cause-and-effect relationships explained), not generic self-reflection. Each question followed by 3-4 blank underscored lines for the resident to write on. Mix comprehension questions ('what did the speaker say about...') with application questions ('how could you use this today...') and one comparison question ('how does this compare to what you already believed about...').\n\n" +
+          "4. **Notes** — labeled space with 4-5 blank lines for additional thoughts.\n\n" +
+          "Use plain 8th-grade reading level. Non-shaming, trauma-informed. No em-dashes.",
       },
     },
     required: ["handout_markdown"],
