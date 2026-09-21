@@ -4,6 +4,7 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
@@ -114,6 +115,20 @@ const styles = StyleSheet.create({
     borderBottom: "1 solid #1e3a5f",
     marginBottom: 5,
     width: 120,
+  },
+  signatureImage: {
+    maxHeight: 40,
+    maxWidth: 150,
+    objectFit: "contain" as const,
+    marginBottom: 5,
+  },
+  signatureImageContainer: {
+    height: 45,
+    borderBottom: "1 solid #1e3a5f",
+    marginBottom: 5,
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "flex-start",
   },
   dateLine: {
     borderBottom: "1 solid #1e3a5f",
@@ -229,6 +244,13 @@ interface EmployeeOnboardingData {
   employeeName: string;
   hireDate: string;
   facilityName: string;
+  /** Facility's saved default administrator/supervisor name. Prefilled in
+   *  every Administrator/Supervisor signature row when present. */
+  adminName?: string;
+  /** Base64 data URI of the facility's saved default administrator signature
+   *  image. Rendered in the Administrator/Supervisor Signature cell when
+   *  present. */
+  adminSignature?: string;
 }
 
 const TOTAL_PAGES = 14;
@@ -269,19 +291,41 @@ function EmployeeSignatureBlock({ name, hireDate }: { name: string; hireDate?: s
   );
 }
 
-function AdminSignature() {
+function AdminSignature({
+  adminName,
+  adminSignature,
+  date,
+}: {
+  adminName?: string;
+  adminSignature?: string;
+  date?: string;
+}) {
   return (
     <View style={styles.signatureRow}>
       <View style={styles.signatureBlock}>
-        <View style={styles.signatureLine} />
+        {adminName ? (
+          <Text style={styles.prefilledName}>{adminName}</Text>
+        ) : (
+          <View style={styles.signatureLine} />
+        )}
         <Text style={styles.signatureLabel}>Administrator/Supervisor Name (Printed)</Text>
       </View>
       <View style={styles.signatureBlock}>
-        <View style={styles.signatureLine} />
+        {adminSignature ? (
+          <View style={styles.signatureImageContainer}>
+            <Image src={adminSignature} style={styles.signatureImage} />
+          </View>
+        ) : (
+          <View style={styles.signatureLine} />
+        )}
         <Text style={styles.signatureLabel}>Administrator/Supervisor Signature</Text>
       </View>
       <View style={{ width: 120 }}>
-        <View style={styles.dateLine} />
+        {date ? (
+          <Text style={styles.prefilledDate}>{date}</Text>
+        ) : (
+          <View style={styles.dateLine} />
+        )}
         <Text style={styles.signatureLabel}>Date</Text>
       </View>
     </View>
@@ -823,7 +867,7 @@ function EmploymentContractPage({ data }: { data: EmployeeOnboardingData }) {
 
       <View style={styles.signatureSection} wrap={false}>
         <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
-        <AdminSignature />
+        <AdminSignature adminName={data.adminName} adminSignature={data.adminSignature} date={data.hireDate} />
       </View>
 
       <PageFooter pageNum={5} />
@@ -925,7 +969,7 @@ function JobDescriptionPage({ data }: { data: EmployeeOnboardingData }) {
 
       <View style={styles.signatureSection} wrap={false}>
         <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
-        <AdminSignature />
+        <AdminSignature adminName={data.adminName} adminSignature={data.adminSignature} date={data.hireDate} />
       </View>
 
       <PageFooter pageNum={6} />
@@ -1150,7 +1194,7 @@ function ConfidentialityAgreementPage({ data }: { data: EmployeeOnboardingData }
 
       <View style={[styles.signatureSection, { marginTop: 10, paddingTop: 10 }]} wrap={false}>
         <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
-        <AdminSignature />
+        <AdminSignature adminName={data.adminName} adminSignature={data.adminSignature} date={data.hireDate} />
       </View>
 
       <PageFooter pageNum={8} />
@@ -1214,7 +1258,7 @@ function VerificationOfSkillsPage({ data }: { data: EmployeeOnboardingData }) {
 
       <View style={styles.signatureSection} wrap={false}>
         <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
-        <AdminSignature />
+        <AdminSignature adminName={data.adminName} adminSignature={data.adminSignature} date={data.hireDate} />
       </View>
 
       <PageFooter pageNum={9} />
@@ -1289,7 +1333,7 @@ function NewEmployeeOrientationPage({ data }: { data: EmployeeOnboardingData }) 
       </View>
 
       <View style={[styles.signatureSection, { marginTop: 10, paddingTop: 10 }]}>
-        <AdminSignature />
+        <AdminSignature adminName={data.adminName} adminSignature={data.adminSignature} date={data.hireDate} />
       </View>
 
       <PageFooter pageNum={10} />

@@ -6,6 +6,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { EmployeeOnboardingPDF } from "@/lib/pdf/employee-onboarding-template";
 import { parseJsonBody } from "@/lib/api-utils";
 import { getTodayArizona, formatDateOnly } from "@/lib/date-utils";
+import { getFileFromS3 } from "@/lib/s3";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,12 +21,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Get the facility name from the BHRF profile
+    // Get the facility (including saved default admin signature + name)
+    // from the BHRF profile so we can prefill supervisor signature rows.
     const bhrfProfile = await prisma.bHRFProfile.findUnique({
       where: { userId: session.user.id },
       include: {
         facility: {
-          select: { name: true },
+          select: {
+            name: true,
+            defaultAdminName: true,
+            defaultAdminSignature: true,
+          },
         },
       },
     });
@@ -60,11 +66,28 @@ export async function POST(request: NextRequest) {
     // Format hire date for display (use UTC to preserve date-only field)
     const formattedHireDate = formatDateOnly(hireDate);
 
+    // Fetch signature image from S3 if the facility has one saved.
+    let adminSignatureDataUri: string | undefined;
+    if (bhrfProfile.facility.defaultAdminSignature) {
+      try {
+        const { buffer, contentType } = await getFileFromS3(
+          bhrfProfile.facility.defaultAdminSignature
+        );
+        const base64 = buffer.toString("base64");
+        adminSignatureDataUri = `data:${contentType};base64,${base64}`;
+      } catch (error) {
+        console.error("Failed to fetch signature image:", error);
+        // Continue without signature if fetch fails.
+      }
+    }
+
     // Generate PDF
     const pdfData = {
       employeeName: employeeName.trim(),
       hireDate: formattedHireDate,
       facilityName: bhrfProfile.facility.name,
+      adminName: bhrfProfile.facility.defaultAdminName || undefined,
+      adminSignature: adminSignatureDataUri,
     };
 
     const pdfBuffer = await renderToBuffer(EmployeeOnboardingPDF({ data: pdfData }));
