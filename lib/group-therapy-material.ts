@@ -39,8 +39,8 @@ function readAnthropicKey(): string {
 
 const MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOKENS_INTRO = 800;   // topic + summary + 3 video queries only
-const MAX_TOKENS_GUIDE = 2800;  // facilitator guide (with answer keys) — runs in parallel with handout
-const MAX_TOKENS_HANDOUT = 4000; // handout with video summary + questionnaire
+const MAX_TOKENS_GUIDE = 2000;  // facilitator guide with answer keys — runs in parallel with handout
+const MAX_TOKENS_HANDOUT = 2600; // handout with topic summary + questionnaire
 
 const SHARED_CONSTRAINTS = `You are a licensed behavioral health clinician preparing a single group therapy session for adult residents in a Behavioral Health Residential Facility (BHRF). Residents commonly present with substance use disorders (alcohol, methamphetamine, cannabis) and co-occurring mental health conditions (MDD, GAD, PTSD, insomnia).
 
@@ -99,11 +99,11 @@ const GUIDE_TOOL = {
       facilitator_guide: {
         type: "string",
         description:
-          "Markdown instructor guide with these sections:\n" +
-          "**Objectives** (2-3 bullets — what residents should learn from the video).\n" +
-          "**Session Flow (60 min)** — 3-4 short bullets: intro to the topic (5min), watch video (~30min), work through the participant questionnaire together (20min), closing reflection (5min).\n" +
-          "**Answer Key & Discussion Insights** — 5-6 numbered items, each aligned to the participant questionnaire. For each item: (a) the expected/clinically-sound answer in 2-3 sentences at 8th-grade reading level; (b) 1-2 sentences of deeper insight, common misconception, or discussion prompt the instructor can raise to enrich the conversation.\n" +
-          "**Watch-outs** (2-3 bullets — trauma-sensitive content, common cognitive distortions to gently challenge, when to redirect).",
+          "Concise markdown instructor guide with these sections:\n" +
+          "**Objectives** — 2 short bullets.\n" +
+          "**Session Flow (60 min)** — 4 bullets: intro (5min), video (~30min), questionnaire (20min), closing (5min).\n" +
+          "**Answer Key & Discussion Insights** — 5 numbered items aligned to the participant questionnaire. For each: (a) expected answer in 1-2 sentences at 8th-grade level; (b) 1 short discussion prompt or insight.\n" +
+          "**Watch-outs** — 2 bullets.",
       },
     },
     required: ["facilitator_guide"],
@@ -119,12 +119,12 @@ const HANDOUT_TOOL = {
       handout_markdown: {
         type: "string",
         description:
-          "Markdown handout for participants (3 pages printed). The handout is a standalone worksheet about the session's TOPIC and may accompany a video the facilitator plays, but questions must NOT depend on any specific video's exact content or wording. Sections in order:\n\n" +
-          "1. **Title + one-line subtitle** describing the session focus.\n\n" +
-          "2. **About This Topic** — 3-4 sentences summarizing the topic in plain language and why it matters for recovery. Include 3 short bullets of 'Key ideas to look for' — specific concepts, terms, or examples the resident should watch and listen for during any video or discussion.\n\n" +
-          "3. **Interactive Questionnaire** — 6 numbered open-ended questions about the TOPIC (not any specific video). Questions must be phrased topic-first so the handout works whether or not a video is shown, and whether or not the video the facilitator plays covers a specific example. Do NOT use phrases like 'what did the speaker say', 'the video mentions', 'according to the speaker', or 'the presenter's example'. Use phrasing like 'What is X?', 'Why does X happen?', 'How does X work?', 'What are the signs of Y?'. Each question followed by 3-4 blank underscored lines. Mix concept questions ('What is X and how does it work?'), application questions ('How could you use this today?'), and one comparison/reflection question ('How does this compare to what you already believed about...?').\n\n" +
-          "4. **Notes** — labeled space with 4-5 blank lines for additional thoughts.\n\n" +
-          "Use plain 8th-grade reading level. Non-shaming, trauma-informed. No em-dashes.",
+          "Concise markdown handout (2 pages printed) about the session TOPIC (not any specific video). Sections:\n\n" +
+          "1. **Title + one-line subtitle**.\n\n" +
+          "2. **About This Topic** — 2-3 sentences on the topic and why it matters for recovery. Then 3 short 'Key ideas to look for' bullets.\n\n" +
+          "3. **Interactive Questionnaire** — 5 numbered topic-first questions with 3 blank underscored lines after each. Do NOT use phrases like 'what did the speaker say', 'the video mentions', 'according to the speaker'. Use phrasing like 'What is X?', 'Why does X happen?', 'How does X work?', 'How could you use X today?'. Mix concept, application, and one reflection question.\n\n" +
+          "4. **Notes** — 4 blank lines.\n\n" +
+          "Use plain 8th-grade reading level. Non-shaming, trauma-informed. No em-dashes. Keep it tight.",
       },
     },
     required: ["handout_markdown"],
