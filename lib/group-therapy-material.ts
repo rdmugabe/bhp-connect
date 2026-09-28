@@ -153,10 +153,66 @@ interface IntroResult {
   video_queries: string[];
 }
 
+// Wide catalog of clinical domains. When the user doesn't provide a theme
+// seed we pick one of these at random per generation so the pipeline stops
+// converging on the same handful of topics (previously Claude kept landing
+// on sleep/stress even when told to vary). Claude picks the concrete
+// skill/topic within the chosen domain.
+const TOPIC_DOMAINS: string[] = [
+  "handling cravings and urge surfing",
+  "the neuroscience of addiction and how the brain heals",
+  "boundaries with family and loved ones",
+  "grief and loss in recovery",
+  "anger management and healthy expression",
+  "trauma-informed self-care",
+  "shame, guilt, and self-compassion",
+  "building a sober support network",
+  "assertive communication",
+  "healthy relationships in recovery",
+  "parenting while in recovery",
+  "financial stability and money management",
+  "employment and job readiness",
+  "the stress response and the nervous system",
+  "sleep hygiene in early recovery",
+  "nutrition, blood sugar, and mood",
+  "exercise, movement, and mental health",
+  "mindfulness and present-moment awareness",
+  "cognitive distortions and thought reframing (CBT basics)",
+  "distress tolerance skills",
+  "emotional regulation (DBT skills)",
+  "acceptance and commitment therapy (ACT) essentials",
+  "12-step principles and mutual-help communities",
+  "relapse-prevention planning and identifying high-risk situations",
+  "co-occurring depression in recovery",
+  "co-occurring anxiety and worry",
+  "PTSD and complex trauma in recovery",
+  "spiritual wellness and cultural identity",
+  "healthy sexuality and intimacy",
+  "forgiveness and making amends",
+  "gratitude practice and positive psychology",
+  "purpose, meaning, and values-based living",
+  "goal setting and habit formation",
+  "self-esteem and identity beyond substance use",
+  "conflict resolution and repair",
+  "returning to work: managing workplace stress",
+  "healthy leisure, hobbies, and finding joy sober",
+  "understanding co-dependency",
+  "handling loneliness in recovery",
+  "medication for addiction treatment (MAT) education",
+];
+
+function pickRandomDomain(): string {
+  return TOPIC_DOMAINS[Math.floor(Math.random() * TOPIC_DOMAINS.length)];
+}
+
 async function generateIntro(themeSeed: string | null): Promise<IntroResult> {
-  const userMsg = themeSeed && themeSeed.trim()
-    ? `Design today's group therapy session with the theme: "${themeSeed.trim()}". Vary the specific skill focus, even within a theme, don't repeat prior sessions.`
-    : "Design today's group therapy session. Pick a topic that's practical and immediately useful in early residential recovery. Vary from the most obvious choices.";
+  let userMsg: string;
+  if (themeSeed && themeSeed.trim()) {
+    userMsg = `Design today's group therapy session with the theme: "${themeSeed.trim()}". Pick a specific practical skill or concept within that theme. Vary from the most obvious sub-angles; don't repeat prior sessions.`;
+  } else {
+    const domain = pickRandomDomain();
+    userMsg = `Design today's group therapy session. Focus on this clinical domain: **${domain}**. Pick ONE specific practical skill or concept within that domain (not the domain title itself). Avoid sleep-hygiene, stress-response, and craving-management topics unless the assigned domain is one of those. Make the topic concrete and immediately useful in early residential recovery.`;
+  }
 
   const c = client();
   const response = await c.messages.create({
