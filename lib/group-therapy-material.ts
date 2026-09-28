@@ -153,52 +153,94 @@ interface IntroResult {
   video_queries: string[];
 }
 
-// Wide catalog of clinical domains. When the user doesn't provide a theme
-// seed we pick one of these at random per generation so the pipeline stops
-// converging on the same handful of topics (previously Claude kept landing
-// on sleep/stress even when told to vary). Claude picks the concrete
-// skill/topic within the chosen domain.
+// Curated catalog of clinical domains, chosen to hit the treatment goals
+// of the residents actually on census. Every entry maps to at least 2-3
+// residents' documented plan goals so the material lands as relevant. When
+// the user doesn't provide a theme seed we pick one uniformly at random.
+// Categorized here in comments only; runtime picks from the flat list.
 const TOPIC_DOMAINS: string[] = [
-  "handling cravings and urge surfing",
-  "the neuroscience of addiction and how the brain heals",
-  "boundaries with family and loved ones",
-  "grief and loss in recovery",
-  "anger management and healthy expression",
-  "trauma-informed self-care",
-  "shame, guilt, and self-compassion",
-  "building a sober support network",
-  "assertive communication",
-  "healthy relationships in recovery",
-  "parenting while in recovery",
-  "financial stability and money management",
-  "employment and job readiness",
-  "the stress response and the nervous system",
-  "sleep hygiene in early recovery",
-  "nutrition, blood sugar, and mood",
-  "exercise, movement, and mental health",
-  "mindfulness and present-moment awareness",
-  "cognitive distortions and thought reframing (CBT basics)",
-  "distress tolerance skills",
-  "emotional regulation (DBT skills)",
+  // -------- Sobriety / relapse prevention (all 5 residents) --------
+  "handling cravings, urges, and HALT (hungry-angry-lonely-tired)",
+  "urge surfing: riding out a craving without acting on it",
+  "building a written relapse-prevention plan",
+  "identifying personal triggers and high-risk situations",
+  "how addiction changes the brain and how the brain heals",
+  "early warning signs of relapse (thinking, feelings, behaviors)",
+  "medication for addiction treatment (MAT): naltrexone and acamprosate basics",
+
+  // -------- Coping skills / emotional regulation (all 5) --------
+  "distress tolerance: getting through the next 90 seconds",
+  "grounding techniques for anxiety, cravings, and flashbacks",
+  "DBT emotion regulation: naming what you feel and choosing a response",
+  "CBT thought reframing: catching cognitive distortions",
+  "mindfulness for people who can't sit still",
+  "TIPP: temperature, intense exercise, paced breathing, paired muscle relaxation",
   "acceptance and commitment therapy (ACT) essentials",
-  "12-step principles and mutual-help communities",
-  "relapse-prevention planning and identifying high-risk situations",
-  "co-occurring depression in recovery",
-  "co-occurring anxiety and worry",
-  "PTSD and complex trauma in recovery",
-  "spiritual wellness and cultural identity",
-  "healthy sexuality and intimacy",
-  "forgiveness and making amends",
-  "gratitude practice and positive psychology",
-  "purpose, meaning, and values-based living",
-  "goal setting and habit formation",
-  "self-esteem and identity beyond substance use",
-  "conflict resolution and repair",
-  "returning to work: managing workplace stress",
-  "healthy leisure, hobbies, and finding joy sober",
-  "understanding co-dependency",
-  "handling loneliness in recovery",
-  "medication for addiction treatment (MAT) education",
+
+  // -------- Anxiety, depression, sleep, mood (all 5) --------
+  "understanding anxiety: what your body is doing and how to help",
+  "depression in recovery: behavioral activation basics",
+  "sleep hygiene and building a wind-down routine",
+  "the stress response and calming the nervous system",
+
+  // -------- Anger, grief, big emotions (Dwayne, Mario, Yalena) --------
+  "anger management: from trigger to healthy expression",
+  "grief and loss in recovery: honoring who and what you've lost",
+  "handling strong emotions without using",
+
+  // -------- Family, relationships, parenting (Dwayne, Mario, Yalena) --------
+  "boundaries with family and loved ones",
+  "rebuilding trust with children after treatment",
+  "fatherhood in recovery",
+  "healthy communication with family under stress",
+  "assertive communication and speaking up for yourself",
+  "handling relationships with people who still use",
+
+  // -------- Safety, self-harm, crisis (Amber, Dwayne, all) --------
+  "building a personal safety plan for hard moments",
+  "using crisis resources: 988, warm lines, and staff on shift",
+
+  // -------- Program adherence, boundaries, pass rules (all 5, several CRITICAL) --------
+  "why program rules keep you safer: pass procedures and communication",
+  "the consequences of unauthorized absences and how to prevent them",
+  "adjusting to residential program life and routine",
+
+  // -------- Hygiene, living space, daily-life skills (Amber, Dwayne, Mario) --------
+  "personal hygiene as a recovery skill",
+  "keeping a clean and organized living space",
+  "building a daily routine that supports recovery",
+
+  // -------- Discharge planning, sober living, aftercare (all 5, several CRITICAL) --------
+  "choosing a sober-living environment: what to look for",
+  "transitioning from residential to IOP",
+  "building an aftercare plan you'll actually follow",
+
+  // -------- Recovery support network (all 5) --------
+  "building a sober support network from scratch",
+  "12-step, SMART Recovery, and other mutual-help options",
+  "engaging with a case manager: what to ask and expect",
+  "handling loneliness in early recovery",
+
+  // -------- Legal (Mario, Yalena, Yngwie) --------
+  "probation compliance and coordinating with your probation officer",
+  "making responsible decisions to avoid legal consequences",
+
+  // -------- Money, work, independent living (Mario, Yngwie, Yalena) --------
+  "financial stability and money management basics",
+  "returning to work: managing workplace stress in recovery",
+  "job readiness: resumes, interviews, and disclosing history",
+  "independent living skills for post-discharge success",
+
+  // -------- Biomedical / medical (Mario, Yalena, Yngwie) --------
+  "hypertension self-management: monitoring blood pressure",
+  "diabetes self-management basics",
+  "taking medications as prescribed and tracking side effects",
+  "managing chronic pain without substances",
+
+  // -------- Trauma / shame / meaning (Dwayne, all) --------
+  "trauma-informed self-care and grounding",
+  "shame, guilt, and self-compassion in recovery",
+  "purpose, meaning, and living by your values",
 ];
 
 function pickRandomDomain(): string {
