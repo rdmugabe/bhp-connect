@@ -139,15 +139,14 @@ export async function buildProgressNoteDocx(d: ProgressNoteDocxData): Promise<Ui
     ],
   });
 
+  const half = Math.round(USABLE_WIDTH_DXA / 2);
   const meta = new Table({
     width: { size: USABLE_WIDTH_DXA, type: WidthType.DXA },
     rows: [
       new TableRow({
         children: [
-          new TableCell({ borders: BORDER, width: { size: 3240, type: WidthType.DXA }, children: [new Paragraph({ children: [run("Note Date: ", { bold: true }), run(fmtDate(d.noteDate))] })] }),
-          new TableCell({ borders: BORDER, width: { size: 2160, type: WidthType.DXA }, children: [new Paragraph({ children: [run("Shift: ", { bold: true }), run(d.shift || "")] })] }),
-          new TableCell({ borders: BORDER, width: { size: 2160, type: WidthType.DXA }, children: [new Paragraph({ children: [run("Status: ", { bold: true }), run(d.status || "")] })] }),
-          new TableCell({ borders: BORDER, width: { size: 1800, type: WidthType.DXA }, children: [new Paragraph({ children: [run("Author: ", { bold: true }), run(`${d.authorName}${d.authorTitle ? ", " + d.authorTitle : ""}`)] })] }),
+          new TableCell({ borders: BORDER, width: { size: half, type: WidthType.DXA }, children: [new Paragraph({ children: [run("Note Date: ", { bold: true }), run(fmtDate(d.noteDate))] })] }),
+          new TableCell({ borders: BORDER, width: { size: half, type: WidthType.DXA }, children: [new Paragraph({ children: [run("Shift: ", { bold: true }), run(d.shift || "")] })] }),
         ],
       }),
     ],
