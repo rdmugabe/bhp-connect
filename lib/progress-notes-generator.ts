@@ -460,6 +460,10 @@ export interface BuildArgs {
   phase: Phase;
   shift: Shift;
   seed: string; // typically `${residentName}|${ymd}|${shift}`
+  /** When false (default), the medicationCompliance field is left empty so
+   *  no "compliant with prescribed medications" line prints on notes for
+   *  residents with no active meds on file. */
+  hasActiveMeds?: boolean;
 }
 
 export function buildVariedContent(args: BuildArgs): NoteContent {
@@ -480,7 +484,7 @@ export function buildVariedContent(args: BuildArgs): NoteContent {
     activityParticipation,
     staffInteractions: pick(STAFF_INTERACTION, rand),
     peerInteractions: pick(PEER_INTERACTION, rand),
-    medicationCompliance: pick(MEDICATION, rand),
+    medicationCompliance: args.hasActiveMeds ? pick(MEDICATION, rand) : "",
     hygieneAdl: pick(HYGIENE, rand),
     mealsAppetite: pick(MEALS[args.shift] as unknown as string[], rand),
     sleepPattern: pick(SLEEP[args.shift] as unknown as string[], rand),
