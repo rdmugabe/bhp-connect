@@ -92,11 +92,11 @@ const RESIDENT_STATUS: Record<Phase, { base: string[]; extras: string[] }> = {
     ],
     extras: [
       "Asked a few questions about the daily schedule.",
-      "Thanked staff for helping her/him get settled.",
+      "Thanked staff for helping {{O}} get settled.",
       "Needed a reminder or two about the schedule.",
       "Spent part of the shift hanging out in common areas.",
-      "Said she/he feels safe here.",
-      "Said she/he is ready to work on treatment.",
+      "Said {{S}} {{feels}} safe here.",
+      "Said {{S}} {{is}} ready to work on treatment.",
     ],
   },
   midStay: {
@@ -106,8 +106,8 @@ const RESIDENT_STATUS: Record<Phase, { base: string[]; extras: string[] }> = {
       "Resident is making steady progress on treatment goals.",
       "Resident worked well with staff and showed up to every group.",
       "Resident stuck to the routine throughout the shift.",
-      "Resident joined groups on her/his own without needing reminders.",
-      "Resident is doing well and using the coping skills she/he has learned.",
+      "Resident joined groups on {{P}} own without needing reminders.",
+      "Resident is doing well and using the coping skills {{S}} {{has}} learned.",
       "Resident was present and involved all shift.",
       "Resident is becoming more independent in the daily routine.",
       "Resident has been consistent with what the program expects.",
@@ -115,12 +115,12 @@ const RESIDENT_STATUS: Record<Phase, { base: string[]; extras: string[] }> = {
       "Resident is focused and working on recovery goals.",
     ],
     extras: [
-      "Shared something personal in group about her/his triggers.",
+      "Shared something personal in group about {{P}} triggers.",
       "Offered to help with chores around the house.",
       "Set a goal for the week with staff help.",
-      "Talked about discharge planning with her/his case manager.",
+      "Talked about discharge planning with {{P}} case manager.",
       "Checked in with family during the scheduled call time.",
-      "Reviewed her/his relapse prevention plan during one-on-one time.",
+      "Reviewed {{P}} relapse prevention plan during one-on-one time.",
     ],
   },
   longStay: {
@@ -129,7 +129,7 @@ const RESIDENT_STATUS: Record<Phase, { base: string[]; extras: string[] }> = {
       "Resident is setting a good example for newer peers.",
       "Resident is consistent in treatment and focused on getting ready for discharge.",
       "Resident is making progress on long-term recovery goals.",
-      "Resident is steady and follows the house routine on her/his own.",
+      "Resident is steady and follows the house routine on {{P}} own.",
       "Resident takes part in every part of the program.",
       "Resident spoke up during the community meeting and helped move things along.",
       "Resident informally supports newer residents.",
@@ -140,11 +140,11 @@ const RESIDENT_STATUS: Record<Phase, { base: string[]; extras: string[] }> = {
     ],
     extras: [
       "Had a supportive talk with a newer resident today.",
-      "Followed through on things she/he agreed to in group.",
+      "Followed through on things {{S}} agreed to in group.",
       "Named a specific aftercare step during one-on-one time.",
       "Helped settle a small disagreement between peers.",
       "Took the lead on a chore without being asked.",
-      "Reflected on how far she/he has come since starting treatment.",
+      "Reflected on how far {{S}} {{has}} come since starting treatment.",
     ],
   },
 };
@@ -152,15 +152,15 @@ const RESIDENT_STATUS: Record<Phase, { base: string[]; extras: string[] }> = {
 const MOOD_AFFECT: Record<Phase, { base: string[]; extras: string[] }> = {
   admit: {
     base: [
-      "Mood seemed motivated but a little anxious. Expression matched how she/he was feeling.",
+      "Mood seemed motivated but a little anxious. Expression matched how {{S}} {{was}} feeling.",
       "Mood was hopeful today.",
       "Mood was guarded but cooperative. Still engaged with staff when approached.",
       "Mood seemed anxious but manageable.",
       "Mood was calm with a normal range of emotions.",
-      "Said she/he feels 'okay' today.",
+      "Said {{S}} {{feels}} 'okay' today.",
       "Mood was a little low, but still responsive and willing to talk when approached.",
       "Mood was steady. Seemed a little brighter than at intake.",
-      "Said she/he is 'ready to work' and seemed to mean it.",
+      "Said {{S}} {{is}} 'ready to work' and seemed to mean it.",
       "Mood seemed mixed. Some moments of hope, some uncertainty.",
       "Mood was tired but hopeful.",
     ],
@@ -168,14 +168,14 @@ const MOOD_AFFECT: Record<Phase, { base: string[]; extras: string[] }> = {
       "Smiled briefly while talking with staff.",
       "Got teary for a moment when family came up, but recovered quickly.",
       "Laughed at a joke in group.",
-      "Said she/he is grateful for the chance to be in treatment.",
-      "Said she/he hopes this treatment goes well.",
+      "Said {{S}} {{is}} grateful for the chance to be in treatment.",
+      "Said {{S}} {{hopes}} this treatment goes well.",
     ],
   },
   midStay: {
     base: [
-      "Mood was steady and seemed like a normal range for her/him.",
-      "Said her/his mood is 'good' today. Seemed bright.",
+      "Mood was steady and seemed like a normal range for {{O}}.",
+      "Said {{P}} mood is 'good' today. Seemed bright.",
       "Mood was stable all shift.",
       "Mood was pleasant. Engaged with peers and staff.",
       "Mood seemed even throughout the shift.",
@@ -183,27 +183,27 @@ const MOOD_AFFECT: Record<Phase, { base: string[]; extras: string[] }> = {
       "Mood seemed a little lifted. Bright and talkative.",
       "Mood was calm and matched the day's conversations.",
       "Mood was steady all shift.",
-      "Said her/his mood is 'focused' today.",
+      "Said {{P}} mood is 'focused' today.",
       "Mood was neutral to positive. Nothing unusual.",
     ],
     extras: [
-      "Said she/he is proud of hitting a sobriety milestone.",
+      "Said {{S}} {{is}} proud of hitting a sobriety milestone.",
       "Had a good laugh with peers over dinner.",
-      "Said she/he is grateful for a recent family call.",
-      "Reflected on how far she/he has come during a brief check-in.",
-      "Said she/he is feeling more hopeful about discharge.",
+      "Said {{S}} {{is}} grateful for a recent family call.",
+      "Reflected on how far {{S}} {{has}} come during a brief check-in.",
+      "Said {{S}} {{is}} feeling more hopeful about discharge.",
     ],
   },
   longStay: {
     base: [
       "Mood was steady and in a normal range.",
       "Mood has been consistently positive.",
-      "Said she/he feels 'good' and 'at peace' today. Warm and engaged.",
+      "Said {{S}} {{feels}} 'good' and 'at peace' today. Warm and engaged.",
       "Mood was stable with more confidence than before.",
       "Mood was pleasant. Engaging with peers and staff.",
       "Mood was steady. Calm and even.",
       "Mood was confident and forward-looking. Seemed bright.",
-      "Said she/he feels grounded today.",
+      "Said {{S}} {{feels}} grounded today.",
       "Mood was even all shift.",
       "Mood was engaged and purposeful.",
       "Mood was consistently stable.",
@@ -211,7 +211,7 @@ const MOOD_AFFECT: Record<Phase, { base: string[]; extras: string[] }> = {
     extras: [
       "Shared a story about long-term goals with a peer.",
       "Smiled big during a positive call with family.",
-      "Said she/he is still fully committed to the program.",
+      "Said {{S}} {{is}} still fully committed to the program.",
       "Was excited about a specific next step after discharge.",
       "Reflected on how much has changed since admission.",
     ],
@@ -226,7 +226,7 @@ const PROGRAMMING: Record<Phase, { base: string[]; extras: string[] }> = {
       "Went to the group on relapse prevention. Followed along with the content.",
       "Went to group with a staff reminder. Took part when prompted.",
       "Went to two groups. Mostly listening, but spoke up a few times.",
-      "Went to community meeting and skills group. Took part as much as she/he could.",
+      "Went to community meeting and skills group. Took part as much as {{S}} could.",
       "Went to orientation group and daily meeting. Cooperative throughout.",
       "Went to groups as scheduled. Engagement is building each shift.",
       "Went to group therapy. Needed a little help to stay focused but took part.",
@@ -256,11 +256,11 @@ const PROGRAMMING: Record<Phase, { base: string[]; extras: string[] }> = {
       "Went to all programming today. Was a steady voice in community.",
     ],
     extras: [
-      "Shared a personal strategy that helps her/him with triggers.",
+      "Shared a personal strategy that helps {{O}} with triggers.",
       "Supported a peer who was having a hard time with the topic.",
       "Took the lead on a small group activity.",
       "Asked a thoughtful follow-up question.",
-      "Shared her/his own experience during discussion group.",
+      "Shared {{P}} own experience during discussion group.",
     ],
   },
   longStay: {
@@ -282,7 +282,7 @@ const PROGRAMMING: Record<Phase, { base: string[]; extras: string[] }> = {
       "Shared a long-term recovery insight with the group.",
       "Supported two newer residents through a hard moment.",
       "Took the lead on a community-building activity.",
-      "Reflected on how much she/he has grown since admission.",
+      "Reflected on how much {{S}} {{has}} grown since admission.",
     ],
   },
 };
@@ -291,10 +291,10 @@ const STAFF_INTERACTION: string[] = [
   "Worked well with staff and listened when staff gave direction.",
   "Was respectful and easy to talk to all shift.",
   "Was respectful and open with the team on shift.",
-  "Came to staff when she/he needed help.",
+  "Came to staff when {{S}} needed help.",
   "Followed staff direction without any problems.",
   "Talked with staff during one-on-one check-ins.",
-  "Was clear with staff about what she/he needed.",
+  "Was clear with staff about what {{S}} needed.",
   "Did what staff asked throughout the shift.",
   "Took feedback from staff without pushback.",
   "Had a supportive conversation with staff.",
@@ -318,10 +318,10 @@ const PEER_INTERACTION: string[] = [
 ];
 
 const MEDICATION: string[] = [
-  "Took her/his medications on time. No refusals this shift.",
+  "Took {{P}} medications on time. No refusals this shift.",
   "Took all scheduled medications as ordered.",
   "Took medications when offered. No concerns.",
-  "Took her/his medications and said she/he knows what each one is for.",
+  "Took {{P}} medications and said {{S}} knows what each one is for.",
   "Took medications as ordered without needing a reminder.",
   "No medication refusals this shift. Dose recorded on the MAR.",
   "Took medications on schedule without any issues.",
@@ -331,14 +331,14 @@ const MEDICATION: string[] = [
 ];
 
 const HYGIENE: string[] = [
-  "Handled personal care on her/his own. Hygiene and grooming looked good.",
-  "Took care of hygiene on her/his own. Appropriate for the setting.",
-  "Showered, dressed, and groomed on her/his own today.",
-  "Took care of daily living tasks on her/his own. Looked well put together.",
+  "Handled personal care on {{P}} own. Hygiene and grooming looked good.",
+  "Took care of hygiene on {{P}} own. Appropriate for the setting.",
+  "Showered, dressed, and groomed on {{P}} own today.",
+  "Took care of daily living tasks on {{P}} own. Looked well put together.",
   "Handled self-care without help. Tidied the room without being asked.",
-  "Handled hygiene on her/his own. Dressed appropriately for the shift.",
+  "Handled hygiene on {{P}} own. Dressed appropriately for the shift.",
   "Kept up with hygiene throughout the day. Grooming looked good.",
-  "Did all self-care tasks on her/his own today.",
+  "Did all self-care tasks on {{P}} own today.",
   "Finished the hygiene routine without a reminder.",
   "Handled daily tasks independently. Kept the room tidy per house rules.",
 ];
@@ -348,7 +348,7 @@ const MEALS = {
     "Ate breakfast and lunch. Appetite was good.",
     "Ate all of breakfast. Lunch was good too.",
     "Had breakfast and lunch today. No concerns.",
-    "Ate her/his meals. Said appetite feels normal.",
+    "Ate {{P}} meals. Said appetite feels normal.",
     "Had breakfast and lunch without any issues.",
     "Ate a good amount at both morning meals.",
     "Had breakfast and lunch on the regular schedule.",
@@ -373,11 +373,11 @@ const MEALS = {
 const SLEEP = {
   AM: [
     "Slept through the night per overnight staff. Woke up on time.",
-    "Said she/he slept well. Woke up on schedule.",
+    "Said {{S}} slept well. Woke up on schedule.",
     "Had a good night of sleep per overnight staff. Up and ready for the morning.",
     "Slept well. Woke up alert and ready to go.",
-    "Said she/he got good rest. No overnight issues reported.",
-    "Woke up on time and said she/he feels rested.",
+    "Said {{S}} got good rest. No overnight issues reported.",
+    "Woke up on time and said {{S}} {{feels}} rested.",
     "Overnight sleep was fine. No interruptions reported.",
     "Slept well per overnight staff. Calm this morning.",
     "Woke up at the usual time. No sleep complaints.",
@@ -386,14 +386,14 @@ const SLEEP = {
   PM: [
     "Followed the wind-down routine and went to bed on time.",
     "Followed the evening wind-down and went to bed on schedule.",
-    "Got ready for bed per facility rules. Went to her/his room.",
-    "Finished the evening routine and went to her/his room by lights-out.",
+    "Got ready for bed per facility rules. Went to {{P}} room.",
+    "Finished the evening routine and went to {{P}} room by lights-out.",
     "Did the evening wind-down and went to bed without issues.",
-    "Followed the wind-down routine. Went to her/his room on time.",
+    "Followed the wind-down routine. Went to {{P}} room on time.",
     "Was calm in the evening. Went to bed on time.",
-    "Finished the evening routine. Went to her/his room on schedule.",
+    "Finished the evening routine. Went to {{P}} room on schedule.",
     "Followed the wind-down routine. No issues at bedtime.",
-    "Went to her/his room at the scheduled time. Evening routine done.",
+    "Went to {{P}} room at the scheduled time. Evening routine done.",
   ],
 } as const;
 
@@ -456,6 +456,62 @@ const BEHAVIOR = (shift: Shift): string[] => {
 // Public API
 // ---------------------------------------------------------------------------
 
+/** Pronoun set applied to templated content so each resident's notes read
+ *  naturally. Pass "neutral" when no gender is on file or non-binary; the
+ *  singular-they form is used throughout. */
+export type Pronouns = "feminine" | "masculine" | "neutral";
+
+interface PronounSet {
+  subject: string;    // she / he / they
+  object: string;     // her / him / them
+  possessive: string; // her / his / their
+  reflexive: string;  // herself / himself / themselves
+  // Verb conjugations for singular/plural agreement.
+  verbIs: string;     // is / is / are
+  verbWas: string;    // was / was / were
+  verbHas: string;    // has / has / have
+  verbFeels: string;  // feels / feels / feel
+  verbHopes: string;  // hopes / hopes / hope
+  verbSeems: string;  // seems / seems / seem
+}
+
+const PRONOUN_SETS: Record<Pronouns, PronounSet> = {
+  feminine:  { subject: "she",  object: "her",  possessive: "her",   reflexive: "herself",    verbIs: "is",  verbWas: "was",  verbHas: "has",  verbFeels: "feels", verbHopes: "hopes", verbSeems: "seems" },
+  masculine: { subject: "he",   object: "him",  possessive: "his",   reflexive: "himself",    verbIs: "is",  verbWas: "was",  verbHas: "has",  verbFeels: "feels", verbHopes: "hopes", verbSeems: "seems" },
+  neutral:   { subject: "they", object: "them", possessive: "their", reflexive: "themselves", verbIs: "are", verbWas: "were", verbHas: "have", verbFeels: "feel",  verbHopes: "hope",  verbSeems: "seem"  },
+};
+
+/** Map a stored sex value from the intake to a pronoun set. Treat Female/F
+ *  as feminine, Male/M as masculine, anything else as neutral. */
+export function pronounsFromSex(sex: string | null | undefined): Pronouns {
+  const s = (sex ?? "").trim().toLowerCase();
+  if (s === "female" || s === "f") return "feminine";
+  if (s === "male" || s === "m") return "masculine";
+  return "neutral";
+}
+
+function applyPronouns(text: string, p: PronounSet): string {
+  const map: Array<[RegExp, string]> = [
+    [/\{\{S\}\}/g, p.subject],
+    [/\{\{Sc\}\}/g, p.subject.charAt(0).toUpperCase() + p.subject.slice(1)],
+    [/\{\{O\}\}/g, p.object],
+    [/\{\{Oc\}\}/g, p.object.charAt(0).toUpperCase() + p.object.slice(1)],
+    [/\{\{P\}\}/g, p.possessive],
+    [/\{\{Pc\}\}/g, p.possessive.charAt(0).toUpperCase() + p.possessive.slice(1)],
+    [/\{\{R\}\}/g, p.reflexive],
+    [/\{\{Rc\}\}/g, p.reflexive.charAt(0).toUpperCase() + p.reflexive.slice(1)],
+    [/\{\{is\}\}/g, p.verbIs],
+    [/\{\{was\}\}/g, p.verbWas],
+    [/\{\{has\}\}/g, p.verbHas],
+    [/\{\{feels\}\}/g, p.verbFeels],
+    [/\{\{hopes\}\}/g, p.verbHopes],
+    [/\{\{seems\}\}/g, p.verbSeems],
+  ];
+  let out = text;
+  for (const [re, rep] of map) out = out.replace(re, rep);
+  return out;
+}
+
 export interface BuildArgs {
   phase: Phase;
   shift: Shift;
@@ -464,32 +520,36 @@ export interface BuildArgs {
    *  no "compliant with prescribed medications" line prints on notes for
    *  residents with no active meds on file. */
   hasActiveMeds?: boolean;
+  /** Pronoun set to apply when rendering. Defaults to "neutral" (they/them). */
+  pronouns?: Pronouns;
 }
 
 export function buildVariedContent(args: BuildArgs): NoteContent {
   const rand = seededRng(args.seed);
+  const pset = PRONOUN_SETS[args.pronouns ?? "neutral"];
+  const sub = (s: string) => applyPronouns(s, pset);
 
   const statusPool = RESIDENT_STATUS[args.phase];
   const moodPool = MOOD_AFFECT[args.phase];
   const progPool = PROGRAMMING[args.phase];
 
-  const residentStatus = maybeAppend(pick(statusPool.base, rand), statusPool.extras, rand, 0.55);
-  const moodAffect = maybeAppend(pick(moodPool.base, rand), moodPool.extras, rand, 0.35);
-  const activityParticipation = maybeAppend(pick(progPool.base, rand), progPool.extras, rand, 0.35);
+  const residentStatus = sub(maybeAppend(pick(statusPool.base, rand), statusPool.extras, rand, 0.55));
+  const moodAffect = sub(maybeAppend(pick(moodPool.base, rand), moodPool.extras, rand, 0.35));
+  const activityParticipation = sub(maybeAppend(pick(progPool.base, rand), progPool.extras, rand, 0.35));
 
   return {
     residentStatus,
-    observedBehaviors: pick(BEHAVIOR(args.shift), rand),
+    observedBehaviors: sub(pick(BEHAVIOR(args.shift), rand)),
     moodAffect,
     activityParticipation,
-    staffInteractions: pick(STAFF_INTERACTION, rand),
-    peerInteractions: pick(PEER_INTERACTION, rand),
-    medicationCompliance: args.hasActiveMeds ? pick(MEDICATION, rand) : "",
-    hygieneAdl: pick(HYGIENE, rand),
-    mealsAppetite: pick(MEALS[args.shift] as unknown as string[], rand),
-    sleepPattern: pick(SLEEP[args.shift] as unknown as string[], rand),
-    staffInterventions: pick(INTERVENTIONS[args.phase], rand),
-    residentResponse: pick(RESPONSE, rand),
+    staffInteractions: sub(pick(STAFF_INTERACTION, rand)),
+    peerInteractions: sub(pick(PEER_INTERACTION, rand)),
+    medicationCompliance: args.hasActiveMeds ? sub(pick(MEDICATION, rand)) : "",
+    hygieneAdl: sub(pick(HYGIENE, rand)),
+    mealsAppetite: sub(pick(MEALS[args.shift] as unknown as string[], rand)),
+    sleepPattern: sub(pick(SLEEP[args.shift] as unknown as string[], rand)),
+    staffInterventions: sub(pick(INTERVENTIONS[args.phase], rand)),
+    residentResponse: sub(pick(RESPONSE, rand)),
     notableEvents: "None.",
     additionalNotes: "",
   };
