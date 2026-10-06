@@ -51,6 +51,18 @@ function body(text: string): Paragraph {
   });
 }
 
+/** Bold inline label followed by the value on the same line. Used for short
+ *  sections where a two-line heading + body wastes space. */
+function inlineSection(label: string, value: string): Paragraph {
+  return new Paragraph({
+    spacing: { before: 160, after: 80 },
+    children: [
+      run(`${label}: `, { bold: true, size: 24 }),
+      run(value || ""),
+    ],
+  });
+}
+
 function kvRow(label: string, value: string, labelW: number, valueW: number): TableRow {
   return new TableRow({
     children: [
@@ -165,16 +177,22 @@ export async function buildProgressNoteDocx(d: ProgressNoteDocxData): Promise<Ui
     body(d.residentStatus || ""),
     heading("Behavior & Observations"),
     body(d.observedBehaviors || ""),
-    heading("Mood / Affect"),
-    body(d.moodAffect || ""),
+    inlineSection("Mood / Affect", d.moodAffect || ""),
     heading("Programming"),
     body(d.activityParticipation || ""),
     heading("Staff Interactions"),
     body(d.staffInteractions || ""),
     heading("Peer Interactions"),
     body(d.peerInteractions || ""),
-    heading("Medication Compliance"),
-    body(d.medicationCompliance || ""),
+  ];
+
+  // Medication Compliance is inline and only shown when there's a value to
+  // print (residents with no active meds skip the line entirely).
+  if ((d.medicationCompliance || "").trim()) {
+    children.push(inlineSection("Medication Compliance", d.medicationCompliance || ""));
+  }
+
+  children.push(
     heading("ADLs & Hygiene"),
     body(d.hygieneAdl || ""),
     heading("Meals & Appetite"),
@@ -185,19 +203,24 @@ export async function buildProgressNoteDocx(d: ProgressNoteDocxData): Promise<Ui
     body(d.staffInterventions || ""),
     heading("Resident Response"),
     body(d.residentResponse || ""),
-    heading("Notable Events"),
-    body(d.notableEvents || ""),
-  ];
+    // Notable Events is almost always short ("None.") — keep label and value
+    // on one line so the signature block fits on page 1.
+    new Paragraph({
+      spacing: { before: 160, after: 80 },
+      children: [
+        run("Notable Events: ", { bold: true, size: 24 }),
+        run(d.notableEvents || "None."),
+      ],
+    }),
+  );
 
   if ((d.additionalNotes || "").trim()) {
     children.push(heading("Additional Notes"));
     children.push(body(d.additionalNotes || ""));
   }
 
-  // Signature line
-  children.push(new Paragraph({ children: [run("")] }));
-  children.push(new Paragraph({ children: [run("")] }));
-  children.push(new Paragraph({ children: [run("________________________________________")] }));
+  // Signature line (tight spacing so it fits on page 1)
+  children.push(new Paragraph({ spacing: { before: 240 }, children: [run("________________________________________")] }));
   children.push(
     new Paragraph({
       children: [
