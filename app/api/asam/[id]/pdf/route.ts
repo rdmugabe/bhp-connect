@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { renderToBuffer } from "@react-pdf/renderer";
-import { ASAMPDF } from "@/lib/pdf/asam-template";
+import { buildASAMDocx, asamDocxFilename } from "@/lib/asam-docx";
 import { createAuditLog, AuditActions } from "@/lib/audit";
-import { getTodayArizona, formatISODateOnly } from "@/lib/date-utils";
+import { getTodayArizona } from "@/lib/date-utils";
 
 export async function GET(
   request: NextRequest,
@@ -27,11 +26,7 @@ export async function GET(
           include: {
             bhp: {
               include: {
-                user: {
-                  select: {
-                    name: true,
-                  },
-                },
+                user: { select: { name: true } },
               },
             },
           },
@@ -43,12 +38,10 @@ export async function GET(
       return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
     }
 
-    // Check access permissions
     if (session.user.role === "BHRF") {
       const bhrfProfile = await prisma.bHRFProfile.findUnique({
         where: { userId: session.user.id },
       });
-
       if (!bhrfProfile || bhrfProfile.facilityId !== assessment.facilityId) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
@@ -56,35 +49,24 @@ export async function GET(
       const bhpProfile = await prisma.bHPProfile.findUnique({
         where: { userId: session.user.id },
       });
-
       if (!bhpProfile || assessment.facility.bhpId !== bhpProfile.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
     }
 
-    // Helper to convert empty objects/arrays to null
     const emptyToNull = <T>(val: T): T | null => {
       if (val === null || val === undefined) return null;
       if (Array.isArray(val) && val.length === 0) return null;
-      if (typeof val === 'object' && !(val instanceof Date) && Object.keys(val as object).length === 0) return null;
+      if (typeof val === "object" && !(val instanceof Date) && Object.keys(val as object).length === 0) return null;
       return val;
     };
 
-    // Helper to ensure string fields are strings (not objects)
-    const ensureString = (val: unknown): string | null => {
-      if (val === null || val === undefined) return null;
-      if (typeof val === 'string') return val || null;
-      if (typeof val === 'object' && Object.keys(val as object).length === 0) return null;
-      return String(val);
-    };
-
-    // Transform data for PDF
-    const pdfData = {
+    const docxData = {
       id: assessment.id,
       patientName: assessment.patientName,
-      dateOfBirth: assessment.dateOfBirth.toISOString(),
-      admissionDate: assessment.admissionDate?.toISOString() || null,
-      assessmentDate: assessment.assessmentDate.toISOString(),
+      dateOfBirth: assessment.dateOfBirth,
+      admissionDate: assessment.admissionDate,
+      assessmentDate: assessment.assessmentDate,
       phoneNumber: assessment.phoneNumber,
       okayToLeaveVoicemail: assessment.okayToLeaveVoicemail,
       patientAddress: assessment.patientAddress,
@@ -101,8 +83,19 @@ export async function GET(
       reasonForTreatment: assessment.reasonForTreatment,
       currentSymptoms: assessment.currentSymptoms,
 
-      // Dimension 1
-      substanceUseHistory: emptyToNull(assessment.substanceUseHistory) as { substance: string; routeOfAdministration?: string; ageFirstUsed?: string; ageRegularUse?: string; lastUse?: string; frequency?: string; amount?: string }[] | null,
+      substanceUseHistory: emptyToNull(assessment.substanceUseHistory) as
+        | {
+            substance: string;
+            routeOfAdministration?: string;
+            route?: string;
+            ageFirstUsed?: string;
+            ageFirstUse?: string;
+            ageRegularUse?: string;
+            lastUse?: string;
+            frequency?: string;
+            amount?: string;
+          }[]
+        | null,
       usingMoreThanIntended: assessment.usingMoreThanIntended,
       usingMoreDetails: assessment.usingMoreDetails,
       physicallyIllWhenStopping: assessment.physicallyIllWhenStopping,
@@ -119,21 +112,25 @@ export async function GET(
       dimension1Severity: assessment.dimension1Severity,
       dimension1Comments: assessment.dimension1Comments,
 
-      // Dimension 2
-      medicalProviders: emptyToNull(assessment.medicalProviders) as { name?: string; specialty?: string; contact?: string }[] | null,
+      medicalProviders: emptyToNull(assessment.medicalProviders) as
+        | { name?: string; specialty?: string; contact?: string }[]
+        | null,
       medicalConditions: emptyToNull(assessment.medicalConditions) as Record<string, boolean> | null,
       conditionsInterfere: assessment.conditionsInterfere,
       conditionsInterfereDetails: assessment.conditionsInterfereDetails,
       priorHospitalizations: assessment.priorHospitalizations,
       lifeThreatening: assessment.lifeThreatening,
-      medicalMedications: emptyToNull(assessment.medicalMedications) as { medication?: string; dose?: string; reason?: string; effectiveness?: string }[] | null,
+      medicalMedications: emptyToNull(assessment.medicalMedications) as
+        | { medication?: string; dose?: string; reason?: string; effectiveness?: string }[]
+        | null,
       dimension2Severity: assessment.dimension2Severity,
       dimension2Comments: assessment.dimension2Comments,
 
-      // Dimension 3
       moodSymptoms: emptyToNull(assessment.moodSymptoms) as Record<string, boolean> | null,
       anxietySymptoms: emptyToNull(assessment.anxietySymptoms) as Record<string, boolean> | null,
-      psychosisSymptoms: emptyToNull(assessment.psychosisSymptoms) as Record<string, boolean> | null,
+      psychosisSymptoms: emptyToNull(assessment.psychosisSymptoms) as
+        | (Record<string, boolean> & { delusions?: string; hallucinations?: string })
+        | null,
       otherSymptoms: emptyToNull(assessment.otherSymptoms) as Record<string, boolean> | null,
       suicidalThoughts: assessment.suicidalThoughts,
       suicidalThoughtsDetails: assessment.suicidalThoughtsDetails,
@@ -149,17 +146,22 @@ export async function GET(
       hallucinationsDetails: assessment.hallucinationsDetails,
       furtherMHAssessmentNeeded: assessment.furtherMHAssessmentNeeded,
       furtherMHAssessmentDetails: assessment.furtherMHAssessmentDetails,
-      psychiatricMedications: emptyToNull(assessment.psychiatricMedications) as { medication?: string; dose?: string; reason?: string; effectiveness?: string }[] | null,
-      mentalHealthProviders: emptyToNull(assessment.mentalHealthProviders) as { name?: string; specialty?: string; contact?: string }[] | null,
+      psychiatricMedications: emptyToNull(assessment.psychiatricMedications) as
+        | { medication?: string; dose?: string; reason?: string; effectiveness?: string }[]
+        | null,
+      mentalHealthProviders: emptyToNull(assessment.mentalHealthProviders) as
+        | { name?: string; specialty?: string; contact?: string }[]
+        | null,
       dimension3Severity: assessment.dimension3Severity,
       dimension3Comments: assessment.dimension3Comments,
 
-      // Dimension 4
       areasAffectedByUse: emptyToNull(assessment.areasAffectedByUse) as Record<string, boolean> | null,
       continueUseDespiteEffects: assessment.continueUseDespitefects,
       continueUseDetails: assessment.continueUseDetails,
       previousTreatmentHelp: assessment.previousTreatmentHelp,
-      treatmentProviders: emptyToNull(assessment.treatmentProviders) as { name?: string; specialty?: string; contact?: string }[] | null,
+      treatmentProviders: emptyToNull(assessment.treatmentProviders) as
+        | { name?: string; specialty?: string; contact?: string }[]
+        | null,
       recoverySupport: assessment.recoverySupport,
       recoveryBarriers: assessment.recoveryBarriers,
       treatmentImportanceAlcohol: assessment.treatmentImportanceAlcohol,
@@ -168,7 +170,6 @@ export async function GET(
       dimension4Severity: assessment.dimension4Severity,
       dimension4Comments: assessment.dimension4Comments,
 
-      // Dimension 5
       cravingsFrequencyAlcohol: assessment.cravingsFrequencyAlcohol,
       cravingsFrequencyDrugs: assessment.cravingsFrequencyDrugs,
       cravingsDetails: assessment.cravingsDetails,
@@ -177,8 +178,8 @@ export async function GET(
       relapseWithoutTreatment: assessment.relapseWithoutTreatment,
       relapseDetails: assessment.relapseDetails,
       awareOfTriggers: assessment.awareOfTriggers,
-      triggersList: ensureString(assessment.triggersList),
-      copingWithTriggers: ensureString(assessment.copingWithTriggers),
+      triggersList: assessment.triggersList as string | Record<string, boolean | string> | null,
+      copingWithTriggers: assessment.copingWithTriggers as string | null,
       attemptsToControl: assessment.attemptsToControl,
       longestSobriety: assessment.longestSobriety,
       whatHelped: assessment.whatHelped,
@@ -186,7 +187,6 @@ export async function GET(
       dimension5Severity: assessment.dimension5Severity,
       dimension5Comments: assessment.dimension5Comments,
 
-      // Dimension 6
       supportiveRelationships: assessment.supportiveRelationships,
       currentLivingSituation: assessment.currentLivingSituation,
       othersUsingDrugsInEnvironment: assessment.othersUsingDrugsInEnvironment,
@@ -204,15 +204,30 @@ export async function GET(
       dimension6Severity: assessment.dimension6Severity,
       dimension6Comments: assessment.dimension6Comments,
 
-      // Summary
-      summaryRationale: assessment.summaryRationale,
-      dsm5Criteria: emptyToNull(assessment.dsm5Criteria) as Record<string, boolean> | { substanceName: string; criteria: (string | boolean)[]; totalCriteria: number }[] | string[] | null,
+      summaryRationale: assessment.summaryRationale as
+        | string
+        | {
+            dimension1Rationale?: string;
+            dimension2Rationale?: string;
+            dimension3Rationale?: string;
+            dimension4Rationale?: string;
+            dimension5Rationale?: string;
+            dimension6Rationale?: string;
+          }
+        | null,
+      dsm5Criteria: emptyToNull(assessment.dsm5Criteria) as
+        | Record<string, boolean>
+        | { substanceName: string; criteria: (string | boolean)[]; totalCriteria: number }[]
+        | string[]
+        | null,
       dsm5Diagnoses: assessment.dsm5Diagnoses,
-      levelOfCareDetermination: assessment.levelOfCareDetermination,
+      levelOfCareDetermination: assessment.levelOfCareDetermination as
+        | string
+        | { treatmentServices?: string; withdrawalManagement?: string; otp?: boolean }
+        | null,
       matInterested: assessment.matInterested,
       matDetails: assessment.matDetails,
 
-      // Placement
       recommendedLevelOfCare: assessment.recommendedLevelOfCare,
       levelOfCareProvided: assessment.levelOfCareProvided,
       discrepancyReason: assessment.discrepancyReason,
@@ -220,59 +235,44 @@ export async function GET(
       designatedTreatmentLocation: assessment.designatedTreatmentLocation,
       designatedProviderName: assessment.designatedProviderName,
 
-      // Signatures
       counselorName: assessment.counselorName,
-      counselorSignatureDate: assessment.counselorSignatureDate?.toISOString() || null,
+      counselorSignatureDate: assessment.counselorSignatureDate,
       bhpLphaName: assessment.bhpLphaName,
-      bhpLphaSignatureDate: assessment.bhpLphaSignatureDate?.toISOString() || null,
+      bhpLphaSignatureDate: assessment.bhpLphaSignatureDate,
 
-      // Workflow
-      status: assessment.status as "DRAFT" | "PENDING" | "APPROVED" | "CONDITIONAL" | "DENIED",
+      status: assessment.status,
       decisionReason: assessment.decisionReason,
-      decidedAt: assessment.decidedAt?.toISOString() || null,
-      createdAt: assessment.createdAt.toISOString(),
-      facility: {
-        name: assessment.facility.name,
-      },
+      decidedAt: assessment.decidedAt,
+      createdAt: assessment.createdAt,
+      facility: { name: assessment.facility.name },
       bhpName: assessment.facility.bhp?.user?.name || "Unknown BHP",
     };
 
-    // Generate PDF
-    const pdfBuffer = await renderToBuffer(ASAMPDF({ data: pdfData as unknown as Parameters<typeof ASAMPDF>[0]['data'] }));
+    const docxBuffer = await buildASAMDocx(docxData);
 
-    // Log the download
     await createAuditLog({
       userId: session.user.id,
       action: AuditActions.ASAM_PDF_DOWNLOADED,
       entityType: "ASAMAssessment",
       entityId: assessment.id,
-      details: {
-        patientName: assessment.patientName,
-      },
+      details: { patientName: assessment.patientName },
     });
 
-    // Create filename
-    const sanitizedName = assessment.patientName
-      .replace(/[^a-zA-Z0-9]/g, "_")
-      .substring(0, 30);
-    const dateStr = getTodayArizona();
-    const filename = `ASAM_${sanitizedName}_${dateStr}.pdf`;
+    const filename = asamDocxFilename({ patientName: assessment.patientName }, getTodayArizona());
 
-    // Return PDF response
-    return new NextResponse(new Uint8Array(pdfBuffer), {
+    return new NextResponse(new Uint8Array(docxBuffer), {
       headers: {
-        "Content-Type": "application/pdf",
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="${filename}"`,
         "Cache-Control": "no-store, no-cache, must-revalidate",
         "Pragma": "no-cache",
       },
     });
   } catch (error) {
-    console.error("Generate ASAM PDF error:", error);
+    console.error("Generate ASAM DOCX error:", error);
     console.error("Error stack:", error instanceof Error ? error.stack : "No stack");
-    console.error("Error message:", error instanceof Error ? error.message : String(error));
     return NextResponse.json(
-      { error: "Failed to generate PDF", details: error instanceof Error ? error.message : String(error) },
+      { error: "Failed to generate document", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

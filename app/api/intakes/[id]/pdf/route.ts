@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { renderToBuffer } from "@react-pdf/renderer";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
-import { IntakePDF } from "@/lib/pdf/intake-template";
-import { getTodayArizona, formatISODateOnly } from "@/lib/date-utils";
+import { buildIntakeDocx, intakeDocxFilename } from "@/lib/intake-docx";
+import { getTodayArizona } from "@/lib/date-utils";
 
 export async function GET(
   request: NextRequest,
@@ -20,7 +19,6 @@ export async function GET(
 
     const { id } = await params;
 
-    // Fetch the intake with authorization check
     const intake = await prisma.intake.findUnique({
       where: { id },
       include: {
@@ -28,11 +26,7 @@ export async function GET(
           include: {
             bhp: {
               include: {
-                user: {
-                  select: {
-                    name: true,
-                  },
-                },
+                user: { select: { name: true } },
               },
             },
           },
@@ -42,10 +36,7 @@ export async function GET(
     });
 
     if (!intake) {
-      return NextResponse.json(
-        { error: "Intake not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Intake not found" }, { status: 404 });
     }
 
     // Authorization check based on role
@@ -67,46 +58,26 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Helper to convert empty objects/arrays to null
     const emptyToNull = <T>(val: T): T | null => {
       if (val === null || val === undefined) return null;
       if (Array.isArray(val) && val.length === 0) return null;
-      if (typeof val === 'object' && !(val instanceof Date) && Object.keys(val as object).length === 0) return null;
+      if (typeof val === "object" && !(val instanceof Date) && Object.keys(val as object).length === 0) return null;
       return val;
     };
 
-    // Helper to safely handle long text for PDF rendering
-    // react-pdf layout engine can overflow with very long strings, causing the
-    // "unsupported number" error. We truncate to a safe maximum length.
-    const safeText = (text: string | null | undefined, maxLength = 2000): string | null => {
-      if (!text) return null;
-      // Remove problematic characters and normalize whitespace for react-pdf
-      const cleaned = String(text)
-        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '') // Remove control chars
-        .replace(/[\n\r]+/g, ' ')  // Replace newlines with spaces
-        .replace(/\s+/g, ' ')      // Collapse multiple spaces
-        .trim();
-      // Truncate if exceeds max length to prevent react-pdf layout overflow
-      if (cleaned.length > maxLength) {
-        return cleaned.slice(0, maxLength) + '... [truncated]';
-      }
-      return cleaned || null;
-    };
-
-    // Prepare PDF data - include all fields from intake
-    const pdfData = {
+    const docxData = {
       id: intake.id,
       residentName: intake.residentName,
       ssn: intake.ssn,
-      dateOfBirth: intake.dateOfBirth.toISOString(),
-      admissionDate: intake.admissionDate?.toISOString() || null,
+      dateOfBirth: intake.dateOfBirth,
+      admissionDate: intake.admissionDate,
       sex: intake.sex,
       ethnicity: intake.ethnicity,
       nativeAmericanTribe: intake.nativeAmericanTribe,
       language: intake.language,
       religion: intake.religion,
       sexualOrientation: intake.sexualOrientation,
-      // Contact Info
+
       patientAddress: intake.patientAddress,
       patientPhone: intake.patientPhone,
       patientEmail: intake.patientEmail,
@@ -119,7 +90,7 @@ export async function GET(
       primaryCarePhysicianPhone: intake.primaryCarePhysicianPhone,
       caseManagerName: intake.caseManagerName,
       caseManagerPhone: intake.caseManagerPhone,
-      // Insurance
+
       insuranceProvider: intake.insuranceProvider,
       policyNumber: intake.policyNumber,
       groupNumber: intake.groupNumber,
@@ -128,28 +99,30 @@ export async function GET(
       hasAdvancedDirective: intake.hasAdvancedDirective,
       hasWill: intake.hasWill,
       poaLegalGuardian: intake.poaLegalGuardian,
-      // Referral
+
       referralSource: intake.referralSource,
       evaluatorName: intake.evaluatorName,
       evaluatorCredentials: intake.evaluatorCredentials,
-      reasonsForReferral: safeText(intake.reasonsForReferral),
-      residentNeeds: safeText(intake.residentNeeds),
+      reasonsForReferral: intake.reasonsForReferral,
+      residentNeeds: intake.residentNeeds,
       residentExpectedLOS: intake.residentExpectedLOS,
       teamExpectedLOS: intake.teamExpectedLOS,
-      strengthsAndLimitations: safeText(intake.strengthsAndLimitations),
-      familyInvolved: safeText(intake.familyInvolved),
-      // Behavioral Symptoms
-      reasonForServices: safeText(intake.reasonForServices),
-      currentBehavioralSymptoms: safeText(intake.currentBehavioralSymptoms),
-      copingWithSymptoms: safeText(intake.copingWithSymptoms),
-      symptomsLimitations: safeText(intake.symptomsLimitations),
-      immediateUrgentNeeds: safeText(intake.immediateUrgentNeeds),
-      signsOfImprovement: safeText(intake.signsOfImprovement),
-      assistanceExpectations: safeText(intake.assistanceExpectations),
-      involvedInTreatment: safeText(intake.involvedInTreatment),
-      // Medical
+      strengthsAndLimitations: intake.strengthsAndLimitations,
+      familyInvolved: intake.familyInvolved,
+
+      reasonForServices: intake.reasonForServices,
+      currentBehavioralSymptoms: intake.currentBehavioralSymptoms,
+      copingWithSymptoms: intake.copingWithSymptoms,
+      symptomsLimitations: intake.symptomsLimitations,
+      immediateUrgentNeeds: intake.immediateUrgentNeeds,
+      signsOfImprovement: intake.signsOfImprovement,
+      assistanceExpectations: intake.assistanceExpectations,
+      involvedInTreatment: intake.involvedInTreatment,
+
       allergies: intake.allergies,
-      medications: emptyToNull(intake.medications) as { name: string; dosage?: string | null; frequency?: string | null; route?: string | null }[] | null,
+      medications: emptyToNull(intake.medications) as
+        | { name: string; dosage?: string | null; frequency?: string | null; route?: string | null }[]
+        | null,
       historyNonCompliance: intake.historyNonCompliance,
       potentialViolence: intake.potentialViolence,
       medicalUrgency: intake.medicalUrgency,
@@ -159,13 +132,13 @@ export async function GET(
       height: intake.height,
       weight: intake.weight,
       bmi: intake.bmi,
-      // Psychiatric
+
       isCOT: intake.isCOT,
-      personalPsychHX: safeText(intake.personalPsychHX),
-      familyPsychHX: safeText(intake.familyPsychHX),
-      treatmentPreferences: safeText(intake.treatmentPreferences),
-      psychMedicationEfficacy: safeText(intake.psychMedicationEfficacy),
-      // Risk Assessment - DTS
+      personalPsychHX: intake.personalPsychHX,
+      familyPsychHX: intake.familyPsychHX,
+      treatmentPreferences: intake.treatmentPreferences,
+      psychMedicationEfficacy: intake.psychMedicationEfficacy,
+
       suicideHistory: intake.suicideHistory,
       suicideAttemptDetails: intake.suicideAttemptDetails,
       currentSuicideIdeation: intake.currentSuicideIdeation,
@@ -175,7 +148,7 @@ export async function GET(
       selfHarmDetails: intake.selfHarmDetails,
       dtsRiskFactors: emptyToNull(intake.dtsRiskFactors) as Record<string, boolean> | null,
       dtsProtectiveFactors: emptyToNull(intake.dtsProtectiveFactors) as Record<string, boolean> | null,
-      // Risk Assessment - DTO
+
       historyHarmingOthers: intake.historyHarmingOthers,
       harmingOthersDetails: intake.harmingOthersDetails,
       homicidalIdeation: intake.homicidalIdeation,
@@ -185,7 +158,7 @@ export async function GET(
       dutyToWarnDetails: intake.dutyToWarnDetails,
       previousHospitalizations: intake.previousHospitalizations,
       hospitalizationDetails: intake.hospitalizationDetails,
-      // Developmental
+
       inUteroExposure: intake.inUteroExposure,
       inUteroExposureDetails: intake.inUteroExposureDetails,
       developmentalMilestones: intake.developmentalMilestones,
@@ -203,40 +176,40 @@ export async function GET(
       socialSkillsDeficits: intake.socialSkillsDeficits,
       socialSkillsDetails: intake.socialSkillsDetails,
       immunizationStatus: intake.immunizationStatus,
-      // Skills
+
       hygieneSkills: emptyToNull(intake.hygieneSkills) as Record<string, string> | null,
       skillsContinuation: emptyToNull(intake.skillsContinuation) as Record<string, string> | null,
-      // PHQ-9
+
       phq9Responses: emptyToNull(intake.phq9Responses) as number[] | null,
       phq9TotalScore: intake.phq9TotalScore,
-      // Treatment
-      treatmentObjectives: safeText(intake.treatmentObjectives),
-      dischargePlanObjectives: safeText(intake.dischargePlanObjectives),
-      supportSystem: safeText(intake.supportSystem),
-      communityResources: safeText(intake.communityResources),
-      // Social/Education
-      childhoodDescription: safeText(intake.childhoodDescription),
-      abuseHistory: safeText(intake.abuseHistory),
-      familyMentalHealthHistory: safeText(intake.familyMentalHealthHistory),
+
+      treatmentObjectives: intake.treatmentObjectives,
+      dischargePlanObjectives: intake.dischargePlanObjectives,
+      supportSystem: intake.supportSystem,
+      communityResources: intake.communityResources,
+
+      childhoodDescription: intake.childhoodDescription,
+      abuseHistory: intake.abuseHistory,
+      familyMentalHealthHistory: intake.familyMentalHealthHistory,
       relationshipStatus: intake.relationshipStatus,
-      relationshipSatisfaction: safeText(intake.relationshipSatisfaction),
-      friendsDescription: safeText(intake.friendsDescription),
+      relationshipSatisfaction: intake.relationshipSatisfaction,
+      friendsDescription: intake.friendsDescription,
       highestEducation: intake.highestEducation,
       specialEducation: intake.specialEducation,
-      specialEducationDetails: safeText(intake.specialEducationDetails),
+      specialEducationDetails: intake.specialEducationDetails,
       plan504: intake.plan504,
       iep: intake.iep,
-      educationDetails: safeText(intake.educationDetails),
+      educationDetails: intake.educationDetails,
       currentlyEmployed: intake.currentlyEmployed,
-      employmentDetails: safeText(intake.employmentDetails),
-      workVolunteerHistory: safeText(intake.workVolunteerHistory),
-      employmentBarriers: safeText(intake.employmentBarriers),
-      // Legal/Substance
-      criminalLegalHistory: safeText(intake.criminalLegalHistory),
+      employmentDetails: intake.employmentDetails,
+      workVolunteerHistory: intake.workVolunteerHistory,
+      employmentBarriers: intake.employmentBarriers,
+
+      criminalLegalHistory: intake.criminalLegalHistory,
       courtOrderedTreatment: intake.courtOrderedTreatment,
-      courtOrderedDetails: safeText(intake.courtOrderedDetails),
-      otherLegalIssues: safeText(intake.otherLegalIssues),
-      substanceHistory: safeText(intake.substanceHistory),
+      courtOrderedDetails: intake.courtOrderedDetails,
+      otherLegalIssues: intake.otherLegalIssues,
+      substanceHistory: intake.substanceHistory,
       substanceUseTable: emptyToNull(intake.substanceUseTable) as Record<string, unknown>[] | null,
       drugOfChoice: intake.drugOfChoice,
       longestSobriety: intake.longestSobriety,
@@ -245,7 +218,7 @@ export async function GET(
       nicotineDetails: intake.nicotineDetails,
       substanceImpact: intake.substanceImpact,
       historyOfAbuse: intake.historyOfAbuse,
-      // Living/ADLs
+
       livingArrangements: intake.livingArrangements,
       sourceOfFinances: intake.sourceOfFinances,
       transportationMethod: intake.transportationMethod,
@@ -255,7 +228,7 @@ export async function GET(
       supportLevel: intake.supportLevel,
       typicalDay: intake.typicalDay,
       strengthsAbilitiesInterests: intake.strengthsAbilitiesInterests,
-      // Behavioral Observations
+
       appearanceAge: intake.appearanceAge,
       appearanceHeight: intake.appearanceHeight,
       appearanceWeight: intake.appearanceWeight,
@@ -286,26 +259,24 @@ export async function GET(
       cognitionInsight: intake.cognitionInsight,
       cognitionDescription: intake.cognitionDescription,
       estimatedIntelligence: intake.estimatedIntelligence,
-      // Diagnosis
-      diagnosis: safeText(intake.diagnosis),
-      treatmentRecommendation: safeText(intake.treatmentRecommendation),
-      // Wellness
+
+      diagnosis: intake.diagnosis,
+      treatmentRecommendation: intake.treatmentRecommendation,
+
       healthNeeds: intake.healthNeeds,
       nutritionalNeeds: intake.nutritionalNeeds,
       spiritualNeeds: intake.spiritualNeeds,
       culturalNeeds: intake.culturalNeeds,
-      educationHistory: intake.educationHistory,
-      vocationalHistory: intake.vocationalHistory,
-      // Crisis/Discharge
-      crisisInterventionPlan: safeText(intake.crisisInterventionPlan),
+
+      crisisInterventionPlan: intake.crisisInterventionPlan,
       feedbackFrequency: intake.feedbackFrequency,
-      dischargePlanning: safeText(intake.dischargePlanning),
+      dischargePlanning: intake.dischargePlanning,
       signatures: emptyToNull(intake.signatures) as Record<string, string> | null,
-      // Status
-      status: intake.status as "DRAFT" | "PENDING" | "APPROVED" | "CONDITIONAL" | "DENIED",
+
+      status: intake.status,
       decisionReason: intake.decisionReason,
-      decidedAt: intake.decidedAt?.toISOString() || null,
-      createdAt: intake.createdAt.toISOString(),
+      decidedAt: intake.decidedAt,
+      createdAt: intake.createdAt,
       facility: {
         name: intake.facility.name,
         address: intake.facility.address,
@@ -313,38 +284,8 @@ export async function GET(
       bhpName: intake.facility.bhp?.user?.name || "Unknown BHP",
     };
 
-    // Debug: Log data to identify problematic fields
-    console.log("PDF Data - dischargePlanning length:", pdfData.dischargePlanning?.length || 0);
-    console.log("PDF Data - dischargePlanning preview:", pdfData.dischargePlanning?.substring(0, 200));
-    if (pdfData.dischargePlanning) {
-      // Check for non-printable characters
-      const nonPrintable = pdfData.dischargePlanning.match(/[^\x20-\x7E\n\r\t]/g);
-      if (nonPrintable) {
-        console.log("PDF Data - dischargePlanning has non-printable chars:", nonPrintable.slice(0, 10));
-      }
-    }
+    const docxBuffer = await buildIntakeDocx(docxData);
 
-    // Check for any non-finite numbers in the data
-    const checkForBadNumbers = (obj: unknown, path = ""): string[] => {
-      const issues: string[] = [];
-      if (typeof obj === "number" && !Number.isFinite(obj)) {
-        issues.push(`${path}: ${obj}`);
-      } else if (Array.isArray(obj)) {
-        obj.forEach((item, i) => issues.push(...checkForBadNumbers(item, `${path}[${i}]`)));
-      } else if (obj && typeof obj === "object") {
-        Object.entries(obj).forEach(([k, v]) => issues.push(...checkForBadNumbers(v, path ? `${path}.${k}` : k)));
-      }
-      return issues;
-    };
-    const badNumbers = checkForBadNumbers(pdfData);
-    if (badNumbers.length > 0) {
-      console.error("Found bad numbers in PDF data:", badNumbers);
-    }
-
-    // Generate PDF
-    const pdfBuffer = await renderToBuffer(IntakePDF({ data: pdfData as unknown as Parameters<typeof IntakePDF>[0]['data'] }));
-
-    // Log the PDF download for HIPAA compliance
     await createAuditLog({
       userId: session.user.id,
       action: AuditActions.INTAKE_PDF_DOWNLOADED,
@@ -358,28 +299,21 @@ export async function GET(
       },
     });
 
-    // Create filename
-    const sanitizedName = intake.residentName
-      .replace(/[^a-zA-Z0-9]/g, "_")
-      .substring(0, 30);
-    const dateStr = getTodayArizona();
-    const filename = `intake_${sanitizedName}_${dateStr}.pdf`;
+    const filename = intakeDocxFilename({ residentName: intake.residentName }, getTodayArizona());
 
-    // Return PDF response
-    return new NextResponse(new Uint8Array(pdfBuffer), {
+    return new NextResponse(new Uint8Array(docxBuffer), {
       headers: {
-        "Content-Type": "application/pdf",
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="${filename}"`,
         "Cache-Control": "no-store, no-cache, must-revalidate",
         "Pragma": "no-cache",
       },
     });
   } catch (error) {
-    console.error("Generate Intake PDF error:", error);
+    console.error("Generate Intake DOCX error:", error);
     console.error("Error stack:", error instanceof Error ? error.stack : "No stack");
-    console.error("Error message:", error instanceof Error ? error.message : String(error));
     return NextResponse.json(
-      { error: "Failed to generate PDF", details: error instanceof Error ? error.message : String(error) },
+      { error: "Failed to generate document", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
