@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +104,68 @@ export function ProgressNoteForm({
       ? new Date(initialData.bhtSignatureDate).toISOString().split("T")[0]
       : "",
   });
+
+  // Track the last auto-filled signature so we only overwrite values the user
+  // hasn't customized. Null on first fetch.
+  const lastAutoFill = useRef<{
+    authorName: string;
+    authorTitle: string;
+    bhtSignature: string;
+    bhtCredentials: string;
+  } | null>(null);
+
+  // When the shift or note date changes while creating a new note, pull the
+  // staff member assigned to that shift on that date and prefill signature
+  // fields. Editing existing notes keeps whatever the record already holds.
+  useEffect(() => {
+    if (mode !== "create") return;
+    if (!formData.shift || !formData.noteDate) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/shift-staffing/current?shift=${encodeURIComponent(formData.shift)}&date=${encodeURIComponent(formData.noteDate)}`
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as { staffing: { name: string; credentials: string | null } | null };
+        if (cancelled || !data.staffing) return;
+
+        const name = data.staffing.name;
+        const creds = data.staffing.credentials || "";
+
+        setFormData((prev) => {
+          const last = lastAutoFill.current;
+          const next = { ...prev };
+          const keep = (field: keyof typeof prev, nextValue: string) => {
+            // Overwrite only when the field is empty or still holds the
+            // previously auto-filled value — never clobber manual edits.
+            if (!prev[field] || prev[field] === last?.[field as keyof typeof last]) {
+              (next as Record<string, string>)[field as string] = nextValue;
+            }
+          };
+          keep("authorName", name);
+          keep("authorTitle", creds);
+          keep("bhtSignature", name);
+          keep("bhtCredentials", creds);
+          return next;
+        });
+
+        lastAutoFill.current = {
+          authorName: name,
+          authorTitle: creds,
+          bhtSignature: name,
+          bhtCredentials: creds,
+        };
+      } catch (err) {
+        console.error("Failed to fetch shift staffing:", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.shift, formData.noteDate, mode]);
 
   async function handleSave(isDraft: boolean = true) {
     if (isDraft) {

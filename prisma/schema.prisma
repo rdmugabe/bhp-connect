@@ -148,8 +148,24 @@ model Facility {
   facilityInvitations      FacilityInvitation[]
   careCoordinationEntries  CareCoordinationEntry[]
   groupTherapyMaterials    GroupTherapyMaterial[]
+  shiftStaffing            ShiftStaffing[]
 
   @@index([bhpId])
+}
+
+model ShiftStaffing {
+  id            String   @id @default(cuid())
+  facilityId    String
+  facility      Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  shift         String   // "AM", "PM", or "NOC"
+  name          String
+  credentials   String?
+  signatureKey  String?  // Optional S3 key for a signature image used on docs
+  effectiveFrom DateTime @db.Date
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([facilityId, shift, effectiveFrom])
 }
 
 model BHRFProfile {

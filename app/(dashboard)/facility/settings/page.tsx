@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FolderOpen, FileType, Shield, ChevronRight, ClipboardSignature } from "lucide-react";
+import { FolderOpen, FileType, Shield, ChevronRight, ClipboardSignature, Users } from "lucide-react";
 
 export default async function FacilitySettingsPage() {
   const session = await getServerSession(authOptions);
@@ -41,6 +41,12 @@ export default async function FacilitySettingsPage() {
       description: "Configure default staff/admin name for onboarding packets",
       href: "/facility/settings/onboarding",
       icon: ClipboardSignature,
+    },
+    {
+      title: "Shift Staffing",
+      description: "Who covers AM, PM, and NOC shifts — used to default progress-note signatures",
+      href: "/facility/settings/shift-staffing",
+      icon: Users,
     },
     {
       title: "Document Categories",
