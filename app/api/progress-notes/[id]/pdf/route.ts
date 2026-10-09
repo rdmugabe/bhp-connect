@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { renderToBuffer } from "@react-pdf/renderer";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog, AuditActions } from "@/lib/audit";
-import { ProgressNotePDF } from "@/lib/pdf/progress-note-template";
-import { formatISODateOnly } from "@/lib/date-utils";
+import { buildProgressNoteDocx, progressNoteDocxFilename } from "@/lib/progress-notes-docx";
+import { getStaffingForDate } from "@/lib/staffing";
+import { getFileFromS3 } from "@/lib/s3";
 
 export async function GET(
   request: NextRequest,
@@ -20,23 +20,10 @@ export async function GET(
 
     const { id } = await params;
 
-    // Fetch the progress note with authorization check
     const progressNote = await prisma.progressNote.findUnique({
       where: { id },
       include: {
-        facility: {
-          include: {
-            bhp: {
-              include: {
-                user: {
-                  select: {
-                    name: true,
-                  },
-                },
-              },
-            },
-          },
-        },
+        facility: true,
         intake: {
           select: {
             residentName: true,
@@ -48,13 +35,9 @@ export async function GET(
     });
 
     if (!progressNote) {
-      return NextResponse.json(
-        { error: "Progress note not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Progress note not found" }, { status: 404 });
     }
 
-    // Authorization check based on role
     if (session.user.role === "BHP") {
       const bhpProfile = await prisma.bHPProfile.findUnique({
         where: { userId: session.user.id },
@@ -73,59 +56,57 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Prepare PDF data
-    const pdfData = {
-      // Resident Info
+    // Look up the signature image for this shift+date, if one is on file.
+    let bhtSignatureImage: { buffer: Buffer; type: "png" | "jpg" } | null = null;
+    if (progressNote.shift) {
+      const staffing = await getStaffingForDate(
+        progressNote.facilityId,
+        progressNote.shift,
+        progressNote.noteDate
+      );
+      if (staffing?.signatureKey) {
+        try {
+          const { buffer, contentType } = await getFileFromS3(staffing.signatureKey);
+          bhtSignatureImage = {
+            buffer,
+            type: contentType.includes("png") ? "png" : "jpg",
+          };
+        } catch (err) {
+          console.error("Failed to fetch signature image:", err);
+        }
+      }
+    }
+
+    const docxBuffer = await buildProgressNoteDocx({
       residentName: progressNote.intake.residentName,
-      dateOfBirth: progressNote.intake.dateOfBirth?.toISOString() || "",
-      ahcccsId: progressNote.intake.policyNumber || undefined,
-
-      // Facility Info
+      dateOfBirth: progressNote.intake.dateOfBirth,
+      ahcccsId: progressNote.intake.policyNumber,
       facilityName: progressNote.facility.name,
-
-      // Note Metadata
-      noteDate: progressNote.noteDate.toISOString(),
-      shift: progressNote.shift || undefined,
+      noteDate: progressNote.noteDate,
+      shift: progressNote.shift,
       authorName: progressNote.authorName,
-      authorTitle: progressNote.authorTitle || undefined,
+      authorTitle: progressNote.authorTitle,
       status: progressNote.status,
+      residentStatus: progressNote.residentStatus,
+      observedBehaviors: progressNote.observedBehaviors,
+      moodAffect: progressNote.moodAffect,
+      activityParticipation: progressNote.activityParticipation,
+      staffInteractions: progressNote.staffInteractions,
+      peerInteractions: progressNote.peerInteractions,
+      medicationCompliance: progressNote.medicationCompliance,
+      hygieneAdl: progressNote.hygieneAdl,
+      mealsAppetite: progressNote.mealsAppetite,
+      sleepPattern: progressNote.sleepPattern,
+      staffInterventions: progressNote.staffInterventions,
+      residentResponse: progressNote.residentResponse,
+      notableEvents: progressNote.notableEvents,
+      additionalNotes: progressNote.additionalNotes,
+      bhtSignature: progressNote.bhtSignature,
+      bhtCredentials: progressNote.bhtCredentials,
+      bhtSignatureDate: progressNote.bhtSignatureDate,
+      bhtSignatureImage,
+    });
 
-      // Staff Observations
-      residentStatus: progressNote.residentStatus || undefined,
-      observedBehaviors: progressNote.observedBehaviors || undefined,
-      moodAffect: progressNote.moodAffect || undefined,
-      activityParticipation: progressNote.activityParticipation || undefined,
-      staffInteractions: progressNote.staffInteractions || undefined,
-      peerInteractions: progressNote.peerInteractions || undefined,
-      medicationCompliance: progressNote.medicationCompliance || undefined,
-      hygieneAdl: progressNote.hygieneAdl || undefined,
-      mealsAppetite: progressNote.mealsAppetite || undefined,
-      sleepPattern: progressNote.sleepPattern || undefined,
-      staffInterventions: progressNote.staffInterventions || undefined,
-      residentResponse: progressNote.residentResponse || undefined,
-      notableEvents: progressNote.notableEvents || undefined,
-      additionalNotes: progressNote.additionalNotes || undefined,
-
-      // AI Generated
-      generatedNote: progressNote.generatedNote || undefined,
-      riskFlagsDetected: progressNote.riskFlagsDetected || undefined,
-
-      // BHT Signature
-      bhtSignature: progressNote.bhtSignature || undefined,
-      bhtCredentials: progressNote.bhtCredentials || undefined,
-      bhtSignatureDate: progressNote.bhtSignatureDate?.toISOString() || undefined,
-
-      // Timestamps
-      createdAt: progressNote.createdAt.toISOString(),
-      submittedAt: progressNote.submittedAt?.toISOString() || undefined,
-    };
-
-    // Generate PDF
-    const pdfBuffer = await renderToBuffer(
-      ProgressNotePDF({ data: pdfData })
-    );
-
-    // Log the PDF download for HIPAA compliance
     await createAuditLog({
       userId: session.user.id,
       action: AuditActions.PROGRESS_NOTE_PDF_DOWNLOADED,
@@ -133,34 +114,32 @@ export async function GET(
       entityId: progressNote.id,
       details: {
         residentName: progressNote.intake.residentName,
-        noteDate: formatISODateOnly(progressNote.noteDate),
+        noteDate: progressNote.noteDate.toISOString().slice(0, 10),
         facilityName: progressNote.facility.name,
         downloadedBy: session.user.name,
         downloadedByRole: session.user.role,
       },
     });
 
-    // Create filename
-    const dateStr = formatISODateOnly(progressNote.noteDate);
-    const residentName = progressNote.intake.residentName
-      .replace(/[^a-zA-Z0-9]/g, "_")
-      .substring(0, 20);
-    const filename = `progress_note_${residentName}_${dateStr}.pdf`;
+    const filename = progressNoteDocxFilename({
+      residentName: progressNote.intake.residentName,
+      noteDate: progressNote.noteDate,
+      shift: progressNote.shift,
+    });
 
-    // Return PDF response
-    return new NextResponse(new Uint8Array(pdfBuffer), {
+    return new NextResponse(new Uint8Array(docxBuffer), {
       headers: {
-        "Content-Type": "application/pdf",
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="${filename}"`,
         "Cache-Control": "no-store, no-cache, must-revalidate",
         "Pragma": "no-cache",
       },
     });
   } catch (error) {
-    console.error("Generate Progress Note PDF error:", error);
+    console.error("Generate Progress Note DOCX error:", error);
     console.error("Error stack:", error instanceof Error ? error.stack : "No stack");
     return NextResponse.json(
-      { error: "Failed to generate PDF", details: error instanceof Error ? error.message : String(error) },
+      { error: "Failed to generate document", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
