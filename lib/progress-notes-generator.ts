@@ -221,7 +221,7 @@ const MOOD_AFFECT: Record<Phase, { base: string[]; extras: string[] }> = {
 const PROGRAMMING: Record<Phase, { base: string[]; extras: string[] }> = {
   admit: {
     base: [
-      "Went to morning meeting and skills group. Shared a little.",
+      "Went to group therapy and skills group. Shared a little.",
       "Went to discussion group. Mostly listened and shared a short thought.",
       "Went to the group on relapse prevention. Followed along with the content.",
       "Went to group with a staff reminder. Took part when prompted.",
@@ -230,7 +230,7 @@ const PROGRAMMING: Record<Phase, { base: string[]; extras: string[] }> = {
       "Went to orientation group and daily meeting. Cooperative throughout.",
       "Went to groups as scheduled. Engagement is building each shift.",
       "Went to group therapy. Needed a little help to stay focused but took part.",
-      "Went to morning meeting and relapse-prevention group.",
+      "Went to group therapy and relapse-prevention group.",
       "Went to every scheduled group. Mostly watching peers at this point.",
     ],
     extras: [
@@ -246,13 +246,13 @@ const PROGRAMMING: Record<Phase, { base: string[]; extras: string[] }> = {
       "Went to every scheduled group and community meeting. Took part in discussions.",
       "Went to group therapy and life-skills group. Engaged all shift.",
       "Went to discussion group and skills group. Active participation.",
-      "Went to morning meeting, group therapy, and afternoon activity. Took part well.",
+      "Went to group therapy and afternoon activity. Took part well.",
       "Went to teaching group and discussion group. Shared meaningful content.",
       "Went to community meeting and two group sessions. Shared on topic.",
       "Went to every scheduled group. Shared consistent reflections.",
       "Went to group therapy and was active in the discussion.",
       "Went to three groups. Shared helpful thoughts on cravings and coping.",
-      "Went to morning meeting, group, and skills group. Engaged in each.",
+      "Went to group therapy and skills group. Engaged in each.",
       "Went to all programming today. Was a steady voice in community.",
     ],
     extras: [
@@ -268,14 +268,14 @@ const PROGRAMMING: Record<Phase, { base: string[]; extras: string[] }> = {
       "Went to every group and community meeting. Shared thoughtful comments.",
       "Went to group therapy and afternoon programming. Active in discussions.",
       "Went to every scheduled group. Setting a good example for newer residents.",
-      "Went to morning meeting, group, and skills group. Shared helpful comments.",
+      "Went to group therapy and skills group. Shared helpful comments.",
       "Went to three group sessions. Helped lead discussion on aftercare planning.",
       "Went to community meeting and groups. Shared mentoring thoughts.",
       "Went to all programming. Engaged across every group.",
       "Went to group therapy and life-skills. Mentored a newer peer during activity.",
       "Went to programming consistently. Strong voice in the discussion.",
       "Went to every scheduled group. Helped the group stay connected and on topic.",
-      "Went to morning meeting and groups. Shared recovery wisdom with the community.",
+      "Went to group therapy and other groups. Shared recovery wisdom with the community.",
     ],
     extras: [
       "Helped lead a tough conversation with staff support.",
@@ -443,7 +443,7 @@ const BEHAVIOR = (shift: Shift, hasActiveMeds: boolean): string[] => {
   const meds = hasActiveMeds ? "medications, " : "";
   const shiftBlock =
     shift === "AM"
-      ? `AM shift (06:00-18:00): morning routine, breakfast, ${meds}morning meeting, and morning programming.`
+      ? `AM shift (06:00-18:00): morning routine, breakfast, ${meds}group therapy, and morning programming.`
       : `PM shift (18:00-06:00): dinner, evening programming, ${meds}evening wind-down, and overnight monitoring.`;
   return [
     `${shiftBlock} No safety concerns this shift.`,
