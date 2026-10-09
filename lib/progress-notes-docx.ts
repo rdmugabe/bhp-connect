@@ -11,6 +11,7 @@ import {
   AlignmentType,
   BorderStyle,
   Document,
+  ImageRun,
   Packer,
   Paragraph,
   Table,
@@ -114,6 +115,10 @@ export interface ProgressNoteDocxData {
   bhtSignature?: string | null;
   bhtCredentials?: string | null;
   bhtSignatureDate?: Date | null;
+  bhtSignatureImage?: {
+    buffer: Buffer | Uint8Array;
+    type: "png" | "jpg";
+  } | null;
 }
 
 function fmtDate(d: Date | null | undefined, withTime = false): string {
@@ -219,8 +224,27 @@ export async function buildProgressNoteDocx(d: ProgressNoteDocxData): Promise<Ui
     children.push(body(d.additionalNotes || ""));
   }
 
-  // Signature line (tight spacing so it fits on page 1)
-  children.push(new Paragraph({ spacing: { before: 240 }, children: [run("________________________________________")] }));
+  // Signature line (tight spacing so it fits on page 1). When a signature
+  // image is provided, drop it in above the printed-name line; otherwise
+  // keep the plain underscore line as a hand-sign placeholder.
+  if (d.bhtSignatureImage) {
+    children.push(
+      new Paragraph({
+        spacing: { before: 240 },
+        children: [
+          new ImageRun({
+            data: d.bhtSignatureImage.buffer,
+            transformation: { width: 180, height: 60 },
+            type: d.bhtSignatureImage.type,
+          }),
+        ],
+      })
+    );
+  } else {
+    children.push(
+      new Paragraph({ spacing: { before: 240 }, children: [run("________________________________________")] })
+    );
+  }
   children.push(
     new Paragraph({
       children: [

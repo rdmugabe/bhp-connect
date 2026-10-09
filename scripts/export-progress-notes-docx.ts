@@ -1,8 +1,24 @@
 import { prisma } from "@/lib/prisma";
 import { buildProgressNoteDocx } from "@/lib/progress-notes-docx";
+import { getStaffingForDate } from "@/lib/staffing";
+import { getFileFromS3 } from "@/lib/s3";
 import JSZip from "jszip";
 import * as fs from "fs";
 import * as path from "path";
+
+async function fetchSignatureImage(
+  key: string | null
+): Promise<{ buffer: Buffer; type: "png" | "jpg" } | null> {
+  if (!key) return null;
+  try {
+    const { buffer, contentType } = await getFileFromS3(key);
+    const type: "png" | "jpg" = contentType.includes("png") ? "png" : "jpg";
+    return { buffer, type };
+  } catch (err) {
+    console.error(`Failed to fetch signature ${key}:`, err);
+    return null;
+  }
+}
 
 async function main() {
   const start = new Date("2026-09-13T00:00:00.000Z");
@@ -23,7 +39,19 @@ async function main() {
   console.log(`Found ${notes.length} notes`);
 
   const zip = new JSZip();
+  // Simple per-key cache so we only pull each signature image once.
+  const sigCache = new Map<string, { buffer: Buffer; type: "png" | "jpg" } | null>();
+
   for (const n of notes) {
+    const staff = n.shift ? await getStaffingForDate(n.facilityId, n.shift, n.noteDate) : null;
+    let sigImage: { buffer: Buffer; type: "png" | "jpg" } | null = null;
+    if (staff?.signatureKey) {
+      if (!sigCache.has(staff.signatureKey)) {
+        sigCache.set(staff.signatureKey, await fetchSignatureImage(staff.signatureKey));
+      }
+      sigImage = sigCache.get(staff.signatureKey) ?? null;
+    }
+
     const buf = await buildProgressNoteDocx({
       residentName: n.intake.residentName,
       dateOfBirth: n.intake.dateOfBirth,
@@ -51,6 +79,7 @@ async function main() {
       bhtSignature: n.bhtSignature,
       bhtCredentials: n.bhtCredentials,
       bhtSignatureDate: n.bhtSignatureDate,
+      bhtSignatureImage: sigImage,
     });
     const dateStr = n.noteDate.toISOString().slice(0, 10);
     const shortName = `${dateStr}_${n.shift || "SHIFT"}.docx`;

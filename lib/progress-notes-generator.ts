@@ -437,11 +437,14 @@ const RESPONSE: string[] = [
   "Was open and engaged across the shift.",
 ];
 
-const BEHAVIOR = (shift: Shift): string[] => {
+const BEHAVIOR = (shift: Shift, hasActiveMeds: boolean): string[] => {
+  // Only mention medications in the shift-routine summary when the resident
+  // actually has active meds on file; otherwise skip that activity entirely.
+  const meds = hasActiveMeds ? "medications, " : "";
   const shiftBlock =
     shift === "AM"
-      ? "AM shift (06:00-18:00): morning routine, breakfast, medications, morning meeting, and morning programming."
-      : "PM shift (18:00-06:00): dinner, evening programming, medications, evening wind-down, and overnight monitoring.";
+      ? `AM shift (06:00-18:00): morning routine, breakfast, ${meds}morning meeting, and morning programming.`
+      : `PM shift (18:00-06:00): dinner, evening programming, ${meds}evening wind-down, and overnight monitoring.`;
   return [
     `${shiftBlock} No safety concerns this shift.`,
     `${shiftBlock} Behavior was appropriate all shift.`,
@@ -539,7 +542,7 @@ export function buildVariedContent(args: BuildArgs): NoteContent {
 
   return {
     residentStatus,
-    observedBehaviors: sub(pick(BEHAVIOR(args.shift), rand)),
+    observedBehaviors: sub(pick(BEHAVIOR(args.shift, !!args.hasActiveMeds), rand)),
     moodAffect,
     activityParticipation,
     staffInteractions: sub(pick(STAFF_INTERACTION, rand)),
