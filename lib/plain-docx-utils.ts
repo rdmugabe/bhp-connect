@@ -65,10 +65,10 @@ export function subHeading(text: string): Paragraph {
   });
 }
 
-/** Plain justified body text. */
+/** Plain left-aligned body text. */
 export function body(text: string): Paragraph {
   return new Paragraph({
-    alignment: AlignmentType.JUSTIFIED,
+    alignment: AlignmentType.LEFT,
     spacing: { after: 80 },
     children: [run(text || "N/A")],
   });
@@ -96,7 +96,7 @@ export function labeledBlock(label: string, value: string | null | undefined): P
       children: [run(label, { bold: true })],
     }),
     new Paragraph({
-      alignment: AlignmentType.JUSTIFIED,
+      alignment: AlignmentType.LEFT,
       spacing: { after: 80 },
       children: [run(v)],
     }),

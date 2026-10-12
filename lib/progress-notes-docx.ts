@@ -45,8 +45,10 @@ function heading(text: string): Paragraph {
 }
 
 function body(text: string): Paragraph {
+  // Left-aligned (not justified) so Word doesn't stretch inter-word spaces
+  // to force both edges flush — that produced uneven gaps in short lines.
   return new Paragraph({
-    alignment: AlignmentType.JUSTIFIED,
+    alignment: AlignmentType.LEFT,
     spacing: { after: 80 },
     children: [run(text || "N/A")],
   });
