@@ -255,7 +255,7 @@ export async function buildProgressNoteDocx(d: ProgressNoteDocxData): Promise<Ui
     })
   );
   children.push(
-    new Paragraph({ children: [run(`Signed: ${fmtDate(d.bhtSignatureDate ?? null, true)}`, { italics: true })] })
+    new Paragraph({ children: [run(`Signed: ${fmtDate(d.bhtSignatureDate ?? null)}`, { italics: true })] })
   );
 
   const doc = new Document({
