@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Flame, Users, AlertTriangle, ClipboardCheck } from "lucide-react";
 import { getCurrentBiWeekInfo, formatBiWeekLabel } from "@/lib/utils";
+import { YearDownloadButton } from "@/components/admin-tasks/year-download-button";
 
 export default async function AdminTasksPage() {
   const session = await getServerSession(authOptions);
@@ -194,7 +195,14 @@ export default async function AdminTasksPage() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Link href="/facility/admin-tasks/fire-drills">
+        <Link href="/facility/admin-tasks/fire-drills" className="relative block">
+          <div className="absolute top-4 right-4 z-10">
+            <YearDownloadButton
+              endpoint="fire-drill-reports"
+              label="FireDrillReports"
+              currentYear={currentYear}
+            />
+          </div>
           <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -235,7 +243,14 @@ export default async function AdminTasksPage() {
           </Card>
         </Link>
 
-        <Link href="/facility/admin-tasks/evacuation-drills">
+        <Link href="/facility/admin-tasks/evacuation-drills" className="relative block">
+          <div className="absolute top-4 right-4 z-10">
+            <YearDownloadButton
+              endpoint="evacuation-drill-reports"
+              label="EvacuationDisasterDrills"
+              currentYear={currentYear}
+            />
+          </div>
           <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full">
             <CardHeader>
               <div className="flex items-center justify-between">
