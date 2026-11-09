@@ -162,7 +162,7 @@ export default function EvacuationDrillsPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `evacuation-drill-report-${id}.pdf`;
+      a.download = `evacuation-drill-report-${id}.docx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

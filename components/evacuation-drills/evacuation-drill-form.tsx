@@ -162,6 +162,12 @@ export function EvacuationDrillForm({
     }
   }, [report, approvedResidents]);
 
+  /** True when this row was pre-populated from the current resident roster;
+   *  such rows have locked names. "Other participants" rows take free-form
+   *  names. */
+  const isCurrentResident = (name: string) =>
+    approvedResidents.some((a) => a.name === name);
+
   // Update day of week when date changes
   useEffect(() => {
     if (formData.drillDate) {
@@ -501,44 +507,51 @@ export function EvacuationDrillForm({
         </CardContent>
       </Card>
 
-      {/* Residents Involved - Only for Evacuation Drills */}
+      {/* Participants - Only for Evacuation Drills */}
       {formData.drillType === "EVACUATION" && (
         <Card>
           <CardHeader>
-            <CardTitle>Clients/Residents Involved</CardTitle>
+            <CardTitle>Participants</CardTitle>
             <CardDescription>
-              List all residents who participated in the evacuation drill
+              Current residents are pre-populated from the roster. Add any other
+              participants (visitors, volunteers, guests) below.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {formData.residentsInvolved.map((resident, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground w-8">{index + 1}.</span>
-                <Input
-                  value={resident.name}
-                  onChange={(e) => updateResident(index, "name", e.target.value)}
-                  placeholder="Client name"
-                  className="flex-1"
-                />
-                <Input
-                  value={resident.assistanceRequired}
-                  onChange={(e) => updateResident(index, "assistanceRequired", e.target.value)}
-                  placeholder="Type of assistance required"
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeResident(index)}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            ))}
+            {formData.residentsInvolved.map((resident, index) => {
+              const locked = isCurrentResident(resident.name);
+              return (
+                <div key={index} className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground w-8">{index + 1}.</span>
+                  <Input
+                    value={resident.name}
+                    onChange={(e) => updateResident(index, "name", e.target.value)}
+                    placeholder={locked ? resident.name : "Participant name"}
+                    className="flex-1"
+                    readOnly={locked}
+                  />
+                  <Input
+                    value={resident.assistanceRequired}
+                    onChange={(e) => updateResident(index, "assistanceRequired", e.target.value)}
+                    placeholder="Type of assistance required"
+                    className="flex-1"
+                  />
+                  {!locked && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeResident(index)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
             <Button type="button" variant="outline" onClick={addResident}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Resident
+              Add Other Participant
             </Button>
           </CardContent>
         </Card>

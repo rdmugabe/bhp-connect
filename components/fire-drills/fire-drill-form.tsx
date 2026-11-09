@@ -138,7 +138,7 @@ export function FireDrillForm({
         },
       });
     } else if (approvedResidents.length > 0) {
-      // Pre-populate residents from approved intakes
+      // Pre-populate residents from current (approved, not discharged) intakes
       setFormData((prev) => ({
         ...prev,
         residentsPresent: approvedResidents.map((r) => ({
@@ -148,6 +148,12 @@ export function FireDrillForm({
       }));
     }
   }, [report, approvedResidents]);
+
+  /** True when this row was pre-populated from the current resident roster.
+   *  Those names are locked (edit the roster instead). "Other participants"
+   *  rows have free-form names. */
+  const isCurrentResident = (name: string) =>
+    approvedResidents.some((a) => a.name === name);
 
   const handleChecklistChange = (
     key: keyof typeof formData.safetyChecklist,
@@ -422,47 +428,54 @@ export function FireDrillForm({
         </CardContent>
       </Card>
 
-      {/* Residents Present */}
+      {/* Participants */}
       <Card>
         <CardHeader>
-          <CardTitle>Residents Present</CardTitle>
+          <CardTitle>Participants</CardTitle>
           <CardDescription>
-            List all residents present during the drill and their evacuation status
+            Current residents are pre-populated from the roster. Add any other
+            participants (staff visitors, volunteers, guests) below.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {formData.residentsPresent.map((resident, index) => (
-            <div key={index} className="flex items-center gap-4">
-              <Input
-                value={resident.name}
-                onChange={(e) => updateResidentName(index, e.target.value)}
-                placeholder="Resident name"
-                className="flex-1"
-              />
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={`evacuated-${index}`}
-                  checked={resident.evacuated}
-                  onCheckedChange={(checked) =>
-                    handleResidentEvacuatedChange(index, checked as boolean)
-                  }
+          {formData.residentsPresent.map((resident, index) => {
+            const locked = isCurrentResident(resident.name);
+            return (
+              <div key={index} className="flex items-center gap-4">
+                <Input
+                  value={resident.name}
+                  onChange={(e) => updateResidentName(index, e.target.value)}
+                  placeholder={locked ? resident.name : "Participant name"}
+                  className="flex-1"
+                  readOnly={locked}
                 />
-                <Label htmlFor={`evacuated-${index}`} className="text-sm">
-                  Evacuated
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={`evacuated-${index}`}
+                    checked={resident.evacuated}
+                    onCheckedChange={(checked) =>
+                      handleResidentEvacuatedChange(index, checked as boolean)
+                    }
+                  />
+                  <Label htmlFor={`evacuated-${index}`} className="text-sm">
+                    Evacuated
+                  </Label>
+                </div>
+                {!locked && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeResident(index)}
+                  >
+                    Remove
+                  </Button>
+                )}
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => removeResident(index)}
-              >
-                Remove
-              </Button>
-            </div>
-          ))}
+            );
+          })}
           <Button type="button" variant="outline" onClick={addResident}>
-            Add Resident
+            Add Other Participant
           </Button>
         </CardContent>
       </Card>

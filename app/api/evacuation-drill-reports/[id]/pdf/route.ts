@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { renderToBuffer } from "@react-pdf/renderer";
-import { EvacuationDrillPDF } from "@/lib/pdf/evacuation-drill-template";
+import { buildEvacuationDrillDocx, evacuationDrillDocxFilename } from "@/lib/evacuation-drill-docx";
 import { createAuditLog, AuditActions } from "@/lib/audit";
 
 export async function GET(
@@ -12,7 +11,6 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -27,30 +25,19 @@ export async function GET(
             id: true,
             name: true,
             address: true,
-            bhp: {
-              select: {
-                user: {
-                  select: {
-                    name: true,
-                  },
-                },
-              },
-            },
+            bhp: { select: { user: { select: { name: true } } } },
           },
         },
       },
     });
-
     if (!report) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
-    // Verify access
     if (session.user.role === "BHRF") {
       const bhrfProfile = await prisma.bHRFProfile.findUnique({
         where: { userId: session.user.id },
       });
-
       if (!bhrfProfile || bhrfProfile.facilityId !== report.facilityId) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
@@ -58,21 +45,18 @@ export async function GET(
       const bhpProfile = await prisma.bHPProfile.findUnique({
         where: { userId: session.user.id },
       });
-
       const facility = await prisma.facility.findUnique({
         where: { id: report.facilityId },
       });
-
       if (!bhpProfile || !facility || facility.bhpId !== bhpProfile.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
     }
 
-    // Format the data for the PDF
-    const pdfData = {
+    const buffer = await buildEvacuationDrillDocx({
       id: report.id,
       drillType: report.drillType,
-      drillDate: report.drillDate.toISOString(),
+      drillDate: report.drillDate,
       drillTime: report.drillTime,
       dayOfWeek: report.dayOfWeek,
       totalLengthMinutes: report.totalLengthMinutes,
@@ -81,7 +65,9 @@ export async function GET(
       year: report.year,
       disasterDrillType: report.disasterDrillType,
       staffInvolved: report.staffInvolved as { name: string }[],
-      residentsInvolved: report.residentsInvolved as { name: string; assistanceRequired?: string }[] | null,
+      residentsInvolved: report.residentsInvolved as
+        | { name: string; assistanceRequired?: string }[]
+        | null,
       exitBlocked: report.exitBlocked,
       exitUsed: report.exitUsed,
       assemblyPoint: report.assemblyPoint,
@@ -90,17 +76,14 @@ export async function GET(
       issuesIdentified: report.issuesIdentified,
       observations: report.observations,
       drillResult: report.drillResult,
-      signatures: report.signatures as Record<string, string> | null,
-      submittedAt: report.submittedAt.toISOString(),
+      signatures: report.signatures as Parameters<typeof buildEvacuationDrillDocx>[0]["signatures"],
+      submittedAt: report.submittedAt,
       facility: {
         name: report.facility.name,
         address: report.facility.address,
         bhp: report.facility.bhp,
       },
-    };
-
-    // Generate PDF
-    const pdfBuffer = await renderToBuffer(EvacuationDrillPDF({ data: pdfData }));
+    });
 
     await createAuditLog({
       userId: session.user.id,
@@ -115,19 +98,23 @@ export async function GET(
       },
     });
 
-    const drillTypeLabel = report.drillType === "EVACUATION" ? "Evacuation" : "Disaster";
-    const filename = `${drillTypeLabel}Drill_${report.quarter}${report.year}_${report.shift}.pdf`;
+    const filename = evacuationDrillDocxFilename({
+      drillType: report.drillType,
+      quarter: report.quarter,
+      year: report.year,
+      shift: report.shift,
+    });
 
-    return new NextResponse(new Uint8Array(pdfBuffer), {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
-        "Content-Type": "application/pdf",
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
   } catch (error) {
-    console.error("Generate evacuation drill PDF error:", error);
+    console.error("Generate evacuation drill DOCX error:", error);
     return NextResponse.json(
-      { error: "Failed to generate PDF" },
+      { error: "Failed to generate document" },
       { status: 500 }
     );
   }

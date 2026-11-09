@@ -29,11 +29,13 @@ export default async function NewEvacuationDrillReportPage({ searchParams }: Pag
     redirect("/");
   }
 
-  // Get approved residents from intakes for evacuation drills
+  // Only pull currently-admitted residents (approved and not yet discharged).
+  // Past/discharged residents must not appear on new drill reports.
   const approvedIntakes = await prisma.intake.findMany({
     where: {
       facilityId: bhrfProfile.facilityId,
       status: "APPROVED",
+      dischargedAt: null,
     },
     select: {
       residentName: true,

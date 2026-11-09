@@ -11,8 +11,8 @@ import { buildVariedContent, pronounsFromSex, type Phase } from "@/lib/progress-
 import { getStaffingForDate } from "@/lib/staffing";
 
 const START = new Date("2026-09-30T00:00:00.000Z");
-const END = new Date("2026-10-12T00:00:00.000Z");
-const SEED_VERSION = "v7-backfill-9-30-to-10-12";
+const END = new Date("2026-10-30T00:00:00.000Z");
+const SEED_VERSION = "v7-backfill-9-30-to-10-30";
 
 // Signature fallback used only when no ShiftStaffing entry has taken effect.
 const FALLBACK: Record<string, { name: string; credentials: string }> = {
