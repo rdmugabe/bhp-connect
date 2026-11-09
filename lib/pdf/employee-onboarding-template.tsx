@@ -160,6 +160,19 @@ const styles = StyleSheet.create({
     height: 20,
     backgroundColor: "#f7fafc",
   },
+  filledValue: {
+    fontSize: 10,
+    paddingTop: 4,
+    paddingBottom: 2,
+    borderBottom: "1 solid #cbd5e0",
+    minHeight: 20,
+  },
+  checkMark: {
+    fontSize: 10,
+    fontWeight: "bold",
+    textAlign: "center",
+    width: "100%",
+  },
   twoColumn: {
     flexDirection: "row",
     gap: 20,
@@ -251,6 +264,46 @@ interface EmployeeOnboardingData {
    *  image. Rendered in the Administrator/Supervisor Signature cell when
    *  present. */
   adminSignature?: string;
+  /** Base64 data URI of the employee's signature image, captured through
+   *  the public signing page. Rendered in every Employee Signature cell
+   *  when present; otherwise the cells remain blank for a wet signature. */
+  employeeSignature?: string;
+  /** Values the employee entered in the signing page's fillable form.
+   *  Keyed by the field names in lib/employee-packet-fields.ts. Missing
+   *  keys fall back to a blank line in the PDF. */
+  formData?: Record<string, string>;
+}
+
+/** Return the typed value for a field key (safe for undefined formData). */
+function fv(data: EmployeeOnboardingData, key: string): string {
+  return (data.formData && data.formData[key]) || "";
+}
+
+/** Render either the entered value sitting on top of a line, or a blank line. */
+function FilledLine({ value }: { value: string }) {
+  if (value) {
+    return <Text style={styles.filledValue}>{value}</Text>;
+  }
+  return <View style={styles.fieldLine} />;
+}
+
+/** Render Yes/No checkbox pair with the matching option filled when the
+ *  value matches "Yes" or "No". */
+function YesNoBoxes({ value }: { value: string }) {
+  const yes = value === "Yes";
+  const no = value === "No";
+  return (
+    <View style={{ flexDirection: "row", marginTop: 5 }}>
+      <View style={[styles.checkboxRow, { marginRight: 15 }]}>
+        <View style={styles.checkbox}>{yes ? <Text style={styles.checkMark}>X</Text> : null}</View>
+        <Text>Yes</Text>
+      </View>
+      <View style={styles.checkboxRow}>
+        <View style={styles.checkbox}>{no ? <Text style={styles.checkMark}>X</Text> : null}</View>
+        <Text>No</Text>
+      </View>
+    </View>
+  );
 }
 
 const TOTAL_PAGES = 14;
@@ -268,7 +321,15 @@ function PageFooter({ pageNum }: { pageNum: number }) {
   );
 }
 
-function EmployeeSignatureBlock({ name, hireDate }: { name: string; hireDate?: string }) {
+function EmployeeSignatureBlock({
+  name,
+  hireDate,
+  signature,
+}: {
+  name: string;
+  hireDate?: string;
+  signature?: string;
+}) {
   return (
     <View style={styles.signatureRow}>
       <View style={styles.signatureBlock}>
@@ -276,7 +337,14 @@ function EmployeeSignatureBlock({ name, hireDate }: { name: string; hireDate?: s
         <Text style={styles.signatureLabel}>Employee Name (Printed)</Text>
       </View>
       <View style={styles.signatureBlock}>
-        <View style={styles.signatureLine} />
+        {signature ? (
+          <View style={styles.signatureImageContainer}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+            <Image src={signature} style={styles.signatureImage} />
+          </View>
+        ) : (
+          <View style={styles.signatureLine} />
+        )}
         <Text style={styles.signatureLabel}>Employee Signature</Text>
       </View>
       <View style={{ width: 120 }}>
@@ -368,7 +436,7 @@ function IndexPage({ data }: { data: EmployeeOnboardingData }) {
         <View style={styles.column}>
           <View style={styles.formField}>
             <Text style={styles.fieldLabel}>Position</Text>
-            <View style={styles.fieldLine} />
+            <FilledLine value={fv(data, "position")} />
           </View>
         </View>
       </View>
@@ -428,7 +496,7 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Department/Group</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "department")} />
             </View>
           </View>
         </View>
@@ -437,11 +505,11 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           <Text style={styles.fieldLabel}>ADDRESS</Text>
           <View style={styles.twoColumn}>
             <View style={[styles.column, { flex: 2 }]}>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "addressStreet")} />
               <Text style={[styles.fieldLabel, { marginTop: 2 }]}>Street Address</Text>
             </View>
             <View style={styles.column}>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "addressAptUnit")} />
               <Text style={[styles.fieldLabel, { marginTop: 2 }]}>Apt/Unit #</Text>
             </View>
           </View>
@@ -450,19 +518,19 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
         <View style={styles.twoColumn}>
           <View style={[styles.column, { flex: 2 }]}>
             <View style={styles.formField}>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "addressCity")} />
               <Text style={[styles.fieldLabel, { marginTop: 2 }]}>City</Text>
             </View>
           </View>
           <View style={styles.column}>
             <View style={styles.formField}>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "addressState")} />
               <Text style={[styles.fieldLabel, { marginTop: 2 }]}>State</Text>
             </View>
           </View>
           <View style={styles.column}>
             <View style={styles.formField}>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "addressZip")} />
               <Text style={[styles.fieldLabel, { marginTop: 2 }]}>Zip Code</Text>
             </View>
           </View>
@@ -472,13 +540,13 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Phone</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "phone")} />
             </View>
           </View>
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Email Address</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "email")} />
             </View>
           </View>
         </View>
@@ -487,13 +555,13 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Date Available</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "dateAvailable")} />
             </View>
           </View>
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Social Security Number</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "ssn")} />
             </View>
           </View>
         </View>
@@ -502,13 +570,13 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Desired Salary</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "desiredSalary")} />
             </View>
           </View>
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Position Applied For</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "positionAppliedFor")} />
             </View>
           </View>
         </View>
@@ -516,65 +584,29 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
         <View style={[styles.twoColumn, { marginTop: 10 }]}>
           <View style={styles.column}>
             <Text style={{ fontSize: 9 }}>Are you a citizen of the USA?</Text>
-            <View style={{ flexDirection: "row", marginTop: 5 }}>
-              <View style={[styles.checkboxRow, { marginRight: 15 }]}>
-                <View style={styles.checkbox} />
-                <Text>Yes</Text>
-              </View>
-              <View style={styles.checkboxRow}>
-                <View style={styles.checkbox} />
-                <Text>No</Text>
-              </View>
-            </View>
+            <YesNoBoxes value={fv(data, "usCitizen")} />
           </View>
           <View style={styles.column}>
             <Text style={{ fontSize: 9 }}>If no, are you authorized to work in the US?</Text>
-            <View style={{ flexDirection: "row", marginTop: 5 }}>
-              <View style={[styles.checkboxRow, { marginRight: 15 }]}>
-                <View style={styles.checkbox} />
-                <Text>Yes</Text>
-              </View>
-              <View style={styles.checkboxRow}>
-                <View style={styles.checkbox} />
-                <Text>No</Text>
-              </View>
-            </View>
+            <YesNoBoxes value={fv(data, "authorizedToWork")} />
           </View>
         </View>
 
         <View style={[styles.twoColumn, { marginTop: 10 }]}>
           <View style={styles.column}>
             <Text style={{ fontSize: 9 }}>Have you ever worked for this company?</Text>
-            <View style={{ flexDirection: "row", marginTop: 5 }}>
-              <View style={[styles.checkboxRow, { marginRight: 15 }]}>
-                <View style={styles.checkbox} />
-                <Text>Yes</Text>
-              </View>
-              <View style={styles.checkboxRow}>
-                <View style={styles.checkbox} />
-                <Text>No</Text>
-              </View>
-            </View>
+            <YesNoBoxes value={fv(data, "previouslyWorked")} />
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>If yes, when?</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "previouslyWorkedWhen")} />
             </View>
           </View>
           <View style={styles.column}>
             <Text style={{ fontSize: 9 }}>Have you ever been convicted of a felony?</Text>
-            <View style={{ flexDirection: "row", marginTop: 5 }}>
-              <View style={[styles.checkboxRow, { marginRight: 15 }]}>
-                <View style={styles.checkbox} />
-                <Text>Yes</Text>
-              </View>
-              <View style={styles.checkboxRow}>
-                <View style={styles.checkbox} />
-                <Text>No</Text>
-              </View>
-            </View>
+            <YesNoBoxes value={fv(data, "felony")} />
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>If yes, explain:</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "felonyExplanation")} />
             </View>
           </View>
         </View>
@@ -592,22 +624,22 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
         </View>
 
         {[
-          { label: "High School", fields: ["Address", "From", "To", "Did you graduate?", "Degree"] },
-          { label: "College", fields: ["Address", "From", "To", "Did you graduate?", "Degree"] },
-          { label: "Other", fields: ["Address", "From", "To", "Did you graduate?", "Degree"] },
+          { label: "High School", prefix: "highSchool" },
+          { label: "College", prefix: "college" },
+          { label: "Other", prefix: "otherSchool" },
         ].map((edu, idx) => (
           <View key={idx} style={{ marginBottom: 8 }}>
             <View style={styles.twoColumn}>
               <View style={styles.column}>
                 <View style={styles.formField}>
                   <Text style={styles.fieldLabel}>{edu.label}</Text>
-                  <View style={styles.fieldLine} />
+                  <FilledLine value={fv(data, `${edu.prefix}Name`)} />
                 </View>
               </View>
               <View style={styles.column}>
                 <View style={styles.formField}>
                   <Text style={styles.fieldLabel}>Address</Text>
-                  <View style={styles.fieldLine} />
+                  <FilledLine value={fv(data, `${edu.prefix}Address`)} />
                 </View>
               </View>
             </View>
@@ -615,13 +647,13 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
               <View style={styles.column}>
                 <View style={styles.formField}>
                   <Text style={styles.fieldLabel}>From / To</Text>
-                  <View style={styles.fieldLine} />
+                  <FilledLine value={fv(data, `${edu.prefix}FromTo`)} />
                 </View>
               </View>
               <View style={styles.column}>
                 <View style={styles.formField}>
                   <Text style={styles.fieldLabel}>Did you graduate? / Degree</Text>
-                  <View style={styles.fieldLine} />
+                  <FilledLine value={fv(data, `${edu.prefix}GraduateDegree`)} />
                 </View>
               </View>
             </View>
@@ -639,13 +671,13 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
               <View style={styles.column}>
                 <View style={styles.formField}>
                   <Text style={styles.fieldLabel}>Full Name</Text>
-                  <View style={styles.fieldLine} />
+                  <FilledLine value={fv(data, `reference${num}Name`)} />
                 </View>
               </View>
               <View style={styles.column}>
                 <View style={styles.formField}>
                   <Text style={styles.fieldLabel}>Relationship</Text>
-                  <View style={styles.fieldLine} />
+                  <FilledLine value={fv(data, `reference${num}Relationship`)} />
                 </View>
               </View>
             </View>
@@ -653,13 +685,13 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
               <View style={styles.column}>
                 <View style={styles.formField}>
                   <Text style={styles.fieldLabel}>Company</Text>
-                  <View style={styles.fieldLine} />
+                  <FilledLine value={fv(data, `reference${num}Company`)} />
                 </View>
               </View>
               <View style={styles.column}>
                 <View style={styles.formField}>
                   <Text style={styles.fieldLabel}>Phone</Text>
-                  <View style={styles.fieldLine} />
+                  <FilledLine value={fv(data, `reference${num}Phone`)} />
                 </View>
               </View>
             </View>
@@ -670,59 +702,66 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           <Text style={styles.sectionTitle}>Previous Employment</Text>
         </View>
 
-        {[1, 2].map((num) => (
-          <View key={num} style={{ marginBottom: 8 }}>
-            <View style={styles.twoColumn}>
-              <View style={styles.column}>
-                <View style={styles.formField}>
-                  <Text style={styles.fieldLabel}>Company</Text>
-                  <View style={styles.fieldLine} />
+        {[1, 2].map((num) => {
+          const may = fv(data, `prevEmployer${num}MayContact`);
+          return (
+            <View key={num} style={{ marginBottom: 8 }}>
+              <View style={styles.twoColumn}>
+                <View style={styles.column}>
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>Company</Text>
+                    <FilledLine value={fv(data, `prevEmployer${num}Company`)} />
+                  </View>
+                </View>
+                <View style={styles.column}>
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>Phone</Text>
+                    <FilledLine value={fv(data, `prevEmployer${num}Phone`)} />
+                  </View>
                 </View>
               </View>
-              <View style={styles.column}>
-                <View style={styles.formField}>
-                  <Text style={styles.fieldLabel}>Phone</Text>
-                  <View style={styles.fieldLine} />
+              <View style={styles.twoColumn}>
+                <View style={styles.column}>
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>Job Title / Supervisor</Text>
+                    <FilledLine value={fv(data, `prevEmployer${num}TitleSupervisor`)} />
+                  </View>
                 </View>
+                <View style={styles.column}>
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>Starting / Ending Salary</Text>
+                    <FilledLine value={fv(data, `prevEmployer${num}SalaryStartEnd`)} />
+                  </View>
+                </View>
+              </View>
+              <View style={styles.twoColumn}>
+                <View style={styles.column}>
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>From / To</Text>
+                    <FilledLine value={fv(data, `prevEmployer${num}FromTo`)} />
+                  </View>
+                </View>
+                <View style={styles.column}>
+                  <View style={styles.formField}>
+                    <Text style={styles.fieldLabel}>Reason for Leaving</Text>
+                    <FilledLine value={fv(data, `prevEmployer${num}ReasonForLeaving`)} />
+                  </View>
+                </View>
+              </View>
+              <View style={styles.checkboxRow}>
+                <Text style={{ fontSize: 8, marginRight: 5 }}>May we contact this employer?</Text>
+                <View style={[styles.checkbox, { width: 10, height: 10 }]}>
+                  {may === "Yes" ? <Text style={styles.checkMark}>X</Text> : null}
+                </View>
+                <Text style={{ fontSize: 8, marginRight: 10 }}>Yes</Text>
+                <View style={[styles.checkbox, { width: 10, height: 10 }]}>
+                  {may === "No" ? <Text style={styles.checkMark}>X</Text> : null}
+                </View>
+                <Text style={{ fontSize: 8 }}>No</Text>
               </View>
             </View>
-            <View style={styles.twoColumn}>
-              <View style={styles.column}>
-                <View style={styles.formField}>
-                  <Text style={styles.fieldLabel}>Job Title / Supervisor</Text>
-                  <View style={styles.fieldLine} />
-                </View>
-              </View>
-              <View style={styles.column}>
-                <View style={styles.formField}>
-                  <Text style={styles.fieldLabel}>Starting / Ending Salary</Text>
-                  <View style={styles.fieldLine} />
-                </View>
-              </View>
-            </View>
-            <View style={styles.twoColumn}>
-              <View style={styles.column}>
-                <View style={styles.formField}>
-                  <Text style={styles.fieldLabel}>From / To</Text>
-                  <View style={styles.fieldLine} />
-                </View>
-              </View>
-              <View style={styles.column}>
-                <View style={styles.formField}>
-                  <Text style={styles.fieldLabel}>Reason for Leaving</Text>
-                  <View style={styles.fieldLine} />
-                </View>
-              </View>
-            </View>
-            <View style={styles.checkboxRow}>
-              <Text style={{ fontSize: 8, marginRight: 5 }}>May we contact this employer?</Text>
-              <View style={[styles.checkbox, { width: 10, height: 10 }]} />
-              <Text style={{ fontSize: 8, marginRight: 10 }}>Yes</Text>
-              <View style={[styles.checkbox, { width: 10, height: 10 }]} />
-              <Text style={{ fontSize: 8 }}>No</Text>
-            </View>
-          </View>
-        ))}
+          );
+        })}
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Military Service</Text>
@@ -732,13 +771,13 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Branch</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "militaryBranch")} />
             </View>
           </View>
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>From / To</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "militaryFromTo")} />
             </View>
           </View>
         </View>
@@ -746,13 +785,13 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Rank at Discharge</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "militaryRankAtDischarge")} />
             </View>
           </View>
           <View style={styles.column}>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Type of Discharge</Text>
-              <View style={styles.fieldLine} />
+              <FilledLine value={fv(data, "militaryTypeOfDischarge")} />
             </View>
           </View>
         </View>
@@ -782,7 +821,14 @@ function EmployeeApplicationPages({ data }: { data: EmployeeOnboardingData }) {
               <Text style={styles.signatureLabel}>Applicant Name (Printed)</Text>
             </View>
             <View style={styles.signatureBlock}>
-              <View style={styles.signatureLine} />
+              {data.employeeSignature ? (
+                <View style={styles.signatureImageContainer}>
+                  {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                  <Image src={data.employeeSignature} style={styles.signatureImage} />
+                </View>
+              ) : (
+                <View style={styles.signatureLine} />
+              )}
               <Text style={styles.signatureLabel}>Applicant Signature</Text>
             </View>
             <View style={{ width: 120 }}>
@@ -866,7 +912,7 @@ function EmploymentContractPage({ data }: { data: EmployeeOnboardingData }) {
       </Text>
 
       <View style={styles.signatureSection} wrap={false}>
-        <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
+        <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} signature={data.employeeSignature} />
         <AdminSignature adminName={data.adminName} adminSignature={data.adminSignature} date={data.hireDate} />
       </View>
 
@@ -968,7 +1014,7 @@ function JobDescriptionPage({ data }: { data: EmployeeOnboardingData }) {
       </Text>
 
       <View style={styles.signatureSection} wrap={false}>
-        <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
+        <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} signature={data.employeeSignature} />
         <AdminSignature adminName={data.adminName} adminSignature={data.adminSignature} date={data.hireDate} />
       </View>
 
@@ -1193,7 +1239,7 @@ function ConfidentialityAgreementPage({ data }: { data: EmployeeOnboardingData }
       </View>
 
       <View style={[styles.signatureSection, { marginTop: 10, paddingTop: 10 }]} wrap={false}>
-        <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
+        <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} signature={data.employeeSignature} />
         <AdminSignature adminName={data.adminName} adminSignature={data.adminSignature} date={data.hireDate} />
       </View>
 
@@ -1257,7 +1303,7 @@ function VerificationOfSkillsPage({ data }: { data: EmployeeOnboardingData }) {
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
+        <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} signature={data.employeeSignature} />
         <AdminSignature adminName={data.adminName} adminSignature={data.adminSignature} date={data.hireDate} />
       </View>
 
@@ -1314,7 +1360,9 @@ function NewEmployeeOrientationPage({ data }: { data: EmployeeOnboardingData }) 
 
       <View style={[styles.formField, { marginBottom: 5 }]}>
         <Text style={styles.fieldLabel}>First Date Providing Service</Text>
-        <View style={[styles.fieldLine, { width: 200 }]} />
+        <View style={{ width: 200 }}>
+          <FilledLine value={fv(data, "firstDateProvidingService")} />
+        </View>
       </View>
 
       <View style={{ marginTop: 5 }}>
@@ -1326,8 +1374,8 @@ function NewEmployeeOrientationPage({ data }: { data: EmployeeOnboardingData }) 
         {orientationTopics.map((topic, idx) => (
           <View key={idx} style={idx % 2 === 0 ? [styles.tableRow, { padding: 4 }] : [styles.tableRowAlt, { padding: 4 }]}>
             <Text style={{ flex: 1, fontSize: 8 }}>{topic}</Text>
-            <Text style={{ width: "20%", fontSize: 8 }}></Text>
-            <Text style={{ width: "15%", fontSize: 8 }}></Text>
+            <Text style={{ width: "20%", fontSize: 8 }}>{fv(data, `orientation${idx + 1}LeadPerson`)}</Text>
+            <Text style={{ width: "15%", fontSize: 8 }}>{fv(data, `orientation${idx + 1}EmployeeInitials`)}</Text>
           </View>
         ))}
       </View>
@@ -1455,7 +1503,7 @@ function MedicationTrainingPages({ data }: { data: EmployeeOnboardingData }) {
         </View>
 
         <View style={styles.signatureSection} wrap={false}>
-          <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
+          <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} signature={data.employeeSignature} />
           <View style={styles.signatureRow}>
             <View style={styles.signatureBlock}>
               <View style={styles.signatureLine} />
@@ -1549,15 +1597,15 @@ function OnboardingChecklistPage({ data }: { data: EmployeeOnboardingData }) {
         {tasks.map((task, idx) => (
           <View key={idx} style={idx % 2 === 0 ? styles.tableRow : styles.tableRowAlt}>
             <Text style={{ flex: 1, fontSize: 8 }}>{task}</Text>
-            <Text style={{ width: 40, fontSize: 8 }}></Text>
-            <Text style={{ width: 60, fontSize: 8 }}></Text>
-            <Text style={{ width: 60, fontSize: 8 }}></Text>
+            <Text style={{ width: 40, fontSize: 8 }}>{fv(data, `task${idx + 1}Check`) ? "X" : ""}</Text>
+            <Text style={{ width: 60, fontSize: 8 }}>{fv(data, `task${idx + 1}TrainerInitials`)}</Text>
+            <Text style={{ width: 60, fontSize: 8 }}>{fv(data, `task${idx + 1}TraineeInitials`)}</Text>
           </View>
         ))}
       </View>
 
       <View style={styles.signatureSection} wrap={false}>
-        <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} />
+        <EmployeeSignatureBlock name={data.employeeName} hireDate={data.hireDate} signature={data.employeeSignature} />
         <View style={styles.signatureRow}>
           <View style={styles.signatureBlock}>
             <View style={styles.signatureLine} />

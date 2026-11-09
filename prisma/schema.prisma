@@ -149,6 +149,7 @@ model Facility {
   careCoordinationEntries  CareCoordinationEntry[]
   groupTherapyMaterials    GroupTherapyMaterial[]
   shiftStaffing            ShiftStaffing[]
+  employeeOnboardingPackets EmployeeOnboardingPacket[]
 
   @@index([bhpId])
 }
@@ -1585,4 +1586,32 @@ model GroupTherapyMaterial {
   @@unique([facilityId, sessionDate])
   @@index([facilityId])
   @@index([sessionDate])
+}
+
+model EmployeeOnboardingPacket {
+  id            String   @id @default(cuid())
+  facilityId    String
+  facility      Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  employeeName String
+  hireDate     DateTime @db.Date
+
+  // Token used in the public signing URL. Random, high-entropy.
+  signingToken String  @unique
+
+  // S3 key for the employee's drawn signature image (optional).
+  // When set, the packet is considered signed.
+  signatureKey String?
+
+  // Everything the employee types into the fillable form, as a flexible
+  // dictionary keyed by field name. Shape matches EMPLOYEE_PACKET_FIELDS
+  // in lib/employee-packet-fields.ts; stored as JSON so we can add new
+  // fields without a migration.
+  formData Json?
+
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([facilityId])
 }

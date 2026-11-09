@@ -61,6 +61,10 @@ export default function OnboardingPage() {
   const [employeeName, setEmployeeName] = useState("");
   const [hireDate, setHireDate] = useState("");
   const [isGeneratingEmployee, setIsGeneratingEmployee] = useState(false);
+  const [isCreatingSigningLink, setIsCreatingSigningLink] = useState(false);
+  const [employeePackets, setEmployeePackets] = useState<
+    { id: string; employeeName: string; hireDate: string; signingToken: string; signatureKey: string | null; createdAt: string }[]
+  >([]);
 
   // Release of Information state
   const [roiName, setRoiName] = useState("");
@@ -100,6 +104,11 @@ export default function OnboardingPage() {
   const { toast } = useToast();
 
   // Fetch residents and facility info for MAR
+  useEffect(() => {
+    loadEmployeePackets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     async function fetchMarData() {
       try {
@@ -268,6 +277,65 @@ export default function OnboardingPage() {
       });
     } finally {
       setIsGeneratingEmployee(false);
+    }
+  };
+
+  const loadEmployeePackets = async () => {
+    try {
+      const res = await fetch("/api/onboarding/employee/packets");
+      if (res.ok) {
+        const data = await res.json();
+        setEmployeePackets(data.packets || []);
+      }
+    } catch (err) {
+      console.error("Failed to load packets", err);
+    }
+  };
+
+  const handleCreateSigningLink = async () => {
+    if (!employeeName.trim()) {
+      toast({ title: "Employee name required", variant: "destructive" });
+      return;
+    }
+    if (!hireDate) {
+      toast({ title: "Hire date required", variant: "destructive" });
+      return;
+    }
+    setIsCreatingSigningLink(true);
+    try {
+      const res = await fetch("/api/onboarding/employee/packets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ employeeName: employeeName.trim(), hireDate }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast({ title: err.error || "Failed to create signing link", variant: "destructive" });
+        return;
+      }
+      const data = await res.json();
+      const url = `${window.location.origin}/sign/employee-packet/${data.packet.signingToken}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        toast({ title: "Signing link copied", description: url });
+      } catch {
+        toast({ title: "Signing link created", description: url });
+      }
+      setEmployeeName("");
+      setHireDate("");
+      await loadEmployeePackets();
+    } finally {
+      setIsCreatingSigningLink(false);
+    }
+  };
+
+  const handleCopyLink = async (token: string) => {
+    const url = `${window.location.origin}/sign/employee-packet/${token}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link copied" });
+    } catch {
+      toast({ title: url });
     }
   };
 
@@ -584,6 +652,21 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <Button
+                  onClick={handleCreateSigningLink}
+                  disabled={isCreatingSigningLink || !employeeName.trim() || !hireDate}
+                  className="w-full"
+                >
+                  {isCreatingSigningLink ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating link...
+                    </>
+                  ) : (
+                    "Create Signing Link"
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={handleGenerateEmployeePDF}
                   disabled={isGeneratingEmployee || !employeeName.trim() || !hireDate}
                   className="w-full"
@@ -596,7 +679,7 @@ export default function OnboardingPage() {
                   ) : (
                     <>
                       <Download className="mr-2 h-4 w-4" />
-                      Generate & Download PDF
+                      Download blank PDF
                     </>
                   )}
                 </Button>
@@ -660,6 +743,66 @@ export default function OnboardingPage() {
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Signing Links</CardTitle>
+              <CardDescription>
+                Packets you&apos;ve created. Share the link with the employee so they can
+                sign; download the finalized PDF once they&apos;re done.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {employeePackets.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No packets yet.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left border-b">
+                      <th className="py-2">Employee</th>
+                      <th className="py-2">Hire Date</th>
+                      <th className="py-2">Status</th>
+                      <th className="py-2 w-56"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employeePackets.map((p) => {
+                      const signed = !!p.signatureKey;
+                      return (
+                        <tr key={p.id} className="border-b last:border-0">
+                          <td className="py-2">{p.employeeName}</td>
+                          <td className="py-2">
+                            {new Date(p.hireDate).toLocaleDateString("en-US", { timeZone: "UTC" })}
+                          </td>
+                          <td className="py-2">
+                            {signed ? (
+                              <span className="text-green-600 font-medium">Signed</span>
+                            ) : (
+                              <span className="text-muted-foreground">Pending signature</span>
+                            )}
+                          </td>
+                          <td className="py-2 flex gap-2 justify-end">
+                            <Button variant="outline" size="sm" onClick={() => handleCopyLink(p.signingToken)}>
+                              Copy link
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                window.open(`/api/onboarding/employee/packets/${p.id}/pdf`, "_blank")
+                              }
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              PDF
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Release of Information Tab */}

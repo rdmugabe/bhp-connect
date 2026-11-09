@@ -74,7 +74,9 @@ export default withAuth(
           path.startsWith("/credentials/") ||
           path.startsWith("/api/auth") ||
           path.startsWith("/api/bhps/available") ||
-          path.startsWith("/api/facility/invitations/")
+          path.startsWith("/api/facility/invitations/") ||
+          path.startsWith("/sign/") ||
+          path.startsWith("/api/sign/")
         ) {
           return true;
         }
